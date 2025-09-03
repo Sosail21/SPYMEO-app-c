@@ -1,0 +1,1 @@
+SPYMEO Next.js + Tailwind project scaffold.

@@ -1,0 +1,1 @@
+import { ROUTES, type Role } from "./routes";export function canAccess(pathname:string,userRole?:Role):boolean{const route=ROUTES.filter(r=>pathname===r.path||pathname.startsWith(r.path+"/")).sort((a,b)=>b.path.length-a.path.length)[0];if(!route)return true;if(route.public)return true;if(!userRole)return false;return route.roles.includes(userRole);}

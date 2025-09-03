@@ -1,0 +1,3 @@
+import type { Metadata } from "next";import "./globals.css";import Header from "@/components/header";import Footer from "@/components/footer";
+export const metadata: Metadata = { title: "SPYMEO", description: "Écosystème local & éthique pour la santé globale." };
+export default function RootLayout({ children }: { children: React.ReactNode }) { return (<html lang="fr"><body><header className="site-header"><div className="header-inner"><Header/></div></header><main id="contenu">{children}</main><footer className="footer"><div className="footer-inner"><Footer/></div></footer></body></html>);}
