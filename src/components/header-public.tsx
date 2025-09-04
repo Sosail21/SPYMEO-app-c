@@ -1,3 +1,4 @@
+// Public header (client component)
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -12,7 +13,7 @@ const links = [
   { href: "/blog", label: "Blog" },
 ];
 
-export default function Header() {
+export default function HeaderPublic() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 

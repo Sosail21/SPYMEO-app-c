@@ -149,3 +149,10 @@ body { @apply bg-bg text-text antialiased; }
 .range { accent-color: #17a2b8; }
 .card { @apply bg-white border border-border rounded-lg shadow-elev p-4 will-change-transform;
 }
+
+/* cache les scrollbars horizontales pour les nav pills */
+.nav-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.nav-scroll::-webkit-scrollbar { display: none; }

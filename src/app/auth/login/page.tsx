@@ -1,1 +1,95 @@
-export default function Login(){return(<main className="section"><div className="container-spy grid md:grid-cols-[1.1fr_.9fr] gap-6 items-start"><div className="auth-card"><header className="mb-2"><h1 className="text-2xl font-semibold">Connexion</h1><p className="text-muted">Accédez à votre espace PASS, Pro ou Ambassadeur.</p></header><div className="alert alert-error" role="alert" hidden><strong>Erreur :</strong> identifiants invalides.</div><form className="auth-form" method="post" action="/api/auth/login" noValidate><div><label className="font-semibold" htmlFor="email">Email</label><input id="email" name="email" type="email" className="w-full rounded-lg border border-border" placeholder="vous@exemple.fr" required/></div><div><div className="flex items-center justify-between"><label className="font-semibold" htmlFor="password">Mot de passe</label><a className="text-sm text-accent" href="/auth/reset">Mot de passe oublié ?</a></div><input id="password" name="password" type="password" className="w-full rounded-lg border border-border" placeholder="••••••••" required/></div><label className="inline-flex items-center gap-2"><input type="checkbox" name="remember"/><span>Se souvenir de moi</span></label><div className="flex gap-2 flex-wrap"><button className="btn" type="submit">Se connecter</button><a className="btn btn-outline" href="/auth/signup">Créer un compte</a></div><div className="flex items-center gap-3 my-2"><div className="h-px bg-border flex-1"/><span className="text-muted text-xs">ou</span><div className="h-px bg-border flex-1"/></div><div className="grid grid-cols-2 gap-2"><button className="btn btn-ghost" type="button">Continuer avec Google</button><button className="btn btn-ghost" type="button">Continuer avec Apple</button></div><p className="text-xs text-muted">En continuant, vous acceptez nos <a className="text-accent" href="/legal/cgu">CGU</a> et notre <a className="text-accent" href="/legal/confidentialite">politique de confidentialité</a>.</p></form></div><aside className="auth-side"><h2 className="text-xl font-semibold">Nouveau sur SPYMEO ?</h2><p className="text-muted">Créez un compte pour accéder au carnet de vie PASS, aux ressources premium et aux réductions chez les pros.</p><a className="btn mt-2" href="/auth/signup">Créer mon compte</a><div className="grid gap-2 mt-3"><div className="page"><span className="badge mr-2">PASS</span>Carnet de vie & ressources</div><div className="page"><span className="badge mr-2">Pro</span>Agenda, fiches clients, spym'com</div><div className="page"><span className="badge mr-2">Ambassadeur</span>Affiliations & commissions</div></div></aside></div></main>)}
+"use client";
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+
+function redirectForRole(role?: string) {
+  switch (role) {
+    case "PASS_USER":
+      return "/pass/tableau-de-bord";
+    case "FREE_USER":
+      return "/user/tableau-de-bord";
+    case "PRACTITIONER":
+      return "/praticiens"; // TODO: /praticien/dashboard quand prêt
+    case "ADMIN":
+      return "/admin";
+    default:
+      return "/user/tableau-de-bord";
+  }
+}
+
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const router = useRouter();
+  const params = useSearchParams();
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setErr(null);
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setErr(data?.error ?? "Erreur de connexion");
+      return;
+    }
+    // Priorité au param ?next=..., sinon route par rôle
+    const nextParam = params.get("next");
+    const to = nextParam && nextParam.startsWith("/") ? nextParam : redirectForRole(data?.user?.role);
+    router.replace(to);
+  }
+
+  return (
+    <main className="section">
+      <div className="container-spy">
+        <div className="auth-card">
+          <h1 className="section-title m-0 mb-2">Connexion</h1>
+          <p className="muted">Comptes de test : gratuit, PASS, praticien, admin.</p>
+
+          <div className="alert">
+            <div className="text-sm">
+              <div><strong>Gratuit :</strong> alice.free@spymeo.test / azerty123</div>
+              <div><strong>PASS :</strong> paul.pass@spymeo.test / azerty123</div>
+              <div><strong>Praticien :</strong> leo.pro@spymeo.test / azerty123</div>
+              <div><strong>Admin :</strong> admin@spymeo.test / admin123</div>
+            </div>
+          </div>
+
+          {err && <div className="alert alert-error mt-3">{err}</div>}
+
+          <form className="auth-form mt-4" onSubmit={onSubmit}>
+            <div className="grid gap-1">
+              <label>Email</label>
+              <input
+                className="page w-full"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                type="email"
+                placeholder="vous@exemple.com"
+                required
+              />
+            </div>
+
+            <div className="grid gap-1">
+              <label>Mot de passe</label>
+              <input
+                className="page w-full"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type="password"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            <button className="btn mt-2" type="submit">Se connecter</button>
+          </form>
+        </div>
+      </div>
+    </main>
+  );
+}

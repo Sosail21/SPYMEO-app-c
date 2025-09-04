@@ -1,1 +1,94 @@
-export default function Article(){return(<><section className="post-hero"><div className="post-hero-inner"><div className="post-hero-media"/><header><div className="flex gap-2 flex-wrap mb-2"><span className="badge">Bien-être</span><span className="badge">Méthodes</span></div><h1 className="text-3xl font-semibold mb-1">Respiration cohérente : 5 minutes par jour</h1><div className="text-muted">par Équipe SPYMEO · 26 août 2025 · 5 min</div></header></div></section><section className="section"><div className="post-layout"><article className="prose-content"><p>La cohérence cardiaque synchronise respiration et variabilité cardiaque. En 5 minutes, 3 fois par jour, on réduit le stress et on améliore la concentration.</p><h2>Le rythme 3·6·5</h2><p>Trois fois par jour, six respirations par minute, pendant cinq minutes.</p><blockquote>Astuce : installez-vous confortablement, dos droit, épaules relâchées.</blockquote><h2>Bénéfices</h2><ul><li>Baisse du cortisol</li><li>Calme & clarté</li><li>Meilleure VRC</li></ul><div className="mt-4 flex gap-2 flex-wrap"><a className="btn btn-ghost" href="#">Partager</a><a className="btn btn-outline" href="/praticien/jane-doe">Trouver un praticien</a></div><hr/><div className="card flex items-center gap-3"><div className="w-12 h-12 rounded-xl bg-[#e6eef2]"/><div><div className="font-semibold">Équipe SPYMEO</div><div className="text-sm text-muted">Rédaction & éthique éditoriale</div></div></div></article><aside className="grid gap-4"><div className="card"><h3 className="font-semibold mb-2">À la une</h3><ul className="grid gap-2 text-sm"><li><a className="link-muted" href="#">Lancer son offre locale</a></li><li><a className="link-muted" href="#">Rencontre : Salomé Nguyen</a></li><li><a className="link-muted" href="#">Mieux dormir</a></li></ul></div><div className="card"><h3 className="font-semibold mb-2">Catégories</h3><ul className="grid gap-2 text-sm"><li><a className="link-muted" href="#">Bien-être</a></li><li><a className="link-muted" href="#">Vie locale</a></li><li><a className="link-muted" href="#">Entreprendre</a></li></ul></div></aside></div></section></>) }
+import Link from "next/link";
+
+const DB = {
+  "comprendre-errance-medicale": {
+    title: "Comprendre l’errance médicale",
+    date: "2025-08-20",
+    author: "Équipe SPYMEO",
+    readingMinutes: 6,
+    category: "Santé globale",
+    content: `
+### Pourquoi parle-t-on d’errance ?
+Parce qu'entre symptômes flous, examens rassurants et fatigue chronique, beaucoup se sentent "entre deux". Ici, on **structure la démarche**.
+
+- Clarifier son besoin
+- Multiplier les angles (pratiques complémentaires **sérieuses**)
+- Documenter ses essais (carnet de vie)
+- Reprendre le fil avec son médecin traitant
+
+### 3 pistes concrètes
+1. **Journal de bord** : symptômes, contexte, intensité (0–10) → visibilité.
+2. **Expérimentations courtes** (2–3 semaines), une à la fois.
+3. **Second avis** : quand ? comment le préparer efficacement.
+
+> On ne cherche pas la magie. On construit une **trajectoire** utile.
+    `,
+  },
+} as const;
+
+export default function BlogPost({ params }: { params: { slug: string } }) {
+  const data = DB[params.slug as keyof typeof DB];
+  return (
+    <main>
+      <section className="post-hero">
+        <div className="post-hero-inner">
+          <div className="post-hero-media" />
+          <div>
+            <span className="badge">{data?.category ?? "SPYM'Blog"}</span>
+            <h1 className="section-title" style={{ marginTop: 8 }}>
+              {data?.title ?? "Article"}
+            </h1>
+            <p className="muted">
+              {formatDate(data?.date)} · {data?.readingMinutes ?? 5} min · {data?.author ?? "Équipe SPYMEO"}
+            </p>
+            <div className="mt-2">
+              <Link className="btn btn-outline" href="/blog">← Retour au blog</Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="post-layout">
+          <article className="prose card p-6">
+            <div
+              dangerouslySetInnerHTML={{ __html: mdToHtml(data?.content ?? "*Contenu bientôt disponible.*") }}
+            />
+          </article>
+          <aside className="grid gap-4">
+            <div className="soft-card p-4">
+              <h3 className="m-0 mb-2">À lire aussi</h3>
+              <ul className="grid gap-2">
+                <li><Link className="link-muted" href="/blog/consommer-local-responsable">Consommer local & responsable</Link></li>
+                <li><Link className="link-muted" href="/blog/bien-choisir-son-praticien">Bien choisir son praticien</Link></li>
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function formatDate(iso?: string) {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString("fr-FR", { year: "numeric", month: "long", day: "2-digit" });
+  } catch {
+    return iso;
+  }
+}
+
+// mini markdown → HTML (juste pour la maquette)
+function mdToHtml(md: string) {
+  return md
+    .replace(/^### (.*$)/gim, "<h3>$1</h3>")
+    .replace(/^## (.*$)/gim, "<h2>$1</h2>")
+    .replace(/^# (.*$)/gim, "<h1>$1</h1>")
+    .replace(/^\> (.*$)/gim, "<blockquote>$1</blockquote>")
+    .replace(/\*\*(.*)\*\*/gim, "<strong>$1</strong>")
+    .replace(/\*(.*)\*/gim, "<em>$1</em>")
+    .replace(/\n$/gim, "<br/>")
+    .replace(/\n\n/g, "<br/><br/>");
+}

@@ -1,201 +1,238 @@
-"use client";
-import { useMemo, useState } from "react";
 import Link from "next/link";
 
-type Pro = {
-  id: string;
+type Praticien = {
+  slug: string;
   name: string;
   title: string;
   city: string;
   distanceKm: number;
-  tags: string[];
-  affinity: number;
+  bio: string;
+  specialites: string[];
+  methodes: string[];
+  tarifs: { label: string; price: string; note?: string }[];
+  contact: { label: string; value: string }[];
+  infos: { label: string; value: string }[];
+  avis: { author: string; rating: number; text: string }[];
 };
 
-const MOCK: Pro[] = [
-  { id: "aline-dupont", name: "Aline Dupont", title: "Naturopathe", city: "Dijon", distanceKm: 3, tags: ["Visio", "Éthique vérifiée", "Dispo cette semaine"], affinity: 92 },
-  { id: "nicolas-perrin", name: "Nicolas Perrin", title: "Sophrologue", city: "Chenôve", distanceKm: 6, tags: ["Première consult.", "Soir & week-end"], affinity: 89 },
-  { id: "salome-nguyen", name: "Salomé Nguyen", title: "Réflexologue", city: "Quetigny", distanceKm: 5, tags: ["À domicile", "Dispo cette semaine"], affinity: 86 },
-];
+const DB: Record<string, Praticien> = {
+  "aline-dupont": {
+    slug: "aline-dupont",
+    name: "Aline Dupont",
+    title: "Naturopathe",
+    city: "Dijon",
+    distanceKm: 3,
+    bio:
+      "J’accompagne les adultes et adolescents sur les thématiques énergie, digestion et stress. Approche pragmatique et documentée, avec un suivi simple et des objectifs mesurables.",
+    specialites: ["Gestion du stress", "Troubles digestifs", "Sommeil", "Équilibre hormonal"],
+    methodes: ["Bilan de vitalité", "Hygiène alimentaire", "Phytothérapie", "Respiration"],
+    tarifs: [
+      { label: "Première consultation (60–75 min)", price: "60 €" },
+      { label: "Suivi (45–60 min)", price: "50 €" },
+      { label: "Bilan complet (90 min)", price: "85 €", note: "avec plan d’action personnalisé" },
+    ],
+    contact: [
+      { label: "Téléphone", value: "06 12 34 56 78" },
+      { label: "Email", value: "aline.dupont@example.com" },
+      { label: "Site", value: "aline-dupont.fr" },
+    ],
+    infos: [
+      { label: "Formats", value: "Cabinet, Visio" },
+      { label: "Adresse", value: "12 rue des Tilleuls, 21000 Dijon" },
+      { label: "Accessibilité", value: "PMR partielle, ascenseur" },
+      { label: "Langues", value: "Français, Anglais" },
+    ],
+    avis: [
+      { author: "Mélissa", rating: 5, text: "Très à l’écoute, explications claires et plan action concret. Je recommande !" },
+      { author: "Romain", rating: 4, text: "Amélioration nette de mon sommeil en 3 semaines. Merci !" },
+    ],
+  },
+};
 
-export default function Praticiens() {
-  const [view, setView] = useState<"grid" | "list">("grid");
-  const [maxPrice, setMaxPrice] = useState(60);
+function stars(n: number) {
+  return "★★★★★☆☆☆☆☆".slice(5 - Math.max(0, Math.min(5, n)), 10 - Math.max(0, Math.min(5, n)));
+}
 
-  const count = useMemo(() => MOCK.length, []);
+export default function PraticienPage({ params }: { params: { slug: string } }) {
+  const data: Praticien =
+    DB[params.slug] ??
+    ({
+      slug: params.slug,
+      name: "Praticien·ne",
+      title: "Spécialité",
+      city: "Ville",
+      distanceKm: 0,
+      bio:
+        "Présentation à venir. Cette fiche est un exemple et sera alimentée par les données réelles (CMS/API) prochainement.",
+      specialites: ["Exemple 1", "Exemple 2"],
+      methodes: ["Méthode A", "Méthode B"],
+      tarifs: [{ label: "Consultation", price: "—" }],
+      contact: [{ label: "Email", value: "contact@example.com" }],
+      infos: [{ label: "Formats", value: "Cabinet, Visio" }],
+      avis: [],
+    } as Praticien);
 
   return (
-    <main className="section">
-      <div className="container-spy">
-        {/* Titre + sous-titre */}
-        <header className="mb-4">
-          <h1 className="text-3xl font-semibold mb-1">Praticiens</h1>
-          <p className="text-muted">
-            Naturopathes, sophrologues, réflexologues, hypnothérapeutes, nutrition… Filtrez par spécialité, format et disponibilités.
-          </p>
-        </header>
-
-        {/* Barre de recherche “pill” */}
-        <form className="search-wrap mb-3" action="/recherche">
-          <input className="input-pill" name="q" placeholder="Ex : sophrologue, gestion du stress…" />
-          <input className="input-pill" name="city" placeholder="Ville ou code postal" />
-          <select name="radius" className="pill pill-muted">
-            <option>20 km</option>
-            <option>10 km</option>
-            <option>50 km</option>
-          </select>
-          <button className="pill pill-solid" type="submit">Chercher</button>
-        </form>
-
-        {/* Chips rapides */}
-        <div className="chips-row">
-          <button className="pill pill-solid" type="button">Disponible cette semaine</button>
-          <button className="pill pill-muted" type="button">Visio</button>
-          <button className="pill pill-muted" type="button">À domicile</button>
-          <button className="pill pill-muted" type="button">Éthique vérifiée</button>
-          <button className="pill pill-muted" type="button">Tarif ≤ 60€</button>
-          <button className="pill pill-muted" type="button">Première consultation</button>
-        </div>
-
-        {/* Layout résultats */}
-        <div className="grid gap-6 md:grid-cols-[300px_1fr] mt-4">
-          {/* FILTRES */}
-          <aside className="soft-card p-4 h-fit">
-            <section className="mb-4">
-              <h3 className="text-sm text-muted mb-2">Spécialités</h3>
-              <ul className="grid gap-2">
-                {["Naturopathie", "Sophrologie", "Réflexologie", "Hypnose", "Nutrition", "Massage bien-être"].map((s) => (
-                  <li key={s} className="flex items-center gap-2">
-                    <input id={s} type="checkbox" className="rounded" />
-                    <label htmlFor={s}>{s}</label>
-                  </li>
-                ))}
-              </ul>
-            </section>
-
-            <section className="mb-4">
-              <h3 className="text-sm text-muted mb-2">Format</h3>
-              {["Cabinet", "Domicile", "Visio"].map((s) => (
-                <label key={s} className="flex items-center gap-2 mb-2">
-                  <input type="checkbox" className="rounded" /> {s}
-                </label>
-              ))}
-            </section>
-
-            <section className="mb-4">
-              <h3 className="text-sm text-muted mb-2">Disponibilités</h3>
-              {["Aujourd’hui", "Cette semaine", "Soir & week-end"].map((s) => (
-                <label key={s} className="flex items-center gap-2 mb-2">
-                  <input type="checkbox" className="rounded" /> {s}
-                </label>
-              ))}
-            </section>
-
-            <section className="mb-4">
-              <h3 className="text-sm text-muted mb-2">Tarif max</h3>
-              <input
-                type="range"
-                min={30}
-                max={120}
-                step={5}
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(parseInt(e.target.value))}
-                className="w-full range"
-              />
-              <div className="text-sm text-muted mt-1">Jusqu’à {maxPrice}€</div>
-            </section>
-
-            <div className="flex gap-2">
-              <button className="pill pill-ghost" type="button">Réinitialiser</button>
-              <button className="pill pill-solid" type="button">Appliquer</button>
-            </div>
-          </aside>
-
-          {/* RÉSULTATS */}
+    <main>
+      {/* HERO */}
+      <section className="fiche-hero">
+        <div className="container-spy fiche-hero-inner">
+          <div className="fiche-avatar" aria-hidden />
           <div>
-            <div className="toolbar mb-3">
-              <div className="text-muted">{count} praticiens trouvés</div>
-              <div className="segmented">
-                <button className={view === "grid" ? "is-active" : ""} onClick={() => setView("grid")} type="button">
-                  Cartes
-                </button>
-                <button className={view === "list" ? "is-active" : ""} onClick={() => setView("list")} type="button">
-                  Liste
-                </button>
-              </div>
+            <h1 className="fiche-name">{data.name}</h1>
+            <p className="fiche-sub">
+              {data.title} — {data.city} · {data.distanceKm} km
+            </p>
+            <div className="fiche-ctas">
+              <Link href={`/praticien/${data.slug}#rdv`} className="btn">
+                Prendre RDV
+              </Link>
+              <Link href={`/auth/login?next=/praticien/${data.slug}#message`} className="btn btn-outline">
+                Envoyer un message
+              </Link>
+              <button className="btn btn-ghost" type="button" title="Ajouter aux favoris (connexion requise)">
+                ☆ Favori
+              </button>
             </div>
-
-            {view === "grid" ? (
-              <div className="grid gap-5 md:grid-cols-3">
-                {MOCK.map((p) => (
-                  <article key={p.id} className="soft-card overflow-hidden relative">
-                    <button aria-label="Ajouter aux favoris" className="like-btn">♡</button>
-                    <div className="h-36 bg-[linear-gradient(135deg,#17a2b8,#5ce0ee)]" />
-                    <div className="p-4 grid gap-2">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold leading-tight">
-                          {p.name}
-                        </h3>
-                        <span className="affinity">{p.affinity}% affinité</span>
-                      </div>
-                      <p className="text-sm text-muted">
-                        {p.title} · {p.city} · {p.distanceKm} km
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {p.tags.map((t) => (
-                          <span key={t} className="pill pill-muted">{t}</span>
-                        ))}
-                      </div>
-                      <div className="flex gap-2 pt-1">
-                        <Link className="pill pill-ghost text-center flex-1" href={`/praticien/${p.id}`}>
-                          Voir la fiche
-                        </Link>
-                        <Link className="pill pill-solid text-center flex-1" href={`/praticien/${p.id}`}>
-                          Prendre RDV
-                        </Link>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <ul className="grid gap-4">
-                {MOCK.map((p) => (
-                  <li key={p.id} className="soft-card p-4 relative">
-                    <button aria-label="Ajouter aux favoris" className="like-btn">♡</button>
-                    <div className="grid md:grid-cols-[160px_1fr_auto] gap-4 items-center">
-                      <div className="h-28 rounded-xl bg-[linear-gradient(135deg,#17a2b8,#5ce0ee)]" />
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold">{p.name}</h3>
-                          <span className="affinity">{p.affinity}% affinité</span>
-                        </div>
-                        <p className="text-sm text-muted">{p.title} · {p.city} · {p.distanceKm} km</p>
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          {p.tags.map((t) => <span key={t} className="pill pill-muted">{t}</span>)}
-                        </div>
-                      </div>
-                      <div className="grid gap-2 md:justify-items-end">
-                        <Link className="pill pill-ghost text-center" href={`/praticien/${p.id}`}>Voir la fiche</Link>
-                        <Link className="pill pill-solid text-center" href={`/praticien/${p.id}`}>Prendre RDV</Link>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {/* Pagination */}
-            <nav className="pagination mt-4" aria-label="Pagination">
-              <a className="page" href="#">Précédent</a>
-              <a className="page page-active" href="#">1</a>
-              <a className="page" href="#">2</a>
-              <a className="page" href="#">3</a>
-              <a className="page" href="#">Suivant</a>
-            </nav>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* LAYOUT */}
+      <section className="section">
+        <div className="fiche-layout">
+          {/* MAIN */}
+          <div className="fiche-main">
+            {/* Présentation */}
+            <article className="card">
+              <h2 className="section-title m-0 mb-2">Présentation</h2>
+              <p className="lead">{data.bio}</p>
+              <div className="badges mt-2">
+                <span className="badge">Éthique vérifiée</span>
+                <span className="badge">Première consult.</span>
+                <span className="badge">Visio</span>
+              </div>
+            </article>
+
+            {/* Spécialités */}
+            <article className="card">
+              <h2 className="section-title m-0 mb-2">Spécialités</h2>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {data.specialites.map((s) => (
+                  <li key={s} className="pill pill-muted">{s}</li>
+                ))}
+              </ul>
+            </article>
+
+            {/* Approches & méthodes */}
+            <article className="card">
+              <h2 className="section-title m-0 mb-2">Approches & méthodes</h2>
+              <div className="flex flex-wrap gap-2">
+                {data.methodes.map((m) => (
+                  <span key={m} className="pill pill-ghost">{m}</span>
+                ))}
+              </div>
+            </article>
+
+            {/* Tarifs */}
+            <article className="card">
+              <h2 className="section-title m-0 mb-2">Tarifs</h2>
+              <ul className="grid gap-2">
+                {data.tarifs.map((t, i) => (
+                  <li key={i} className="flex items-baseline justify-between gap-3 border-b border-[rgba(11,18,57,.08)] pb-2 last:border-0">
+                    <span>{t.label}{t.note ? ` — ${t.note}` : ""}</span>
+                    <strong>{t.price}</strong>
+                  </li>
+                ))}
+              </ul>
+              <p className="muted mt-2">Règlements acceptés : CB, espèces. Remboursement mutuelle possible selon contrat.</p>
+            </article>
+
+            {/* Disponibilités / RDV */}
+            <article id="rdv" className="card">
+              <h2 className="section-title m-0 mb-2">Disponibilités</h2>
+              <div className="rdv-grid">
+                {["Aujourd’hui 15:00", "Demain 10:30", "Ven 14:00", "Lun 09:00", "Lun 11:00", "Mar 16:30", "Mer 13:00", "Jeu 18:30"].map(
+                  (slot) => (
+                    <button key={slot} className="page w-full text-center" type="button">
+                      {slot}
+                    </button>
+                  )
+                )}
+              </div>
+              <div className="mt-3">
+                <Link href={`/auth/login?next=/praticien/${data.slug}#rdv`} className="btn">
+                  Voir plus de créneaux
+                </Link>
+              </div>
+            </article>
+
+            {/* Avis */}
+            <article className="card">
+              <h2 className="section-title m-0 mb-2">Avis</h2>
+              <div className="avis">
+                {data.avis.length === 0 && (
+                  <div className="empty-state">
+                    <p className="m-0">Pas encore d’avis. Soyez le premier à partager votre retour.</p>
+                  </div>
+                )}
+                {data.avis.map((a, i) => (
+                  <div key={i} className="avis-item">
+                    <div className="flex items-center justify-between">
+                      <strong>{a.author}</strong>
+                      <div className="avis-stars" aria-label={`${a.rating} sur 5`}>
+                        {"★".repeat(a.rating)}<span className="text-muted">{"★".repeat(5 - a.rating)}</span>
+                      </div>
+                    </div>
+                    <p className="m-0 mt-1">{a.text}</p>
+                  </div>
+                ))}
+              </div>
+            </article>
+          </div>
+
+          {/* SIDE */}
+          <aside className="fiche-side">
+            {/* Carte */}
+            <div className="map" aria-label="Localisation sur la carte" />
+
+            {/* Contact */}
+            <div className="card">
+              <h3 className="m-0 mb-2">Contact</h3>
+              <ul className="fiche-contact">
+                {data.contact.map((c) => (
+                  <li key={c.label}>
+                    <span className="text-muted">{c.label} :</span> {c.value}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-3 flex gap-2">
+                <Link href={`/auth/login?next=/praticien/${data.slug}#message`} className="btn btn-outline">Écrire</Link>
+                <Link href={`tel:${data.contact.find(c=>c.label==="Téléphone")?.value ?? ""}`} className="btn">Appeler</Link>
+              </div>
+            </div>
+
+            {/* Infos pratiques */}
+            <div className="card">
+              <h3 className="m-0 mb-2">Infos pratiques</h3>
+              <ul className="fiche-infos">
+                {data.infos.map((i) => (
+                  <li key={i.label}>
+                    <span className="text-muted">{i.label} :</span> {i.value}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* CTA PASS (teasing) */}
+            <div className="card">
+              <h3 className="m-0 mb-2">PASS SPYMEO</h3>
+              <p className="m-0">Tarifs préférentiels, ressources premium et carnet de vie.</p>
+              <Link href="/pass" className="btn mt-3">Découvrir le PASS</Link>
+            </div>
+          </aside>
+        </div>
+      </section>
     </main>
   );
 }
