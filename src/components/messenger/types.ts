@@ -1,13 +1,13 @@
 export type User = {
   id: string;
   name: string;
-  avatar?: string; // emoji or URL
+  avatar?: string; // emoji ou URL
   role?: 'PASS' | 'PRACTITIONER' | 'ARTISAN' | 'COMMERÇANT' | 'CENTER' | 'ADMIN';
 };
 
 export type Conversation = {
   id: string;
-  with: User;               // the other participant (for 1‑to‑1)
+  with: User;               // l'autre participant (1‑to‑1)
   lastMessage: string;
   lastAt: string;
   unread?: number;

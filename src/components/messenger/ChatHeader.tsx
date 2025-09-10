@@ -1,6 +1,10 @@
-import type { User } from './types';
+import type { User } from "./types";
 
-export default function ChatHeader({ me, other, onToggleInfo }: {
+export default function ChatHeader({
+  me,
+  other,
+  onToggleInfo,
+}: {
   me: User;
   other?: User;
   onToggleInfo: () => void;

@@ -1,9 +1,13 @@
-'use client';
-import { useState } from 'react';
-import type { Conversation, User } from './types';
+"use client";
+import { useState } from "react";
+import type { Conversation, User } from "./types";
 
 export default function ConversationList({
-  me, conversations, activeId, onSelect, onSearch,
+  me,
+  conversations,
+  activeId,
+  onSelect,
+  onSearch,
 }: {
   me: User;
   conversations: Conversation[];
@@ -11,7 +15,7 @@ export default function ConversationList({
   onSelect: (id: string) => void;
   onSearch: (q: string) => void;
 }) {
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState("");
 
   return (
     <div className="h-full flex flex-col">
@@ -25,7 +29,10 @@ export default function ConversationList({
       <div className="p-3">
         <input
           value={q}
-          onChange={(e) => { setQ(e.target.value); onSearch(e.target.value); }}
+          onChange={(e) => {
+            setQ(e.target.value);
+            onSearch(e.target.value);
+          }}
           placeholder="Rechercher une conversation…"
           className="input-pill w-full"
         />
@@ -38,8 +45,9 @@ export default function ConversationList({
             <button
               key={c.id}
               onClick={() => onSelect(c.id)}
-              className={`text-left rounded-lg p-3 border border-transparent hover:bg-[#f7fbfd] transition
-                ${active ? "bg-[#e9f8fb] text-[#0b5b68] border-accent/20" : ""}`}
+              className={`text-left rounded-lg p-3 border border-transparent hover:bg-[#f7fbfd] transition ${
+                active ? "bg-[#e9f8fb] text-[#0b5b68] border-accent/20" : ""
+              }`}
             >
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-[#e6eef2] grid place-content-center text-base">
@@ -48,13 +56,13 @@ export default function ConversationList({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <div className="font-medium truncate">{c.with.name}</div>
-                    <div className="text-[11px] text-muted shrink-0">{new Date(c.lastAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+                    <div className="text-[11px] text-muted shrink-0">
+                      {new Date(c.lastAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </div>
                   </div>
                   <div className="text-sm text-muted truncate">{c.lastMessage}</div>
                 </div>
-                {c.unread ? (
-                  <span className="text-[11px] bg-accent text-white px-2 py-0.5 rounded-full">{c.unread}</span>
-                ) : null}
+                {c.unread ? <span className="text-[11px] bg-accent text-white px-2 py-0.5 rounded-full">{c.unread}</span> : null}
               </div>
             </button>
           );
