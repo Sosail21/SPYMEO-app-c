@@ -1,5 +1,10 @@
-import Placeholder from "@/components/pro/Placeholder";
+import DirectoryShell from "@/components/repertoire/DirectoryShell";
+
+export const metadata = {
+  title: "Répertoire SPYMEO — Pros",
+  description: "Coordonnées des membres pro SPYMEO et accès rapides.",
+};
 
 export default function Page() {
-  return <Placeholder title="Répertoire SPYMEO">Annuaire des membres SPYMEO.</Placeholder>;
+  return <DirectoryShell />;
 }
