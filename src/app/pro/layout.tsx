@@ -1,10 +1,11 @@
 import { cookies } from "next/headers";
-import ProHeader from "@/components/pro/ProHeader";
 import { COOKIE_NAME } from "@/lib/auth/session";
+import Sidebar from "@/components/pro/Sidebar";
+import Topbar from "@/components/pro/Topbar";
 
 export default async function ProLayout({ children }: { children: React.ReactNode }) {
   const raw = cookies().get(COOKIE_NAME)?.value;
-  let role: string = "PRACTITIONER";
+  let role: string | undefined = "PRACTITIONER";
   let name: string | undefined = "Utilisateur";
   try {
     if (raw) {
@@ -13,14 +14,14 @@ export default async function ProLayout({ children }: { children: React.ReactNod
       name = s?.name ?? name;
     }
   } catch {}
+
   return (
-    <>
-      <header className="site-header border-b">
-        <div className="container-spy py-3">
-          <ProHeader role={role} name={name} />
-        </div>
-      </header>
-      <main>{children}</main>
-    </>
+    <div className="min-h-screen flex">
+      <Sidebar role={role} name={name} />
+      <div className="flex-1 min-w-0 flex flex-col">
+        <Topbar name={name} />
+        <div className="section">{children}</div>
+      </div>
+    </div>
   );
 }
