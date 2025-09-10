@@ -7,7 +7,7 @@ export const COMMON: Item[] = [
   { label: "Répertoire SPYMEO", href: "/pro/repertoire/spymeo", icon: "📇" },
   { label: "Répertoire perso", href: "/pro/repertoire/perso", icon: "📒" },
   { label: "Notes", href: "/pro/notes", icon: "📝" },
-  { label: "Messagerie", href: "/pro/messages", icon: "✉️" },
+  { label: "Messages", href: "/pro/messages", icon: "💬" },
 ];
 
 export const PRACTITIONER: Item[] = [
