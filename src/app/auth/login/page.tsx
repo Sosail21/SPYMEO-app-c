@@ -2,91 +2,79 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-function redirectForRole(role?: string) {
+function nextForRole(role?: string) {
   switch (role) {
-    case "PASS_USER":
-      return "/pass/tableau-de-bord";
-    case "FREE_USER":
-      return "/user/tableau-de-bord";
+    case "PASS_USER": return "/pass/tableau-de-bord";
+    case "FREE_USER": return "/user/tableau-de-bord";
     case "PRACTITIONER":
-      return "/praticiens"; // TODO: /praticien/dashboard quand prêt
-    case "ADMIN":
-      return "/admin";
-    default:
-      return "/user/tableau-de-bord";
+    case "ARTISAN":
+    case "COMMERÇANT":
+    case "CENTER":     return "/pro/dashboard";
+    case "ADMIN":      return "/admin";
+    default:           return "/";
   }
 }
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [err, setErr] = useState<string | null>(null);
+  const [email, setEmail] = useState("leo.pro@spymeo.test");
+  const [password, setPassword] = useState("azerty123");
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const params = useSearchParams();
+  const sp = useSearchParams();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setErr(null);
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setErr(data?.error ?? "Erreur de connexion");
-      return;
+    setError(null);
+    try {
+      const r = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data?.error || "Erreur de connexion");
+      const wanted = sp.get("next");
+      router.push(wanted || nextForRole(data.role));
+    } catch (err: any) {
+      setError(err.message || "Erreur de connexion");
     }
-    // Priorité au param ?next=..., sinon route par rôle
-    const nextParam = params.get("next");
-    const to = nextParam && nextParam.startsWith("/") ? nextParam : redirectForRole(data?.user?.role);
-    router.replace(to);
   }
 
   return (
     <main className="section">
-      <div className="container-spy">
+      <div className="container-spy max-w-xl mx-auto">
         <div className="auth-card">
-          <h1 className="section-title m-0 mb-2">Connexion</h1>
-          <p className="muted">Comptes de test : gratuit, PASS, praticien, admin.</p>
+          <h1 className="text-xl font-semibold mb-2">Connexion</h1>
 
           <div className="alert">
             <div className="text-sm">
-              <div><strong>Gratuit :</strong> alice.free@spymeo.test / azerty123</div>
-              <div><strong>PASS :</strong> paul.pass@spymeo.test / azerty123</div>
-              <div><strong>Praticien :</strong> leo.pro@spymeo.test / azerty123</div>
-              <div><strong>Admin :</strong> admin@spymeo.test / admin123</div>
+              <b>Comptes de test :</b> gratuit, PASS, praticien, artisan, commerçant, centre, admin.
+              <ul className="mt-1 grid gap-1">
+                <li>Gratuit : <code>alice.free@spymeo.test</code> / <code>azerty123</code></li>
+                <li>PASS : <code>paul.pass@spymeo.test</code> / <code>azerty123</code></li>
+                <li>Praticien : <code>leo.pro@spymeo.test</code> / <code>azerty123</code></li>
+                <li>Artisan : <code>emma.artisan@spymeo.test</code> / <code>azerty123</code></li>
+                <li>Commerçant : <code>marc.commercant@spymeo.test</code> / <code>azerty123</code></li>
+                <li>Centre : <code>clara.centre@spymeo.test</code> / <code>azerty123</code></li>
+                <li>Admin : <code>admin@spymeo.test</code> / <code>admin123</code></li>
+              </ul>
             </div>
           </div>
 
-          {err && <div className="alert alert-error mt-3">{err}</div>}
+          <form className="auth-form mt-3" onSubmit={onSubmit}>
+            <label className="grid gap-1">
+              <span className="text-sm text-muted">Email</span>
+              <input className="page" value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
+            </label>
 
-          <form className="auth-form mt-4" onSubmit={onSubmit}>
-            <div className="grid gap-1">
-              <label>Email</label>
-              <input
-                className="page w-full"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                type="email"
-                placeholder="vous@exemple.com"
-                required
-              />
-            </div>
+            <label className="grid gap-1">
+              <span className="text-sm text-muted">Mot de passe</span>
+              <input className="page" value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+            </label>
 
-            <div className="grid gap-1">
-              <label>Mot de passe</label>
-              <input
-                className="page w-full"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                type="password"
-                placeholder="••••••••"
-                required
-              />
-            </div>
+            {error && <div className="alert alert-error">{error}</div>}
 
-            <button className="btn mt-2" type="submit">Se connecter</button>
+            <button className="btn w-full" type="submit">Se connecter</button>
           </form>
         </div>
       </div>
