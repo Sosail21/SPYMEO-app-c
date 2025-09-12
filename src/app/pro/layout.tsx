@@ -18,10 +18,14 @@ export default async function ProLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen flex">
       <Sidebar role={role} name={name} />
-      <div className="flex-1 min-w-0 flex flex-col">
+      {/* Right side */}
+      <main className="flex-1 min-w-0 flex flex-col">
         <Topbar name={name} />
-        <div className="section">{children}</div>
-      </div>
+        {/* Scrollable content area */}
+        <div className="flex-1 overflow-auto p-6">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

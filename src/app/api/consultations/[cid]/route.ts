@@ -1,0 +1,1 @@
+// ... contenu complet route consultation by id
