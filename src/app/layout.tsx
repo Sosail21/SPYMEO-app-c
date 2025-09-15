@@ -1,3 +1,4 @@
+// src/app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
 import { cookies } from "next/headers";
@@ -25,13 +26,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="fr">
+      <head>
+        {/* FullCalendar v6 CSS (CDN) */}
+        <link rel="stylesheet" href="https://unpkg.com/@fullcalendar/core@6.1.19/index.css" />
+        <link rel="stylesheet" href="https://unpkg.com/@fullcalendar/daygrid@6.1.19/index.css" />
+        <link rel="stylesheet" href="https://unpkg.com/@fullcalendar/timegrid@6.1.19/index.css" />
+      </head>
       <body>
         <header className="site-header">
           <div className="container-spy flex items-center gap-6 py-3">
             {hasUser ? <HeaderUser /> : <HeaderPublic />}
           </div>
         </header>
+
         <main id="contenu">{children}</main>
+
         <footer className="footer">
           <div className="footer-inner container-spy">
             <div>© SPYMEO</div>

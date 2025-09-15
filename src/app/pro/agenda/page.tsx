@@ -1,5 +1,10 @@
-import Placeholder from "@/components/pro/Placeholder";
+export const metadata = {
+  title: "Agenda / RDV — SPYMEO",
+  description: "Gérer vos rendez-vous, modifier, supprimer, configurer votre agenda.",
+};
 
-export default function Page() {
-  return <Placeholder title="Agenda / RDV">Créneaux, buffers, sync ICS.</Placeholder>;
+import AgendaPageClient from "./page.client";
+
+export default async function AgendaPage() {
+  return <AgendaPageClient />;
 }
