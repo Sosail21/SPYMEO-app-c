@@ -1,44 +1,32 @@
-import { getCabinet } from "@/lib/db/mockCabinets";
-import Link from "next/link";
 
-export default function Page({ params }: { params: { id: string } }) {
-  const ad = getCabinet(params.id);
-  if (!ad) return <div className="container-spy section">Annonce introuvable.</div>;
+// src/app/pro/cabinet-partage/[id]/page.tsx
+import Link from "next/link";
+import { getCabinet } from "@/components/cabinet/mock";
+
+export const metadata = { title: "Annonce — SPYMEO" };
+
+export default async function CabinetDetailPage({ params }: { params: { id: string } }) {
+  const ann = getCabinet(params.id);
+  if (!ann) return <main className="section"><div className="container-spy">Annonce introuvable.</div></main>;
 
   return (
     <main className="section">
-      <div className="container-spy grid lg:grid-cols-[1fr_340px] gap-6">
-        <article className="soft-card p-0 overflow-hidden">
-          <div className="h-56 bg-[linear-gradient(135deg,#17a2b8,#5ce0ee)]" />
-          <div className="p-5 grid gap-2">
-            <h1 className="text-2xl font-bold">{ad.title}</h1>
-            <div className="text-muted">
-              {ad.city} • {ad.size} m² • {ad.type}
+      <div className="container-spy grid gap-4">
+        <Link className="page inline-block w-fit" href="/pro/cabinet-partage">← Retour</Link>
+        <article className="soft-card p-4 grid gap-4">
+          <header className="flex items-start justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-semibold">{ann.title}</h1>
+              <div className="text-muted">{ann.city} • {ann.surface} m² {ann.equiped ? "• équipé" : ""}</div>
             </div>
-            <div className="font-extrabold text-lg">{ad.price} € / mois</div>
-            <p className="mt-2">{ad.description}</p>
+            <Link className="btn" href={`/pro/messages?to=${ann.author.id}`}>Contacter</Link>
+          </header>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {ann.images.slice(0,3).map((src,i)=>(<img key={i} src={src} alt={ann.title} className="w-full h-48 object-cover rounded-xl"/>))}
           </div>
+          <p className="leading-relaxed">{ann.description}</p>
+          <footer className="text-sm text-muted">Publié par <Link href={`/pro/repertoire/spymeo?u=${ann.author.id}`} className="text-accent">{ann.author.name}</Link></footer>
         </article>
-
-        <aside className="soft-card p-4 h-fit">
-          <div className="grid gap-2">
-            <div className="text-sm text-muted">Publié par</div>
-            <div className="font-semibold">{ad.postedBy}</div>
-            <div className="text-sm text-muted">Dispo. à partir du</div>
-            <div className="font-medium">
-              {new Date(ad.availabilityDate).toLocaleDateString("fr-FR")}
-            </div>
-            <Link
-              className="pill pill-solid mt-2"
-              href={`/pro/messages?to=${encodeURIComponent(ad.postedBy)}`}
-            >
-              Contacter
-            </Link>
-            <Link className="pill pill-ghost" href="/pro/cabinet-partage">
-              ← Retour aux annonces
-            </Link>
-          </div>
-        </aside>
       </div>
     </main>
   );
