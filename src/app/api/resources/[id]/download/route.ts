@@ -1,0 +1,1 @@
+// TODO: Implémenter src/app/api/resources/[id]/download/route.ts
