@@ -1,59 +1,42 @@
+// src/components/pro/RoleMenu.tsx
 "use client";
 import Link from "next/link";
+import { itemsForRole } from "./menu";
 
-type Item = { label: string; href: string };
+export default function RoleMenu({ role }: { role?: string }) {
+  const { common, specific } = itemsForRole(role);
 
-const COMMON: Item[] = [
-  { label: "Tableau de bord", href: "/pro/dashboard" },
-  { label: "Ma fiche", href: "/pro/fiche" },
-  { label: "SPYM'Com", href: "/pro/spymcom" },
-  { label: "Répertoire SPYMEO", href: "/pro/repertoire/spymeo" },
-  { label: "Répertoire perso", href: "/pro/repertoire/perso" },
-  { label: "Notes", href: "/pro/notes" },
-  { label: "Messagerie", href: "/pro/messages" },
-];
-
-const PRACTITIONER: Item[] = [
-  { label: "Agenda / RDV", href: "/pro/agenda" },
-  { label: "Fiches clients", href: "/pro/fiches-clients" },
-  { label: "Statistiques", href: "/pro/statistiques" },
-  { label: "Pré-compta", href: "/pro/precompta" },
-  { label: "Évènements", href: "/pro/evenements" },
-  { label: "Académie", href: "/pro/academie" },
-  { label: "Blog (proposer)", href: "/pro/blog-proposer" },
-  { label: "Ressources", href: "/pro/ressources" },
-  { label: "Cabinet partagé", href: "/pro/cabinet-partage" },
-];
-
-const MERCHANT_CENTER: Item[] = [
-  { label: "Catalogue", href: "/pro/catalogue" },
-  { label: "Nouveau produit", href: "/pro/catalogue/nouveau-produit" },
-  { label: "Nouvelle formation", href: "/pro/catalogue/nouvelle-formation" },
-];
-
-export default function RoleMenu({ role }: { role: string }) {
-  const roleItems =
-    role === "PRACTITIONER"
-      ? PRACTITIONER
-      : role === "ARTISAN" || role === "COMMERÇANT" || role === "CENTER"
-      ? MERCHANT_CENTER
-      : [];
+  if (!role) {
+    // Par prudence, si on ne connaît pas le rôle, on n’affiche QUE le commun
+    return (
+      <nav className="w-full">
+        <ul className="flex items-center gap-2 overflow-x-auto whitespace-nowrap [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {common.map((i) => (
+            <li key={i.href}>
+              <Link className="pill pill-ghost hover:shadow-elev" href={i.href}>
+                {i.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    );
+  }
 
   return (
     <nav className="w-full">
-      <ul
-        className="flex items-center gap-2 overflow-x-auto whitespace-nowrap
-          [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {COMMON.map((i) => (
+      <ul className="flex items-center gap-2 overflow-x-auto whitespace-nowrap [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {common.map((i) => (
           <li key={i.href}>
             <Link className="pill pill-ghost hover:shadow-elev" href={i.href}>
               {i.label}
             </Link>
           </li>
         ))}
-        {roleItems.length > 0 && <li className="mx-2 text-muted">•</li>}
-        {roleItems.map((i) => (
+
+        {specific.length > 0 && <li className="mx-2 text-muted">•</li>}
+
+        {specific.map((i) => (
           <li key={i.href}>
             <Link className="pill pill-muted hover:shadow-elev" href={i.href}>
               {i.label}
