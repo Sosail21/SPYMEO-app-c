@@ -33,7 +33,7 @@ export default function UserAvatarMenu({ name }: { name?: string }) {
       </button>
       {open && (
         <div role="menu" className="absolute right-0 mt-2 w-56 bg-white border border-border rounded-xl shadow-[0_10px_30px_rgba(11,18,57,0.12)] p-2 grid gap-1 z-50">
-          <Link role="menuitem" className="page hover:bg-[#f7fbfd]" href="/user/compte" onClick={()=>setOpen(false)}>Mon compte</Link>
+          <Link role="menuitem" className="page hover:bg-[#f7fbfd]" href="/" onClick={()=>setOpen(false)}>Mon compte</Link>
           <form role="menuitem" action="/api/auth/logout" method="POST">
             <button className="page w-full text-left hover:bg-[#f7fbfd]" type="submit">Se déconnecter</button>
           </form>

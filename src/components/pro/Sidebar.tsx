@@ -84,7 +84,7 @@ export default function Sidebar({ role, name }: { role?: string; name?: string }
       </nav>
 
       <div className="mt-auto p-3 grid gap-2">
-        <Link className="page" href="/user/compte" title={collapsed ? "Mon compte" : undefined}>
+        <Link className="page" href="/pro/compte" title={collapsed ? "Mon compte" : undefined}>
           <span className="text-sm">{collapsed ? "⚙️" : "⚙️  Mon compte"}</span>
         </Link>
         <form action="/api/auth/logout" method="POST">
