@@ -1,110 +1,125 @@
 "use client";
+
 import Link from "next/link";
 
 export default function Home() {
   return (
     <main>
-      {/* HERO (gradient) */}
+      {/* ===== HERO / MEGA SEARCH ===== */}
       <section className="hero py-10 md:py-14">
         <div className="container-spy">
-          {/* largeur 80% centrée */}
-          <div className="mx-auto w-[80%]">
-            <div className="grid md:grid-cols-[1.1fr_.9fr] gap-10 items-center">
-              <div>
-                {/* titre légèrement moins gros */}
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                  Au cœur de la santé globale
-                </h1>
+          <div className="mx-auto w-[90%] md:w-[70%] text-center">
+            <h1 className="text-3xl md:text-4xl font-bold mb-3">
+              Au cœur de la santé globale
+            </h1>
+            <p className="text-muted max-w-2xl mx-auto">
+              Trouvez le bon praticien, découvrez des artisans engagés et avancez
+              pas à pas vers votre bien-être au niveau local.
+            </p>
 
-                <p className="text-muted max-w-2xl">
-                  Trouvez le bon praticien, découvrez des artisans engagés, et avancez pas à pas
-                  vers votre bien‑être — au niveau local.
-                </p>
+            {/* Mega search en pleine largeur */}
+            <form
+              className="search-wrap flex flex-col md:flex-row flex-wrap md:flex-nowrap gap-2 mt-6"
+              action="/recherche"
+            >
+              <input
+                name="q"
+                placeholder="Praticien, spécialité…"
+                className="input-pill flex-1 min-w-0"
+              />
+              <input
+                name="city"
+                placeholder="Ville ou code postal"
+                className="input-pill flex-1 min-w-0"
+              />
+              <select
+                name="radius"
+                className="pill pill-muted shrink-0 w-full md:w-auto"
+                defaultValue="20"
+                aria-label="Rayon"
+              >
+                <option value="10">10 km</option>
+                <option value="20">20 km</option>
+                <option value="50">50 km</option>
+              </select>
+              <button
+                className="pill pill-solid shrink-0 w-full md:w-auto"
+                type="submit"
+              >
+                Rechercher
+              </button>
+            </form>
 
-                {/* Search pill : inputs plus larges + bouton arrondi comme le form */}
-                <form className="search mt-4" action="/recherche">
-                  <input
-                    name="q"
-                    placeholder="Naturopathe, sophrologue, réflexologue..."
-                    className="flex-[2] min-w-0"
-                  />
-                  <input
-                    name="city"
-                    placeholder="Ville ou code postal"
-                    className="flex-[1.5] min-w-0"
-                  />
-                  <select
-                    name="radius"
-                    className="hidden sm:block bg-[#f7fbfd] rounded-full px-3 py-2 border border-accent/25"
-                  >
-                    <option>20 km</option>
-                    <option>10 km</option>
-                    <option>50 km</option>
-                  </select>
-                  {/* bouton même radius que la search bar */}
-                  <button className="btn rounded-full" type="submit">
-                    Rechercher
-                  </button>
-                </form>
+            {/* quick chips */}
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              <button className="chip chip-active" type="button">
+                Proche de moi
+              </button>
+              <button className="chip" type="button">
+                Première consult.
+              </button>
+              <button className="chip" type="button">
+                Téléconsultation
+              </button>
+              <button className="chip" type="button">
+                Bio / Local
+              </button>
+            </div>
 
-                {/* étiquettes non cliquables en tons pastel distincts */}
-                <div className="mt-3 flex items-center gap-2">
-                  <span className="rounded-full px-3 py-1 text-sm bg-emerald-50 text-emerald-700">
-                    Éthique
-                  </span>
-                  <span className="rounded-full px-3 py-1 text-sm bg-sky-50 text-sky-700">
-                    Local
-                  </span>
-                  <span className="rounded-full px-3 py-1 text-sm bg-violet-50 text-violet-700">
-                    Intégral
-                  </span>
-                </div>
-              </div>
-
-              <div className="hero-visual" aria-hidden />
+            {/* KPIs */}
+            <div className="kpi-band mt-4 justify-center">
+              <div>✨ 98% de satisfaction</div>
+              <div>🔒 Éthique vérifiée</div>
+              <div>📍 Local & circuits courts</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 1) Parcourir par univers — fond BLANC */}
+      {/* ===== UNIVERS ===== */}
       <section className="section bg-white">
         <div className="container-spy">
           <h2 className="section-title">Parcourir par univers</h2>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { href: "/praticiens", title: "Praticiens", desc: "Naturopathes, sophrologues, réflexologues…" },
-              { href: "/artisans", title: "Artisans", desc: "Cosmétiques naturels, apiculteurs, savonniers…" },
-              { href: "/commercants", title: "Commerçants", desc: "Boutiques locales engagées." },
-              { href: "/centres-de-formation", title: "Centres de formation", desc: "Formations éthiques & sérieuses." },
-            ].map((u) => (
-              <Link
+            {UNIVERSES.map((u) => (
+              <article
                 key={u.href}
-                href={u.href}
-                className="card group transition duration-200 ease-out hover:-translate-y-0.5 hover:scale-[1.01] hover:shadow-[0_14px_36px_rgba(11,18,57,0.12)] focus:outline-none"
+                className="group relative overflow-hidden rounded-2xl shadow-sm bg-white ring-1 ring-[rgba(11,18,57,.08)]"
               >
-                <div className="flex flex-col gap-1">
-                  <span className="text-lg font-semibold">{u.title}</span>
-                  <span className="text-muted">{u.desc}</span>
+                <div
+                  className="h-36 sm:h-40 bg-cover bg-center transition-transform duration-300 group-hover:scale-[1.04]"
+                  style={{ backgroundImage: `url(${u.img})` }}
+                />
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold">{u.title}</h3>
+                  <p className="text-muted">{u.desc}</p>
                 </div>
-              </Link>
+                {/* overlay on hover */}
+                <div className="uni-overlay pointer-events-none group-hover:pointer-events-auto">
+                  <div className="uni-overlay-inner">
+                    <Link className="btn" href={u.href}>
+                      Découvrir
+                    </Link>
+                    <Link
+                      className="btn btn-outline"
+                      href={`/recherche?type=${u.query}`}
+                    >
+                      Rechercher
+                    </Link>
+                  </div>
+                </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 2) Sélection près de chez vous — fond #edf4f6 */}
+      {/* ===== FEATURED ===== */}
       <section className="section bg-[#edf4f6]">
         <div className="container-spy">
           <h2 className="section-title">Sélection près de chez vous</h2>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {[
-              { href: "/praticien/aline-dupont", title: "Aline Dupont", meta: "Naturopathe — Dijon" },
-              { href: "/artisan/atelier-savon", title: "Atelier Savon", meta: "Artisan — Beaune" },
-              { href: "/centre-de-formation/centre-horizon", title: "Centre Horizon", meta: "Centre de formation — Dijon" },
-            ].map((c) => (
+            {FEATURED.map((c) => (
               <Link
                 key={c.href}
                 href={c.href}
@@ -120,45 +135,71 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 3) Comment ça marche ? — fond BLANC */}
+      {/* ===== BENEFITS ===== */}
       <section className="section bg-white">
         <div className="container-spy">
-          <h2 className="section-title">Comment ça marche ?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { n: "1", t: "Recherchez", d: "Trouvez un pro, un artisan ou un centre en fonction de vos besoins." },
-              { n: "2", t: "Choisissez", d: "Comparez la fiche, l’éthique, la localisation et les disponibilités." },
-              { n: "3", t: "Rencontrez", d: "Prenez rendez-vous et avancez à votre rythme. Le PASS ajoute des avantages." },
-            ].map((s) => (
+          <h2 className="section-title">Pourquoi SPYMEO ?</h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {BENEFITS.map((b) => (
               <div
-                key={s.n}
-                className="card transition duration-200 ease-out hover:-translate-y-0.5 hover:scale-[1.01] hover:shadow-[0_14px_36px_rgba(11,18,57,0.12)]"
+                key={b.t}
+                className="card transition duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(11,18,57,0.12)]"
               >
-                <div className="step-num">{s.n}</div>
-                <h3 className="font-semibold mb-1">{s.t}</h3>
-                <p className="muted">{s.d}</p>
+                <div className="text-2xl mb-2">{b.emoji}</div>
+                <h3 className="font-semibold mb-1">{b.t}</h3>
+                <p className="muted">{b.d}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 4) Derniers articles — fond #edf4f6 */}
+      {/* ===== PASS ===== */}
+      <section className="section">
+        <div className="container-spy">
+          <div className="soft-card p-6 md:p-8 bg-[linear-gradient(135deg,#0ea5b7,#54dbe9)] text-white grid md:grid-cols-[1.2fr_.8fr] items-center gap-6 rounded-2xl">
+            <div>
+              <h3 className="text-xl md:text-2xl font-semibold">Le PASS SPYMEO</h3>
+              <p className="opacity-90 mt-1">
+                Tarifs préférentiels chez nos partenaires, ressources premium et carnet de vie. Un accélérateur pour votre bien-être.
+              </p>
+              <div className="flex gap-2 mt-3">
+                <Link href="/pass" className="btn btn-light">
+                  Découvrir le PASS
+                </Link>
+                <Link
+                  href="/devenir-membre-pro"
+                  className="btn btn-outline-light"
+                >
+                  Devenir partenaire
+                </Link>
+              </div>
+            </div>
+            <div className="h-36 md:h-40 rounded-xl bg-white/15" />
+          </div>
+        </div>
+      </section>
+
+      {/* ===== POSTS ===== */}
       <section className="section bg-[#edf4f6]">
         <div className="container-spy">
-          <h2 className="section-title">Derniers articles</h2>
+          <div className="flex items-center justify-between gap-4 mb-2">
+            <h2 className="section-title m-0">Derniers articles</h2>
+            <Link href="/blog" className="pill pill-ghost">
+              Voir le blog
+            </Link>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { href: "/blog/comprendre-errance-medicale", t: "Comprendre l’errance médicale", d: "Approche globale : pratiques alternatives, seconds avis, hygiène de vie…" },
-              { href: "/blog/consommer-local-responsable", t: "Consommer local & responsable", d: "Des repères simples pour mieux choisir au quotidien." },
-              { href: "/blog/bien-choisir-son-praticien", t: "Bien choisir son praticien", d: "Ce qui compte vraiment : écoute, compétence, cadre, suivi." },
-            ].map((p) => (
+            {POSTS.map((p) => (
               <Link
                 key={p.href}
                 href={p.href}
                 className="post-card transition duration-200 ease-out hover:-translate-y-0.5 hover:scale-[1.01] hover:shadow-[0_14px_36px_rgba(11,18,57,0.12)]"
               >
-                <span className="post-cover" />
+                <span
+                  className="post-cover"
+                  style={{ backgroundImage: `url(${p.img})` }}
+                />
                 <div className="post-body">
                   <h3 className="font-semibold">{p.t}</h3>
                   <p className="text-muted">{p.d}</p>
@@ -169,19 +210,92 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA sombre */}
+      {/* ===== CTA FINAL ===== */}
       <section className="section cta">
         <div className="container-spy cta-inner">
           <div>
-            <h3 className="text-xl md:text-2xl font-semibold mb-1">Envie d’aller plus loin ?</h3>
+            <h3 className="text-xl md:text-2xl font-semibold mb-1">
+              Envie d’aller plus loin ?
+            </h3>
             <p className="opacity-90">Créez votre compte ou découvrez le PASS.</p>
           </div>
           <div className="flex gap-2">
-            <Link href="/auth/signup" className="btn">Créer mon compte</Link>
-            <Link href="/pass" className="btn btn-outline">Découvrir le PASS</Link>
+            <Link href="/auth/signup" className="btn">
+              Créer mon compte
+            </Link>
+            <Link href="/pass" className="btn btn-outline">
+              Découvrir le PASS
+            </Link>
           </div>
         </div>
       </section>
     </main>
   );
 }
+
+/* ----------------------- Data ----------------------- */
+
+const UNIVERSES = [
+  {
+    href: "/praticiens",
+    query: "praticien",
+    title: "Praticiens",
+    desc: "Naturopathes, sophrologues, réflexologues…",
+    img: "/images/univers/praticiens.jpg",
+  },
+  {
+    href: "/artisans",
+    query: "artisan",
+    title: "Artisans",
+    desc: "Cosmétiques naturels, apiculteurs, savonniers…",
+    img: "/images/univers/artisans.jpg",
+  },
+  {
+    href: "/commercants",
+    query: "commercant",
+    title: "Commerçants",
+    desc: "Boutiques locales engagées.",
+    img: "/images/univers/commercants.jpg",
+  },
+  {
+    href: "/centres-de-formation",
+    query: "centre",
+    title: "Centres de formation",
+    desc: "Formations éthiques & sérieuses.",
+    img: "/images/univers/centres.jpg",
+  },
+];
+
+const FEATURED = [
+  { href: "/praticien/aline-dupont", title: "Aline Dupont", meta: "Naturopathe — Dijon" },
+  { href: "/artisan/atelier-savon", title: "Atelier Savon", meta: "Artisan — Beaune" },
+  { href: "/centre-de-formation/centre-horizon", title: "Centre Horizon", meta: "Centre de formation — Dijon" },
+];
+
+const BENEFITS = [
+  { emoji: "🧭", t: "Éthique vérifiée", d: "Charte claire, pratiques cadrées, avis authentifiés." },
+  { emoji: "📍", t: "Local & circuits courts", d: "Des pros près de chez vous, engagés pour le territoire." },
+  { emoji: "⏱️", t: "Prise de RDV simple", d: "En cabinet, à distance, ou à domicile selon vos besoins." },
+  { emoji: "🔖", t: "Avantages PASS", d: "Réductions, ressources premium et suivi de vos actions." },
+];
+
+const POSTS = [
+  {
+    href: "/blog/comprendre-errance-medicale",
+    t: "Comprendre l’errance médicale",
+    d: "Approche globale : pratiques alternatives, seconds avis, hygiène de vie…",
+    img: "/images/blog/errance.jpg",
+  },
+  {
+    href: "/blog/consommer-local-responsable",
+    t: "Consommer local & responsable",
+    d: "Des repères simples pour mieux choisir au quotidien.",
+    img: "/images/blog/local.jpg",
+  },
+  {
+    href: "/blog/bien-choisir-son-praticien",
+    t: "Bien choisir son praticien",
+    d: "Ce qui compte vraiment : écoute, compétence, cadre, suivi.",
+    img: "/images/blog/praticien.jpg",
+  },
+];

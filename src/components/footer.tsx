@@ -1,1 +1,0 @@
-export default function Footer(){return(<><a href="/" className="brand"><span className="brand-dot"/><span>SPYMEO</span></a><ul className="flex gap-4 text-muted"><li><a href="/legal/mentions-legales">Mentions légales</a></li><li><a href="/legal/cgu">CGU</a></li><li><a href="/legal/confidentialite">Confidentialité</a></li></ul></>)}
