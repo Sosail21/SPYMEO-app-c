@@ -1,6 +1,14 @@
 "use client";
-import { useMemo, useState } from "react";
+
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+
+// ---- Types ---------------------------------------------------------------
+
+export type PassPartner = {
+  enabled: boolean;
+  rate: 5 | 10 | 15 | 20 | 25 | 30;
+};
 
 export type UniverseItem = {
   id: string;
@@ -10,6 +18,10 @@ export type UniverseItem = {
   distanceKm: number;
   tags: string[];
   affinity: number;
+
+  // 👇 Nouveau (optionnels pour rétro-compat)
+  userId?: string;                 // identifiant du pro côté PASS
+  passPartner?: PassPartner;       // si tu veux injecter directement le statut PASS
 };
 
 type Props = {
@@ -21,7 +33,30 @@ type Props = {
   specialties?: string[];
   formats?: string[];
   availabilities?: string[];
+
+  /**
+   * Si true et si items[].userId est défini, UniverseSearch fera
+   * un fetch vers /api/public/pass/[userId] pour enrichir l'affichage.
+   * Par défaut false pour ne rien casser.
+   */
+  fetchPassStatus?: boolean;
 };
+
+// ---- Petit badge inline --------------------------------------------------
+
+function PassBadgeInline({ partner }: { partner?: PassPartner }) {
+  if (!partner?.enabled) return null;
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full border border-sky-300 bg-sky-50 px-2.5 py-[2px] text-xs font-medium text-sky-700"
+      title={`Partenaire PASS : -${partner.rate}% pour les membres PASS`}
+    >
+      🔖 PASS · -{partner.rate}%
+    </span>
+  );
+}
+
+// ---- Composant principal -------------------------------------------------
 
 export default function UniverseSearch({
   title,
@@ -32,10 +67,86 @@ export default function UniverseSearch({
   specialties = [],
   formats = ["Cabinet", "Domicile", "Visio"],
   availabilities = ["Aujourd’hui", "Cette semaine", "Soir & week-end"],
+  fetchPassStatus = false,
 }: Props) {
   const [view, setView] = useState<"grid" | "list">("grid");
   const [maxPrice, setMaxPrice] = useState(60);
-  const count = useMemo(() => items.length, [items]);
+
+  // Filtres simples UI
+  const [cityFilter, setCityFilter] = useState<string>("");
+  const [passOnly, setPassOnly] = useState<boolean>(false);
+
+  // État local pour enrichir les items avec passPartner (si fetchPassStatus = true)
+  const [passByUserId, setPassByUserId] = useState<Record<string, PassPartner>>({});
+
+  // Optionnel : auto-fetch du statut PASS si demandé
+  useEffect(() => {
+    if (!fetchPassStatus) return;
+
+    // collecter les userId uniques à requêter
+    const ids = Array.from(
+      new Set(items.map((it) => it.userId).filter(Boolean) as string[])
+    ).filter((uid) => !(uid in passByUserId)); // éviter les doublons déjà chargés
+
+    if (ids.length === 0) return;
+
+    let cancelled = false;
+    (async () => {
+      const entries: [string, PassPartner][] = [];
+      for (const uid of ids) {
+        try {
+          const r = await fetch(`/api/public/pass/${uid}`, { cache: "no-store" });
+          if (r.ok) {
+            const data = (await r.json()) as { enabled: boolean; rate: number };
+            // clamp rate sur nos valeurs possibles
+            const rateAllowed = [5, 10, 15, 20, 25, 30] as const;
+            const rate = (rateAllowed.includes(data.rate as any) ? data.rate : 10) as PassPartner["rate"];
+            entries.push([uid, { enabled: !!data.enabled, rate }]);
+          }
+        } catch {
+          // ignore erreur réseau
+        }
+      }
+      if (!cancelled && entries.length) {
+        setPassByUserId((prev) => {
+          const next = { ...prev };
+          for (const [uid, p] of entries) next[uid] = p;
+          return next;
+        });
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchPassStatus, items, passByUserId]);
+
+  // Fusionner la source du statut PASS : priorité à item.passPartner si fourni, sinon map local (fetch)
+  const itemsWithPass: UniverseItem[] = useMemo(() => {
+    return items.map((it) => {
+      const enriched = { ...it };
+      if (!enriched.passPartner && enriched.userId && passByUserId[enriched.userId]) {
+        enriched.passPartner = passByUserId[enriched.userId];
+      }
+      return enriched;
+    });
+  }, [items, passByUserId]);
+
+  const filtered = useMemo(() => {
+    let data = [...itemsWithPass];
+
+    if (cityFilter.trim()) {
+      const c = cityFilter.trim().toLowerCase();
+      data = data.filter((p) => p.city.toLowerCase().includes(c));
+    }
+    if (passOnly) {
+      data = data.filter((p) => p.passPartner?.enabled);
+    }
+
+    return data;
+  }, [itemsWithPass, cityFilter, passOnly]);
+
+  const count = filtered.length;
 
   return (
     <main className="section">
@@ -45,13 +156,19 @@ export default function UniverseSearch({
           <p className="text-muted">{subtitle}</p>
         </header>
 
-        <form className="search-wrap mb-3" action="/recherche">
+        <form className="search-wrap mb-3" action="/recherche" onSubmit={(e)=>e.preventDefault()}>
           <input className="input-pill" name="q" placeholder="Ex : mot-clé, spécialité…" />
-          <input className="input-pill" name="city" placeholder="Ville ou code postal" />
-          <select name="radius" className="pill pill-muted">
-            <option>20 km</option>
-            <option>10 km</option>
-            <option>50 km</option>
+          <input
+            className="input-pill"
+            name="city"
+            placeholder="Ville ou code postal"
+            value={cityFilter}
+            onChange={(e) => setCityFilter(e.target.value)}
+          />
+          <select name="radius" className="pill pill-muted" defaultValue="20">
+            <option value="20">20 km</option>
+            <option value="10">10 km</option>
+            <option value="50">50 km</option>
           </select>
           <button className="pill pill-solid" type="submit">Chercher</button>
         </form>
@@ -111,8 +228,31 @@ export default function UniverseSearch({
               <div className="text-sm text-muted mt-1">Jusqu’à {maxPrice}€</div>
             </section>
 
-            <div className="flex gap-2">
-              <button className="pill pill-ghost" type="button">Réinitialiser</button>
+            {/* 🔖 Filtre PASS */}
+            <section className="mb-2">
+              <h3 className="text-sm text-muted mb-2">Avantages</h3>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={passOnly}
+                  onChange={(e) => setPassOnly(e.target.checked)}
+                />
+                Partenaire PASS
+              </label>
+            </section>
+
+            <div className="flex gap-2 mt-4">
+              <button
+                className="pill pill-ghost"
+                type="button"
+                onClick={() => {
+                  setCityFilter("");
+                  setPassOnly(false);
+                  setMaxPrice(60);
+                }}
+              >
+                Réinitialiser
+              </button>
               <button className="pill pill-solid" type="button">Appliquer</button>
             </div>
           </aside>
@@ -121,10 +261,18 @@ export default function UniverseSearch({
             <div className="toolbar mb-3">
               <div className="text-muted">{count} résultats</div>
               <div className="segmented">
-                <button className={view === "grid" ? "is-active" : ""} onClick={() => setView("grid")} type="button">
+                <button
+                  className={view === "grid" ? "is-active" : ""}
+                  onClick={() => setView("grid")}
+                  type="button"
+                >
                   Cartes
                 </button>
-                <button className={view === "list" ? "is-active" : ""} onClick={() => setView("list")} type="button">
+                <button
+                  className={view === "list" ? "is-active" : ""}
+                  onClick={() => setView("list")}
+                  type="button"
+                >
                   Liste
                 </button>
               </div>
@@ -132,7 +280,7 @@ export default function UniverseSearch({
 
             {view === "grid" ? (
               <div className="grid gap-5 md:grid-cols-3">
-                {items.map((p) => (
+                {filtered.map((p) => (
                   <article
                     key={p.id}
                     className="soft-card overflow-hidden relative transition duration-200 ease-out hover:-translate-y-0.5 hover:scale-[1.01] hover:shadow-[0_14px_36px_rgba(11,18,57,0.12)]"
@@ -141,7 +289,10 @@ export default function UniverseSearch({
                     <div className="h-36 bg-[linear-gradient(135deg,#17a2b8,#5ce0ee)]" />
                     <div className="p-4 grid gap-2">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-semibold leading-tight">{p.name}</h3>
+                        <h3 className="font-semibold leading-tight flex items-center gap-2">
+                          {p.name}
+                          <PassBadgeInline partner={p.passPartner} />
+                        </h3>
                         <span className="affinity">{p.affinity}% affinité</span>
                       </div>
                       <p className="text-sm text-muted">
@@ -166,7 +317,7 @@ export default function UniverseSearch({
               </div>
             ) : (
               <ul className="grid gap-4">
-                {items.map((p) => (
+                {filtered.map((p) => (
                   <li
                     key={p.id}
                     className="soft-card p-4 relative transition duration-200 ease-out hover:-translate-y-0.5 hover:scale-[1.01] hover:shadow-[0_14px_36px_rgba(11,18,57,0.12)]"
@@ -176,7 +327,10 @@ export default function UniverseSearch({
                       <div className="h-28 rounded-xl bg-[linear-gradient(135deg,#17a2b8,#5ce0ee)]" />
                       <div>
                         <div className="flex items-center justify-between">
-                          <h3 className="font-semibold">{p.name}</h3>
+                          <h3 className="font-semibold flex items-center gap-2">
+                            {p.name}
+                            <PassBadgeInline partner={p.passPartner} />
+                          </h3>
                           <span className="affinity">{p.affinity}% affinité</span>
                         </div>
                         <p className="text-sm text-muted">

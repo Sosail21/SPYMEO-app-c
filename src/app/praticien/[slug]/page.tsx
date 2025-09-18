@@ -1,6 +1,8 @@
 import Link from "next/link";
+import PassBadge from "@/components/public/PassBadge";
 
 type Praticien = {
+  userId?: string; // 👈 ajouté pour lier au PASS
   slug: string;
   name: string;
   title: string;
@@ -17,6 +19,7 @@ type Praticien = {
 
 const DB: Record<string, Praticien> = {
   "aline-dupont": {
+    userId: "p1", // 👈 id du pro pour récupérer le PASS
     slug: "aline-dupont",
     name: "Aline Dupont",
     title: "Naturopathe",
@@ -57,6 +60,7 @@ export default function PraticienPage({ params }: { params: { slug: string } }) 
   const data: Praticien =
     DB[params.slug] ??
     ({
+      userId: "p_fallback", // 👈 au cas où
       slug: params.slug,
       name: "Praticien·ne",
       title: "Spécialité",
@@ -79,7 +83,11 @@ export default function PraticienPage({ params }: { params: { slug: string } }) 
         <div className="container-spy fiche-hero-inner">
           <div className="fiche-avatar" aria-hidden />
           <div>
-            <h1 className="fiche-name">{data.name}</h1>
+            <h1 className="fiche-name flex items-center gap-3">
+              <span>{data.name}</span>
+              {/* 👉 Badge PASS (affiché si partenaire actif) */}
+              {data.userId && <PassBadge userId={data.userId} />}
+            </h1>
             <p className="fiche-sub">
               {data.title} — {data.city} · {data.distanceKm} km
             </p>

@@ -1,7 +1,16 @@
 import UniverseSearch, { UniverseItem } from "@/components/universe/UniverseSearch";
 
 const MOCK: UniverseItem[] = [
-  { id: "aline-dupont", name: "Aline Dupont", title: "Naturopathe", city: "Dijon", distanceKm: 3, tags: ["Visio", "Éthique vérifiée", "Dispo cette semaine"], affinity: 92 },
+  {
+    id: "aline-dupont",
+    name: "Aline Dupont",
+    title: "Naturopathe",
+    city: "Dijon",
+    distanceKm: 3,
+    tags: ["Visio", "Éthique vérifiée", "Dispo cette semaine"],
+    affinity: 92,
+    passPartner: { enabled: true, rate: 15 }, // ⬅️ badge s’affichera
+  },
   { id: "nicolas-perrin", name: "Nicolas Perrin", title: "Sophrologue", city: "Chenôve", distanceKm: 6, tags: ["Première consult.", "Soir & week-end"], affinity: 89 },
   { id: "salome-nguyen", name: "Salomé Nguyen", title: "Réflexologue", city: "Quetigny", distanceKm: 5, tags: ["À domicile", "Dispo cette semaine"], affinity: 86 },
 ];

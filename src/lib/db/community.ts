@@ -57,6 +57,12 @@ const passPartners = new Map<string, PassPartner>();
   opportunities.set(o2.id, o2);
 })();
 
+// 👉 seed PASS partenaire pour le userId test
+passPartners.set("p1", { userId: "p1", enabled: true, rate: 15 });
+passPartners.set("c1", { userId: "c1", enabled: true, rate: 10 });
+passPartners.set("t1", { userId: "t1", enabled: true, rate: 15 });
+passPartners.set("a1", { userId: "a1", enabled: true, rate: 15 });
+
 export async function listAdvantages(userId: string) {
   return advantages.get(userId) ?? [];
 }
