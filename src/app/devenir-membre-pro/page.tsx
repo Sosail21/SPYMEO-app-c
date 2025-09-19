@@ -1,3 +1,4 @@
+// src/app/devenir-membre-pro/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -6,14 +7,17 @@ import Link from "next/link";
 
 type Secteur = "PRACTITIONER" | "CENTER" | "COMMERCANT" | "ARTISAN";
 
-/** Pages “service/landing” à ouvrir selon le secteur
- *  👉 PRACTITIONER envoie maintenant vers la page dédiée
- */
+/** Pages “service/landing” à ouvrir selon le secteur */
 const MAP_SERVICE_BY_SECTOR: Record<Secteur, string> = {
-  PRACTITIONER: "/praticiens/devenir-membre", // ⬅️ lien vers ta page praticien
-  CENTER: "/spymeo-start",                    // cadrage programmes + sessions
-  COMMERCANT: "/spymeo-web",                  // catalogue + présence locale
-  ARTISAN: "/spymeo-web",                     // vitrine + atelier/commande
+  // ✅ tunnel dédié praticiens
+  PRACTITIONER: "/praticiens/devenir-membre",
+
+  // (en attendant une page dédiée centre, on garde Start)
+  CENTER: "/centres-de-formation/devenir-membre",
+
+  // ✅ page commune Commerçants & Artisans avec pré-sélection
+  COMMERCANT: "/commercants-artisans/devenir-membre?secteur=COMMERCANT",
+  ARTISAN: "/commercants-artisans/devenir-membre?secteur=ARTISAN",
 };
 
 /** Fallback si on choisit “Démarrer l’inscription” */
@@ -51,7 +55,7 @@ export default function DevenirMembrePro() {
               simples et un réseau local éthique. Commencez par choisir votre secteur.
             </p>
 
-            {/* Raccourcis pour pré-sélectionner un secteur */}
+            {/* Raccourcis de pré-sélection */}
             <nav className="chips-row justify-center mt-4">
               <Link className="chip" href="/devenir-membre-pro?secteur=PRACTITIONER">Praticien·ne</Link>
               <Link className="chip" href="/devenir-membre-pro?secteur=COMMERCANT">Commerçant</Link>
@@ -73,7 +77,7 @@ export default function DevenirMembrePro() {
                 onSelect={setSecteur}
                 title="Praticien·ne"
                 desc="Naturopathes, sophrologues, réflexologues, hypnose, etc."
-                bullets={["Fiche + RDV", "Offre & packs", "Blog & contenus"]}
+                bullets={["Fiche optimisée + RDV", "Offre & packs", "Blog & contenus"]}
                 detailsHref={MAP_SERVICE_BY_SECTOR.PRACTITIONER}
               />
               <SectorCard
@@ -82,7 +86,7 @@ export default function DevenirMembrePro() {
                 onSelect={setSecteur}
                 title="Commerçant"
                 desc="Boutiques locales engagées (vrac, bio, cosmétiques, etc.)"
-                bullets={["Catalogue simple", "Contact/commande", "SEO local"]}
+                bullets={["Catalogue produits", "Commandes & clients", "SEO local"]}
                 detailsHref={MAP_SERVICE_BY_SECTOR.COMMERCANT}
               />
               <SectorCard
@@ -91,7 +95,7 @@ export default function DevenirMembrePro() {
                 onSelect={setSecteur}
                 title="Artisan"
                 desc="Savonnerie, cuir, menuiserie, textile, céramique…"
-                bullets={["Vitrine claire", "Ateliers/commandes", "Local & circuits courts"]}
+                bullets={["Vitrine services/ateliers", "Commandes/inscriptions", "Local & circuits courts"]}
                 detailsHref={MAP_SERVICE_BY_SECTOR.ARTISAN}
               />
               <SectorCard
@@ -105,11 +109,9 @@ export default function DevenirMembrePro() {
               />
             </div>
 
-            {/* Choix destination (service vs onboarding) */}
+            {/* Destination (service vs inscription) */}
             <div className="soft-card p-4 flex flex-col sm:flex-row items-center gap-3">
-              <div className="text-sm text-muted">
-                Où souhaitez-vous aller après la sélection ?
-              </div>
+              <div className="text-sm text-muted">Où souhaitez-vous aller après la sélection ?</div>
               <div className="segmented">
                 <button
                   type="button"
@@ -224,16 +226,7 @@ function SectorCard({
 
       <div className="mt-3 flex gap-2">
         <Link href={detailsHref} className="pill pill-ghost">Voir détails</Link>
-        <Link
-          href={
-            value === "PRACTITIONER"
-              ? "/praticiens/devenir-membre"
-              : detailsHref
-          }
-          className="pill pill-muted"
-        >
-          En savoir plus
-        </Link>
+        <Link href={detailsHref} className="pill pill-muted">En savoir plus</Link>
       </div>
     </div>
   );
