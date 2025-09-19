@@ -195,3 +195,11 @@ main#contenu{ padding-bottom:var(--spymeo-footer-h); }
   backdrop-filter:blur(8px);
   border-top:1px solid #e2e8f0;
 }
+
+@layer utilities {
+  /* Variante compacte pour le BO (centres/praticiens) */
+  .section-compact { @apply py-4 md:py-6; }
+
+  /* Wrapper pratique : compacte toutes les sections d’une page */
+  .compact-sections .section { @apply py-4 md:py-6; }
+}

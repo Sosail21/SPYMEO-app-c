@@ -72,8 +72,8 @@ export const MENUS: RoleMenus = {
     { label: "Nouvelle formation", href: "/pro/formations/nouvelle", icon: "➕" },
     { label: "Sessions & Inscriptions", href: "/pro/formations/sessions", icon: "🗓️" },
     { label: "Apprenants", href: "/pro/apprenants", icon: "👥" },
-    { label: "Statistiques", href: "/pro/statistiques", icon: "📈" },
-    { label: "Pré-compta", href: "/pro/precompta", icon: "📚" },
+    { label: "Statistiques", href: "/pro/statistiques/centre", icon: "📈" },
+    { label: "Pré-compta", href: "/pro/precompta/centre", icon: "📚" },
   ],
 };
 
