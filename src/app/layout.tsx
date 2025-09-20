@@ -5,52 +5,69 @@ import { cookies } from "next/headers";
 import { COOKIE_NAME } from "@/lib/auth/session";
 import HeaderPublic from "@/components/header-public";
 import HeaderUser from "@/components/header-user";
-import Footer from "@/components/layout/Footer"; // ⬅️ footer fixe
+import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
   title: "SPYMEO",
   description: "Écosystème local & éthique pour la santé globale.",
 };
 
+type Plan = "free" | "pass";
+type SessionShape = {
+  role?: string;
+  name?: string;
+  email?: string;
+};
+
+function roleToPlan(role?: string): Plan | null {
+  if (!role) return null;
+  const r = String(role).toUpperCase().trim();
+  if (r === "PASS_USER") return "pass";
+  if (r === "FREE_USER") return "free";
+  return null;
+}
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const rawSession = cookies().get(COOKIE_NAME)?.value;
+  const raw = cookies().get(COOKIE_NAME)?.value;
+  let plan: Plan | null = null;
+  let userName: string | undefined = undefined;
+  let email: string | undefined = undefined;
 
-  let hasUser = false;
-  let userName: string | undefined;
-
-  if (rawSession) {
+  if (raw) {
     try {
-      const s = JSON.parse(rawSession);
-      hasUser = ["FREE_USER", "PASS_USER"].includes(s?.role);
-      userName = s?.name ?? s?.user?.name ?? undefined;
+      const s = JSON.parse(raw) as SessionShape;
+      plan = roleToPlan(s?.role);
+      userName = s?.name;
+      email = s?.email;
     } catch {
-      hasUser = false;
+      // cookie illisible => on reste en public
     }
   }
+
+  const isLoggedIn = plan === "free" || plan === "pass";
+
+  // objet user minimal pour HeaderUser (même menu pour Free & Pass)
+  const user = isLoggedIn
+    ? { name: userName, email, plan }
+    : undefined;
 
   return (
     <html lang="fr" className="h-full">
       <head>
-        {/* FullCalendar v6 CSS (CDN) */}
+        {/* FullCalendar CSS (si besoin) */}
         <link rel="stylesheet" href="https://unpkg.com/@fullcalendar/core@6.1.19/index.css" />
         <link rel="stylesheet" href="https://unpkg.com/@fullcalendar/daygrid@6.1.19/index.css" />
         <link rel="stylesheet" href="https://unpkg.com/@fullcalendar/timegrid@6.1.19/index.css" />
       </head>
-
-      {/* 
-        has-fixed-footer ➜ ajoute un padding-bottom pour ne pas cacher le contenu
-        (défini dans globals.css selon la hauteur du footer fixe)
-      */}
       <body className="min-h-screen bg-white text-slate-900 has-fixed-footer">
         <header className="site-header">
-          <div className="container-spy flex items-center gap-6 py-3">
-            {hasUser ? <HeaderUser user={{ name: userName }} /> : <HeaderPublic />}
+          <div className="header-inner">
+            {isLoggedIn ? <HeaderUser user={user} /> : <HeaderPublic />}
           </div>
         </header>
 
         <main id="contenu">{children}</main>
 
-        {/* Footer fixe global (public) */}
         <Footer />
       </body>
     </html>

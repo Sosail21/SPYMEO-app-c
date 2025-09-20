@@ -194,7 +194,7 @@ export default function SpymeoStartPage() {
           </div>
           <div className="flex gap-2">
             <Link href="/auth/signup?contact=start" className="btn">Réserver un appel</Link>
-            <Link href="/spymeo-web" className="btn btn-outline">Voir SPYMEO Web</Link>
+            <Link href="/services/spymeo-web" className="btn btn-outline">Voir SPYMEO Web</Link>
           </div>
         </div>
       </section>
