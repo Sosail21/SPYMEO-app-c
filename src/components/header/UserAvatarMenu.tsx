@@ -1,42 +1,74 @@
+// src/components/header/UserAvatarMenu.tsx
 "use client";
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 
-function Initials({ name }: { name?: string }) {
-  const initials = (name ?? "U")
-    .split(" ").filter(Boolean).map((s) => s[0]?.toUpperCase()).slice(0,2).join("");
-  return (
-    <div className="w-10 h-10 rounded-full bg-[#e6eef2] text-[#0b1239] grid place-content-center font-semibold">
-      {initials || "U"}
-    </div>
-  );
-}
+import { useState, useMemo } from "react";
+import Link from "next/link";
 
 export default function UserAvatarMenu({ name }: { name?: string }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    function onClick(e: MouseEvent){ if(ref.current && !ref.current.contains(e.target as Node)) setOpen(false); }
-    function onKey(e: KeyboardEvent){ if(e.key === "Escape") setOpen(false); }
-    document.addEventListener("click", onClick);
-    document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("click", onClick); document.removeEventListener("keydown", onKey); };
-  }, []);
+
+  const initials = useMemo(() => {
+    const n = (name ?? "").trim();
+    if (!n) return "U";
+    const parts = n.split(/\s+/).slice(0, 2);
+    return parts.map(p => p[0]?.toUpperCase() ?? "").join("") || "U";
+  }, [name]);
+
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative">
       <button
-        className="rounded-full focus:outline-none focus:ring-2 focus:ring-accent/40"
-        aria-haspopup="menu" aria-expanded={open}
-        onClick={() => setOpen(v=>!v)} title={name || "Compte"}
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="like-btn w-10 h-10 !static !shadow-none !rounded-full bg-white border border-border text-sm font-semibold"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        title={name || "Mon compte"}
       >
-        <Initials name={name} />
+        {initials}
       </button>
+
       {open && (
-        <div role="menu" className="absolute right-0 mt-2 w-56 bg-white border border-border rounded-xl shadow-[0_10px_30px_rgba(11,18,57,0.12)] p-2 grid gap-1 z-50">
-          <Link role="menuitem" className="page hover:bg-[#f7fbfd]" href="/" onClick={()=>setOpen(false)}>Mon compte</Link>
-          <form role="menuitem" action="/api/auth/logout" method="POST">
-            <button className="page w-full text-left hover:bg-[#f7fbfd]" type="submit">Se déconnecter</button>
-          </form>
+        <div
+          role="menu"
+          className="absolute right-0 mt-2 w-56 bg-white border border-border rounded-xl shadow-[0_10px_30px_rgba(11,18,57,0.10)] p-2 z-50"
+        >
+          <div className="px-2 py-1.5 text-sm text-muted">
+            Connecté{ name ? ` en tant que ${name}` : "" }
+          </div>
+          <div className="grid gap-1">
+            <Link
+              role="menuitem"
+              href="/user/tableau-de-bord"
+              className="page hover:bg-[#f7fbfd]"
+              onClick={() => setOpen(false)}
+            >
+              Mon compte
+            </Link>
+            <Link
+              role="menuitem"
+              href="/user/tableau-de-bord?tab=profil"
+              className="page hover:bg-[#f7fbfd]"
+              onClick={() => setOpen(false)}
+            >
+              Profil
+            </Link>
+            <Link
+              role="menuitem"
+              href="/user/tableau-de-bord?tab=achats"
+              className="page hover:bg-[#f7fbfd]"
+              onClick={() => setOpen(false)}
+            >
+              Mes achats
+            </Link>
+          </div>
+
+          <div className="my-2 h-px bg-slate-200" />
+
+          <form action="/api/auth/logout" method="post">
+  <button type="submit" className="w-full text-left page hover:bg-[#fff3f3] hover:text-[#7a1d1d]">
+    Se déconnecter
+  </button>
+</form>
         </div>
       )}
     </div>

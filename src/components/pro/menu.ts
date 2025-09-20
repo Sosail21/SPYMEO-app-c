@@ -49,22 +49,22 @@ export const MENUS: RoleMenus = {
   ],
 
   artisan: [
-    { label: "Catalogue services", href: "/pro/catalogue/services", icon: "🧰" },
-    { label: "Nouveau service", href: "/pro/catalogue/services/nouveau", icon: "➕" },
-    { label: "Commandes", href: "/pro/ventes/commandes", icon: "🧾" },
-    { label: "Clients", href: "/pro/clients", icon: "👥" },
-    { label: "Statistiques", href: "/pro/statistiques", icon: "📈" },
-    { label: "Pré-compta", href: "/pro/precompta", icon: "📚" },
+    { label: "Catalogue services", href: "/pro/artisan/catalogue/services", icon: "🧰" },
+    { label: "Nouveau service", href: "/pro/artisan/catalogue/services/nouveau", icon: "➕" },
+    { label: "Commandes", href: "/pro/artisan/ventes/commandes", icon: "🧾" },
+        { label: "Clients", href: "/pro/artisan/clients", icon: "👥" },
+    { label: "Statistiques", href: "/pro/artisan/statistiques", icon: "📈" },
+    { label: "Pré-compta", href: "/pro/artisan/precompta", icon: "📚" },
   ],
 
   comm: [
-    { label: "Catalogue produits", href: "/pro/catalogue", icon: "🛍️" },
-    { label: "Nouveau produit", href: "/pro/catalogue/nouveau-produit", icon: "➕" },
-    { label: "Commandes", href: "/pro/ventes/commandes", icon: "🧾" },
-    { label: "Stock", href: "/pro/stock", icon: "📦" },
-    { label: "Clients", href: "/pro/clients", icon: "👥" },
-    { label: "Statistiques", href: "/pro/statistiques", icon: "📈" },
-    { label: "Pré-compta", href: "/pro/precompta", icon: "📚" },
+    { label: "Catalogue",   href: "/pro/commercants/produits",        icon: "🛍️" },
+    { label: "Nouveau",     href: "/pro/commercants/produits/nouveau", icon: "➕" },
+    { label: "Commandes",   href: "/pro/commercants/commandes",       icon: "📦" },
+    { label: "Stock",       href: "/pro/commercants/stock",           icon: "🏷️" },
+    { label: "Clients",     href: "/pro/commercants/clients",         icon: "👥" },
+    { label: "Statistiques",href: "/pro/commercants/statistiques",    icon: "📈" },
+    { label: "Pré-compta",  href: "/pro/commercants/pre-compta",      icon: "📚" },
   ],
 
   center: [

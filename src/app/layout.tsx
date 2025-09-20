@@ -1,3 +1,4 @@
+// src/app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
 import { cookies } from "next/headers";
@@ -12,17 +13,20 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const session = cookies().get(COOKIE_NAME)?.value;
-  const hasUser =
-    !!session &&
-    (() => {
-      try {
-        const s = JSON.parse(session as string);
-        return ["FREE_USER", "PASS_USER"].includes(s?.role);
-      } catch {
-        return false;
-      }
-    })();
+  const rawSession = cookies().get(COOKIE_NAME)?.value;
+
+  let hasUser = false;
+  let userName: string | undefined;
+
+  if (rawSession) {
+    try {
+      const s = JSON.parse(rawSession);
+      hasUser = ["FREE_USER", "PASS_USER"].includes(s?.role);
+      userName = s?.name ?? s?.user?.name ?? undefined;
+    } catch {
+      hasUser = false;
+    }
+  }
 
   return (
     <html lang="fr" className="h-full">
@@ -40,7 +44,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="min-h-screen bg-white text-slate-900 has-fixed-footer">
         <header className="site-header">
           <div className="container-spy flex items-center gap-6 py-3">
-            {hasUser ? <HeaderUser /> : <HeaderPublic />}
+            {hasUser ? <HeaderUser user={{ name: userName }} /> : <HeaderPublic />}
           </div>
         </header>
 
