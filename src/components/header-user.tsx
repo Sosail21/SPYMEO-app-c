@@ -5,15 +5,10 @@ import Link from "next/link";
 import UserAvatarMenu from "./header/UserAvatarMenu";
 
 type Plan = "free" | "pass";
-type UserLite = {
-  name?: string;
-  email?: string;
-  plan?: Plan;
-};
+type UserLite = { name?: string; email?: string; plan?: Plan };
 
 export default function HeaderUser({ user }: { user?: UserLite }) {
-  const displayName =
-    user?.name && user.name.trim() ? user.name.trim() : "Mon compte";
+  const displayName = user?.name?.trim() || "Mon compte";
 
   return (
     <div className="w-full flex items-center gap-6">
@@ -22,11 +17,17 @@ export default function HeaderUser({ user }: { user?: UserLite }) {
         SPYMEO
       </Link>
 
-      <nav className="ml-auto flex items-center gap-2">
+      <nav className="ml-auto flex items-center gap-2 flex-wrap">
         <Link href="/user/tableau-de-bord" className="page">Tableau de bord</Link>
-        <Link href="/recherche" className="page">Trouver un pro</Link>
-        {/* Optionnel : si tu veux afficher un lien Pass spécifique */}
-        {/* {user?.plan === "pass" && <Link href="/pass" className="page">Mon PASS</Link>} */}
+        <Link href="/user/rendez-vous/a-venir" className="page">Rendez-vous</Link>
+        <Link href="/user/messagerie" className="page">Messagerie</Link>
+        <Link href="/user/documents" className="page">Documents</Link>
+        <Link href="/user/favoris" className="page">Favoris</Link>
+        <Link href="/user/mes-praticiens" className="page">Mes praticiens</Link>
+        {/* Optionnel : liens PASS visibles pour tous, contenus gardent le contrôle d’accès */}
+        <Link href="/user/avantages-pass" className="page">Avantages PASS</Link>
+        <Link href="/user/ressources-pass" className="page">Ressources PASS</Link>
+
         <UserAvatarMenu name={displayName} />
       </nav>
     </div>
