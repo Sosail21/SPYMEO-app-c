@@ -64,7 +64,7 @@ export default function UserDashboard({ plan = "free", userName = "Vous" }: { pl
             {!hasPass ? (
               <Link href="/pass" className="btn">Passer au PASS</Link>
             ) : (
-              <Link href="/pass" className="btn btn-outline">Gérer mon PASS</Link>
+              <Link href="/user/pass" className="btn btn-outline">Gérer mon PASS</Link>
             )}
             <Link href="/recherche" className="btn btn-outline">Rechercher un pro</Link>
           </div>
