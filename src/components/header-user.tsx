@@ -11,7 +11,7 @@ export default function HeaderUser({ user }: { user?: UserLite }) {
   const displayName = user?.name?.trim() || "Mon compte";
 
   return (
-    <div className="w-full flex items-center gap-6">
+    <div className="w-full flex items-center">
       <Link href="/" className="brand">
         <span className="brand-dot" />
         SPYMEO
@@ -24,10 +24,6 @@ export default function HeaderUser({ user }: { user?: UserLite }) {
         <Link href="/user/documents" className="page">Documents</Link>
         <Link href="/user/favoris" className="page">Favoris</Link>
         <Link href="/user/mes-praticiens" className="page">Mes praticiens</Link>
-        {/* Optionnel : liens PASS visibles pour tous, contenus gardent le contrôle d’accès */}
-        <Link href="/user/avantages-pass" className="page">Avantages PASS</Link>
-        <Link href="/user/ressources-pass" className="page">Ressources PASS</Link>
-
         <UserAvatarMenu name={displayName} />
       </nav>
     </div>
