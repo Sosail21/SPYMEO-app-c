@@ -140,7 +140,7 @@ export default function StatsCentrePage() {
         <div className="soft-card p-0 overflow-hidden">
           <div className="p-3 flex items-center justify-between">
             <h3 className="font-semibold">Top formations</h3>
-            <Link href="/pro/formations" className="pill pill-ghost">Voir toutes</Link>
+            <Link href="/pro/centre/formations" className="pill pill-ghost">Voir toutes</Link>
           </div>
           <table className="w-full text-sm">
             <thead className="bg-[#edf4f6] text-[#0b1239]">
@@ -156,7 +156,7 @@ export default function StatsCentrePage() {
               {(data?.topTrainings ?? []).map((t) => (
                 <tr key={t.slug} className="border-t">
                   <Td>
-                    <Link href={`/pro/formations/${t.slug}`} className="font-medium hover:underline">
+                    <Link href={`/pro/centre/formations/${t.slug}`} className="font-medium hover:underline">
                       {t.title}
                     </Link>
                   </Td>
@@ -164,7 +164,7 @@ export default function StatsCentrePage() {
                   <Td className="text-right">{t.enrolled}</Td>
                   <Td className="text-right">{t.sessions}</Td>
                   <Td className="text-right">
-                    <Link href={`/pro/formations/${t.slug}`} className="pill pill-ghost">Détails</Link>
+                    <Link href={`/pro/centre/formations/${t.slug}`} className="pill pill-ghost">Détails</Link>
                   </Td>
                 </tr>
               ))}

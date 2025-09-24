@@ -58,22 +58,22 @@ export const MENUS: RoleMenus = {
   ],
 
   comm: [
-    { label: "Catalogue",   href: "/pro/commercants/produits",        icon: "🛍️" },
-    { label: "Nouveau",     href: "/pro/commercants/produits/nouveau", icon: "➕" },
-    { label: "Commandes",   href: "/pro/commercants/commandes",       icon: "📦" },
-    { label: "Stock",       href: "/pro/commercants/stock",           icon: "🏷️" },
-    { label: "Clients",     href: "/pro/commercants/clients",         icon: "👥" },
-    { label: "Statistiques",href: "/pro/commercants/statistiques",    icon: "📈" },
-    { label: "Pré-compta",  href: "/pro/commercants/pre-compta",      icon: "📚" },
+    { label: "Catalogue",   href: "/pro/commercant/produits",        icon: "🛍️" },
+    { label: "Nouveau",     href: "/pro/commercant/produits/nouveau", icon: "➕" },
+    { label: "Commandes",   href: "/pro/commercant/commandes",       icon: "📦" },
+    { label: "Stock",       href: "/pro/commercant/stock",           icon: "🏷️" },
+    { label: "Clients",     href: "/pro/commercant/clients",         icon: "👥" },
+    { label: "Statistiques",href: "/pro/commercant/statistiques",    icon: "📈" },
+    { label: "Pré-compta",  href: "/pro/commercant/pre-compta",      icon: "📚" },
   ],
 
   center: [
-    { label: "Formations", href: "/pro/centres/formations", icon: "🎓" },
-    { label: "Nouvelle formation", href: "/pro/centres/formations/nouvelle", icon: "➕" },
-    { label: "Sessions & Inscriptions", href: "/pro/centres/formations/sessions", icon: "🗓️" },
-    { label: "Apprenants", href: "/pro/centres/apprenants", icon: "👥" },
-    { label: "Statistiques", href: "/pro/centres/statistiques", icon: "📈" },
-    { label: "Pré-compta", href: "/pro/centres/precompta", icon: "📚" },
+    { label: "Formations", href: "/pro/centre/formations", icon: "🎓" },
+    { label: "Nouvelle formation", href: "/pro/centre/formations/nouvelle", icon: "➕" },
+    { label: "Sessions & Inscriptions", href: "/pro/centre/formations/sessions", icon: "🗓️" },
+    { label: "Apprenants", href: "/pro/centre/apprenants", icon: "👥" },
+    { label: "Statistiques", href: "/pro/centre/statistiques", icon: "📈" },
+    { label: "Pré-compta", href: "/pro/centre/precompta", icon: "📚" },
   ],
 };
 

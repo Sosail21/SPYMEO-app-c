@@ -184,7 +184,7 @@ export default function PreComptaCentrePage() {
                       <div className="flex flex-col">
                         <span className="font-medium">{e.trainingTitle}</span>
                         {e.trainingSlug && (
-                          <Link href={`/pro/formations/${e.trainingSlug}`} className="text-slate-500 hover:underline">
+                          <Link href={`/pro/centre/formations/${e.trainingSlug}`} className="text-slate-500 hover:underline">
                             Fiche formation
                           </Link>
                         )}
@@ -201,7 +201,7 @@ export default function PreComptaCentrePage() {
                     <Td><StatusBadge status={e.status} /></Td>
                     <Td className="text-right">
                       <div className="flex flex-wrap gap-2 justify-end">
-                        <Link href={`/pro/formations/sessions/${e.sessionId}`} className="pill pill-ghost">Voir session</Link>
+                        <Link href={`/pro/centre/formations/sessions/${e.sessionId}`} className="pill pill-ghost">Voir session</Link>
                         {e.status === "PENDING" && (
                           <button className="pill pill-muted" onClick={() => alert("Relance paiement (à implémenter)")}>
                             Relancer

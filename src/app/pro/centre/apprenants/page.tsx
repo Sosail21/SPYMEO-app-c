@@ -76,7 +76,7 @@ export default function LearnersPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Link href="/pro/formations" className="btn btn-outline">
+            <Link href="/pro/centre/formations" className="btn btn-outline">
               ← Formations
             </Link>
           </div>
@@ -136,7 +136,7 @@ export default function LearnersPage() {
                     <Td>{l.email}</Td>
                     <Td>
                       <Link
-                        href={`/pro/formations/${l.trainingSlug}`}
+                        href={`/pro/centre/formations/${l.trainingSlug}`}
                         className="hover:underline"
                       >
                         {l.trainingTitle}
@@ -147,7 +147,7 @@ export default function LearnersPage() {
                     <Td>
                       <div className="flex flex-wrap gap-2">
                         <Link
-                          href={`/pro/apprenants/${l.id}`}
+                          href={`/pro/centre/apprenants/${l.id}`}
                           className="pill pill-ghost"
                         >
                           Détail
@@ -204,7 +204,7 @@ function EmptyState() {
       <p className="text-slate-600 mt-1">
         Les inscriptions apparaîtront ici au fur et à mesure.
       </p>
-      <Link href="/pro/formations" className="btn mt-4">
+      <Link href="/pro/centre/formations" className="btn mt-4">
         Voir mes formations
       </Link>
     </div>

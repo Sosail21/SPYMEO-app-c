@@ -98,7 +98,7 @@ export default function NewLearnerPage() {
       }
 
       // 2) redirection : fiche session pour suivi
-      router.push(`/pro/formations/sessions/${form.sessionId}`);
+      router.push(`/pro/centre/formations/sessions/${form.sessionId}`);
     } catch (err: any) {
       setError(err?.message || "Impossible d’inscrire l’apprenant pour le moment.");
     } finally {
@@ -111,9 +111,9 @@ export default function NewLearnerPage() {
       {/* fil d’ariane */}
       <section className="section">
         <nav className="text-sm text-slate-600">
-          <Link href="/pro/formations" className="hover:underline">Formations</Link>
+          <Link href="/pro/centre/formations" className="hover:underline">Formations</Link>
           <span> / </span>
-          <Link href="/pro/apprenants" className="hover:underline">Apprenants</Link>
+          <Link href="/pro/centre/apprenants" className="hover:underline">Apprenants</Link>
           <span> / </span>
           <span>Nouvel apprenant</span>
         </nav>
@@ -132,7 +132,7 @@ export default function NewLearnerPage() {
           </div>
           <div className="flex gap-2">
             {form.sessionId && (
-              <Link href={`/pro/formations/sessions/${form.sessionId}`} className="btn btn-outline">
+              <Link href={`/pro/centre/formations/sessions/${form.sessionId}`} className="btn btn-outline">
                 ← Retour session
               </Link>
             )}

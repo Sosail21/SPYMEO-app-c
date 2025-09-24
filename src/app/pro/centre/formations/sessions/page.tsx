@@ -1,4 +1,3 @@
-// src/app/pro/formations/sessions/page.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -44,9 +43,7 @@ export default function SessionsPage() {
         if (!cancel) setLoading(false);
       }
     })();
-    return () => {
-      cancel = true;
-    };
+    return () => { cancel = true; };
   }, []);
 
   const now = new Date();
@@ -72,16 +69,12 @@ export default function SessionsPage() {
       <section className="section">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl md:text-3xl font-semibold text-[#0b1239]">
-              Sessions & inscriptions
-            </h1>
-            <p className="text-slate-600">
-              Suivez les effectifs, l’état des inscriptions et gérez l’ouverture/fermeture.
-            </p>
+            <h1 className="text-2xl md:text-3xl font-semibold text-[#0b1239]">Sessions & inscriptions</h1>
+            <p className="text-slate-600">Suivez les effectifs, l’état des inscriptions et gérez l’ouverture/fermeture.</p>
           </div>
           <div className="flex gap-2">
-            <Link href="/pro/formations" className="btn btn-outline">← Formations</Link>
-            <Link href="/pro/formations/nouvelle" className="btn">+ Nouvelle formation</Link>
+            <Link href="/pro/centre/formations" className="btn btn-outline">← Formations</Link>
+            <Link href="/pro/centre/formations/nouvelle" className="btn">+ Nouvelle formation</Link>
           </div>
         </div>
       </section>
@@ -134,26 +127,16 @@ export default function SessionsPage() {
               </thead>
               <tbody>
                 {filtered.map((s) => {
-                  const full =
-                    typeof s.seats === "number" && typeof s.enrolled === "number"
-                      ? s.enrolled >= s.seats
-                      : false;
+                  const full = typeof s.seats === "number" && typeof s.enrolled === "number" ? s.enrolled >= s.seats : false;
 
                   return (
                     <tr key={s.id} className="border-t">
                       <Td>
                         <div className="flex flex-col">
-                          <Link
-                            href={`/pro/formations/${s.trainingSlug}`}
-                            className="font-medium hover:underline"
-                          >
+                          <Link href={`/pro/centre/formations/${s.trainingSlug}`} className="font-medium hover:underline">
                             {s.trainingTitle}
                           </Link>
-                          <Link
-                            href={`/formations/${s.trainingSlug}`}
-                            className="text-slate-500 hover:underline"
-                            target="_blank"
-                          >
+                          <Link href={`/centre-de-formation/${s.trainingSlug}`} className="text-slate-500 hover:underline" target="_blank">
                             Aperçu public
                           </Link>
                         </div>
@@ -165,38 +148,21 @@ export default function SessionsPage() {
                       <Td>{typeof s.price === "number" ? `${s.price.toFixed(0)} €` : "—"}</Td>
                       <Td className="whitespace-nowrap">
                         <StatusBadge status={s.status} />
-                        {full && (
-                          <span className="pill bg-amber-100 text-amber-700 ml-2" title="Capacité atteinte">
-                            Complet
-                          </span>
-                        )}
+                        {full && <span className="pill bg-amber-100 text-amber-700 ml-2" title="Capacité atteinte">Complet</span>}
                       </Td>
                       <Td>
                         <div className="flex flex-wrap gap-2">
                           {s.status !== "CANCELLED" && (
-                            <button className="pill pill-muted" onClick={() => alert("Fermer la session (à implémenter)")}>
-                              Fermer
-                            </button>
+                            <button className="pill pill-muted" onClick={() => alert("Fermer la session (à implémenter)")}>Fermer</button>
                           )}
                           {s.status === "CANCELLED" ? (
-                            <button className="pill pill-muted" onClick={() => alert("Restaurer la session (à implémenter)")}>
-                              Restaurer
-                            </button>
+                            <button className="pill pill-muted" onClick={() => alert("Restaurer la session (à implémenter)")}>Restaurer</button>
                           ) : (
-                            <button className="pill pill-ghost" onClick={() => alert("Annuler la session (à implémenter)")}>
-                              Annuler
-                            </button>
+                            <button className="pill pill-ghost" onClick={() => alert("Annuler la session (à implémenter)")}>Annuler</button>
                           )}
 
-                          {/* 🔗 Lien de gestion par sessionId */}
-                          <Link className="pill pill-ghost" href={`/pro/formations/sessions/${s.id}`}>
-                            Gérer
-                          </Link>
-
-                          {/* ➕ Inscription rapide */}
-                          <Link className="pill pill-ghost" href={`/pro/apprenants/nouveau?sessionId=${s.id}`}>
-                            Inscrire
-                          </Link>
+                          <Link className="pill pill-ghost" href={`/pro/centre/formations/sessions/${s.id}`}>Gérer</Link>
+                          <Link className="pill pill-ghost" href={`/pro/centre/apprenants/nouveau?sessionId=${s.id}`}>Inscrire</Link>
                         </div>
                       </Td>
                     </tr>
@@ -211,12 +177,8 @@ export default function SessionsPage() {
   );
 }
 
-function Th({ children }: { children: React.ReactNode }) {
-  return <th className="text-left px-4 py-3 font-semibold">{children}</th>;
-}
-function Td({ children }: { children: React.ReactNode }) {
-  return <td className="px-4 py-3">{children}</td>;
-}
+function Th({ children }: { children: React.ReactNode }) { return <th className="text-left px-4 py-3 font-semibold">{children}</th>; }
+function Td({ children }: { children: React.ReactNode }) { return <td className="px-4 py-3">{children}</td>; }
 
 function TableSkeleton() {
   return (
@@ -227,21 +189,15 @@ function TableSkeleton() {
     </div>
   );
 }
-
 function EmptyState() {
   return (
     <div className="soft-card p-8 text-center">
       <h3 className="text-lg font-semibold">Aucune session pour l’instant</h3>
-      <p className="text-slate-600 mt-1">
-        Créez une formation puis ajoutez vos premières sessions.
-      </p>
-      <div className="mt-4">
-        <Link href="/pro/formations/nouvelle" className="btn">+ Nouvelle formation</Link>
-      </div>
+      <p className="text-slate-600 mt-1">Créez une formation puis ajoutez vos premières sessions.</p>
+      <div className="mt-4"><Link href="/pro/centre/formations/nouvelle" className="btn">+ Nouvelle formation</Link></div>
     </div>
   );
 }
-
 function StatusBadge({ status }: { status: TrainingSession["status"] }) {
   const map = {
     OPEN: { label: "Ouverte", cls: "bg-emerald-100 text-emerald-700" },
@@ -251,63 +207,18 @@ function StatusBadge({ status }: { status: TrainingSession["status"] }) {
   const it = map[status];
   return <span className={`pill ${it.cls}`}>{it.label}</span>;
 }
-
 function labelModality(m: "ONLINE" | "ONSITE" | "HYBRID") {
-  switch (m) {
-    case "ONLINE": return "En ligne";
-    case "ONSITE": return "Présentiel";
-    case "HYBRID": return "Hybride";
-  }
+  switch (m) { case "ONLINE": return "En ligne"; case "ONSITE": return "Présentiel"; case "HYBRID": return "Hybride"; }
 }
-
-function startOfDay(d: Date) {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
-}
-
+function startOfDay(d: Date) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
 function fmtDate(iso: string) {
-  try {
-    const d = new Date(iso);
-    return d.toLocaleDateString("fr-FR", { year: "numeric", month: "short", day: "2-digit" });
-  } catch {
-    return iso;
-  }
+  try { const d = new Date(iso); return d.toLocaleDateString("fr-FR", { year: "numeric", month: "short", day: "2-digit" }); }
+  catch { return iso; }
 }
 
 // MOCK
 const MOCK_SESSIONS: TrainingSession[] = [
-  {
-    id: "s1",
-    trainingTitle: "Réflexologie plantaire — module d’initiation",
-    trainingSlug: "reflexologie-plantaire-initiation",
-    modality: "ONLINE",
-    date: "2025-11-05",
-    seats: 40,
-    enrolled: 28,
-    price: 190,
-    status: "OPEN",
-  },
-  {
-    id: "s2",
-    trainingTitle: "Kobido : fondamentaux & posture",
-    trainingSlug: "kobido-fondamentaux-posture",
-    modality: "HYBRID",
-    date: "2025-10-18",
-    seats: 24,
-    enrolled: 9,
-    price: 320,
-    status: "CLOSED",
-  },
-  {
-    id: "s3",
-    trainingTitle: "Éthique & cadre pro en cabinet libéral",
-    trainingSlug: "ethique-cadre-pro-cabinet-liberal",
-    modality: "ONLINE",
-    date: "2025-08-12",
-    seats: 100,
-    enrolled: 76,
-    price: 0,
-    status: "CANCELLED",
-  },
+  { id: "s1", trainingTitle: "Réflexologie plantaire — module d’initiation", trainingSlug: "reflexologie-plantaire-initiation", modality: "ONLINE", date: "2025-11-05", seats: 40, enrolled: 28, price: 190, status: "OPEN" },
+  { id: "s2", trainingTitle: "Kobido : fondamentaux & posture", trainingSlug: "kobido-fondamentaux-posture", modality: "HYBRID", date: "2025-10-18", seats: 24, enrolled: 9, price: 320, status: "CLOSED" },
+  { id: "s3", trainingTitle: "Éthique & cadre pro en cabinet libéral", trainingSlug: "ethique-cadre-pro-cabinet-liberal", modality: "ONLINE", date: "2025-08-12", seats: 100, enrolled: 76, price: 0, status: "CANCELLED" },
 ];
