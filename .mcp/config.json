@@ -1,0 +1,93 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schema/config.json",
+  "version": "1.0.0",
+  "name": "SPYMEO MCP Configuration",
+  "description": "Model Context Protocol configuration for the SPYMEO wellness platform",
+  "mcpServers": {
+    "prisma-local": {
+      "command": "npx",
+      "args": ["-y", "prisma", "mcp"],
+      "description": "Local Prisma MCP server for database operations",
+      "enabled": true,
+      "env": {
+        "DATABASE_URL": "${DATABASE_URL}"
+      }
+    },
+    "stripe": {
+      "command": "npx",
+      "args": ["-y", "@stripe/mcp", "--tools=all"],
+      "description": "Stripe MCP server for payment processing",
+      "enabled": true,
+      "env": {
+        "STRIPE_SECRET_KEY": "${STRIPE_SECRET_KEY}"
+      }
+    },
+    "cloudinary": {
+      "command": "node",
+      "args": [".mcp/servers/cloudinary-server.js"],
+      "description": "Cloudinary MCP server for file storage and media management",
+      "enabled": true,
+      "env": {
+        "CLOUDINARY_CLOUD_NAME": "${CLOUDINARY_CLOUD_NAME}",
+        "CLOUDINARY_API_KEY": "${CLOUDINARY_API_KEY}",
+        "CLOUDINARY_API_SECRET": "${CLOUDINARY_API_SECRET}"
+      }
+    },
+    "resend": {
+      "command": "node",
+      "args": [".mcp/servers/resend-server.js"],
+      "description": "Resend MCP server for transactional email",
+      "enabled": true,
+      "env": {
+        "RESEND_API_KEY": "${RESEND_API_KEY}"
+      }
+    },
+    "algolia": {
+      "command": "node",
+      "args": [".mcp/servers/algolia-server.js"],
+      "description": "Algolia MCP server for search functionality",
+      "enabled": true,
+      "env": {
+        "ALGOLIA_APP_ID": "${ALGOLIA_APP_ID}",
+        "ALGOLIA_API_KEY": "${ALGOLIA_API_KEY}",
+        "ALGOLIA_ADMIN_KEY": "${ALGOLIA_ADMIN_KEY}"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "description": "GitHub MCP server for repository operations",
+      "enabled": true,
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${PROJECT_ROOT}"],
+      "description": "Filesystem MCP server for local file operations",
+      "enabled": true
+    }
+  },
+  "settings": {
+    "timeout": 30000,
+    "retryAttempts": 3,
+    "logLevel": "info",
+    "enableCaching": true,
+    "cacheDirectory": ".mcp/cache"
+  },
+  "security": {
+    "requireAuthentication": true,
+    "allowedOrigins": ["https://claude.ai", "http://localhost:3000"],
+    "rateLimiting": {
+      "enabled": true,
+      "maxRequestsPerMinute": 60
+    }
+  },
+  "features": {
+    "autoDiscovery": true,
+    "contextSharing": true,
+    "resourceCaching": true,
+    "parallelExecution": false
+  }
+}

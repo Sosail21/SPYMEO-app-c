@@ -1,0 +1,258 @@
+openapi: 3.0.3
+info:
+  title: SPYMEO Authentication API
+  description: |
+    Authentication and session management endpoints for the SPYMEO platform.
+    Uses cookie-based sessions for security.
+  version: 1.0.0
+  contact:
+    name: SPYMEO Development Team
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://spymeo.com/api
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: Login, logout, and session management
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: |
+        Authenticates a user with email and password. Returns a session cookie.
+        The session cookie is HttpOnly and SameSite=lax for security.
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "alice@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "password123"
+            examples:
+              practitioner:
+                summary: Practitioner login
+                value:
+                  email: "aline@example.com"
+                  password: "pass1234"
+              user:
+                summary: End-user login
+                value:
+                  email: "alice@example.com"
+                  password: "userpass"
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Set-Cookie:
+              description: Session cookie
+              schema:
+                type: string
+                example: "spy_session=eyJpZCI6IjEyMyJ9; HttpOnly; SameSite=Lax; Path=/"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  role:
+                    type: string
+                    enum:
+                      - ADMIN
+                      - PRACTITIONER
+                      - ARTISAN
+                      - COMMERCANT
+                      - CENTER
+                      - PASS_USER
+                      - FREE_USER
+                      - AMBASSADOR
+                      - PARTNER
+                    example: "PRACTITIONER"
+              examples:
+                practitioner:
+                  summary: Practitioner login response
+                  value:
+                    ok: true
+                    role: "PRACTITIONER"
+                user:
+                  summary: User login response
+                  value:
+                    ok: true
+                    role: "PASS_USER"
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                ok: false
+                error: "Identifiants invalides"
+        '400':
+          description: Bad request (missing fields)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                ok: false
+                error: "Email and password required"
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: |
+        Logs out the current user by clearing the session cookie.
+        Always returns success even if no session exists.
+      operationId: logout
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          headers:
+            Set-Cookie:
+              description: Cleared session cookie
+              schema:
+                type: string
+                example: "spy_session=; Max-Age=0; Path=/"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Logged out"
+
+  /public/pass/{userId}:
+    get:
+      tags:
+        - Authentication
+      summary: Get public PASS profile
+      description: |
+        Retrieves public PASS member information for display.
+        Does not require authentication.
+      operationId: getPublicPass
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID
+          example: "user-123"
+      responses:
+        '200':
+          description: Public PASS profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  memberSince:
+                    type: string
+                    format: date-time
+                  plan:
+                    type: string
+                    enum: [ANNUAL, MONTHLY]
+                  benefits:
+                    type: array
+                    items:
+                      type: string
+              example:
+                id: "user-123"
+                name: "Alice Dupont"
+                memberSince: "2025-04-05T10:00:00Z"
+                plan: "MONTHLY"
+                benefits:
+                  - "Réductions chez nos partenaires"
+                  - "Ressources mensuelles exclusives"
+                  - "Carnet de vie (après 6 mois)"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "User not found"
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Error message"
+        details:
+          type: object
+          description: Optional additional error details
+
+    Session:
+      type: object
+      properties:
+        id:
+          type: string
+          description: User ID
+        name:
+          type: string
+          description: Display name
+        email:
+          type: string
+          format: email
+          description: Email address
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - PRACTITIONER
+            - ARTISAN
+            - COMMERCANT
+            - CENTER
+            - PASS_USER
+            - FREE_USER
+            - AMBASSADOR
+            - PARTNER
+          description: User role
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: spy_session
+      description: |
+        Session cookie set by /auth/login.
+        HttpOnly, SameSite=lax for security.

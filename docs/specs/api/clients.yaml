@@ -1,0 +1,590 @@
+openapi: 3.0.3
+info:
+  title: SPYMEO Clients API
+  description: Client/patient management for practitioners
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+
+tags:
+  - name: Clients
+    description: Client management operations
+  - name: Consultations
+    description: Consultation history
+  - name: Antecedents
+    description: Medical/health history
+  - name: Documents
+    description: Client documents
+  - name: Invoices
+    description: Billing and invoices
+
+security:
+  - cookieAuth: []
+
+paths:
+  /clients:
+    get:
+      tags: [Clients]
+      summary: List all clients
+      description: Returns a list of all clients for the current practitioner
+      parameters:
+        - name: q
+          in: query
+          description: Search query (name, email)
+          schema:
+            type: string
+          example: "Dupont"
+      responses:
+        '200':
+          description: List of clients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Client'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Clients]
+      summary: Create new client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientInput'
+      responses:
+        '201':
+          description: Client created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /clients/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ClientId'
+
+    get:
+      tags: [Clients]
+      summary: Get client details
+      responses:
+        '200':
+          description: Client details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Clients]
+      summary: Update client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientInput'
+      responses:
+        '200':
+          description: Client updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Clients]
+      summary: Delete client
+      responses:
+        '200':
+          description: Client deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /clients/{id}/consultations:
+    parameters:
+      - $ref: '#/components/parameters/ClientId'
+
+    get:
+      tags: [Consultations]
+      summary: Get client consultations
+      responses:
+        '200':
+          description: List of consultations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Consultation'
+
+    post:
+      tags: [Consultations]
+      summary: Add consultation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsultationInput'
+      responses:
+        '201':
+          description: Consultation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Consultation'
+
+  /clients/{id}/antecedents:
+    parameters:
+      - $ref: '#/components/parameters/ClientId'
+
+    get:
+      tags: [Antecedents]
+      summary: Get client antecedents
+      responses:
+        '200':
+          description: List of antecedents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Antecedent'
+
+    post:
+      tags: [Antecedents]
+      summary: Add antecedent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AntecedentInput'
+      responses:
+        '201':
+          description: Antecedent created
+
+  /clients/{id}/docs:
+    parameters:
+      - $ref: '#/components/parameters/ClientId'
+
+    get:
+      tags: [Documents]
+      summary: Get client documents
+      responses:
+        '200':
+          description: List of documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClientDocument'
+
+    post:
+      tags: [Documents]
+      summary: Upload document
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                title:
+                  type: string
+      responses:
+        '201':
+          description: Document uploaded
+
+  /clients/{id}/invoices:
+    parameters:
+      - $ref: '#/components/parameters/ClientId'
+
+    get:
+      tags: [Invoices]
+      summary: Get client invoices
+      responses:
+        '200':
+          description: List of invoices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Invoice'
+
+    post:
+      tags: [Invoices]
+      summary: Create invoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceInput'
+      responses:
+        '201':
+          description: Invoice created
+
+  /consultations/{cid}:
+    parameters:
+      - name: cid
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [Consultations]
+      summary: Get consultation details
+      responses:
+        '200':
+          description: Consultation details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Consultation'
+
+    put:
+      tags: [Consultations]
+      summary: Update consultation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsultationInput'
+      responses:
+        '200':
+          description: Consultation updated
+
+    delete:
+      tags: [Consultations]
+      summary: Delete consultation
+      responses:
+        '200':
+          description: Consultation deleted
+
+  /antecedents/{aid}:
+    parameters:
+      - name: aid
+        in: path
+        required: true
+        schema:
+          type: string
+
+    delete:
+      tags: [Antecedents]
+      summary: Delete antecedent
+      responses:
+        '200':
+          description: Antecedent deleted
+
+  /docs/{docId}:
+    parameters:
+      - name: docId
+        in: path
+        required: true
+        schema:
+          type: string
+
+    delete:
+      tags: [Documents]
+      summary: Delete document
+      responses:
+        '200':
+          description: Document deleted
+
+  /invoices/{invId}:
+    parameters:
+      - name: invId
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [Invoices]
+      summary: Get invoice details
+      responses:
+        '200':
+          description: Invoice details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+
+    put:
+      tags: [Invoices]
+      summary: Update invoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceInput'
+      responses:
+        '200':
+          description: Invoice updated
+
+components:
+  schemas:
+    Client:
+      type: object
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        birthDate:
+          type: string
+          format: date
+        address:
+          type: string
+        notes:
+          type: string
+
+    ClientInput:
+      type: object
+      required: [firstName, lastName, email, phone]
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        birthDate:
+          type: string
+          format: date
+        address:
+          type: string
+        notes:
+          type: string
+
+    Consultation:
+      type: object
+      properties:
+        id:
+          type: string
+        clientId:
+          type: string
+        date:
+          type: string
+          format: date-time
+        durationMin:
+          type: number
+        reason:
+          type: string
+        notes:
+          type: string
+        followUp:
+          type: string
+        price:
+          type: number
+
+    ConsultationInput:
+      type: object
+      required: [date, reason]
+      properties:
+        date:
+          type: string
+          format: date-time
+        durationMin:
+          type: number
+          default: 60
+        reason:
+          type: string
+        notes:
+          type: string
+        followUp:
+          type: string
+        price:
+          type: number
+
+    Antecedent:
+      type: object
+      properties:
+        id:
+          type: string
+        clientId:
+          type: string
+        category:
+          type: string
+          enum: [medical, surgical, allergies, medications, lifestyle]
+        description:
+          type: string
+        date:
+          type: string
+          format: date
+        severity:
+          type: string
+          enum: [low, medium, high]
+        active:
+          type: boolean
+
+    AntecedentInput:
+      type: object
+      required: [category, description]
+      properties:
+        category:
+          type: string
+          enum: [medical, surgical, allergies, medications, lifestyle]
+        description:
+          type: string
+        date:
+          type: string
+          format: date
+        severity:
+          type: string
+          enum: [low, medium, high]
+        active:
+          type: boolean
+          default: true
+
+    ClientDocument:
+      type: object
+      properties:
+        id:
+          type: string
+        clientId:
+          type: string
+        title:
+          type: string
+        filename:
+          type: string
+        mimeType:
+          type: string
+        uploadedAt:
+          type: string
+          format: date-time
+        size:
+          type: number
+        url:
+          type: string
+
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: string
+        clientId:
+          type: string
+        consultationId:
+          type: string
+        number:
+          type: string
+        date:
+          type: string
+          format: date-time
+        amount:
+          type: number
+        status:
+          type: string
+          enum: [draft, sent, paid, overdue]
+        dueDate:
+          type: string
+          format: date-time
+        paidAt:
+          type: string
+          format: date-time
+
+    InvoiceInput:
+      type: object
+      required: [amount, date]
+      properties:
+        consultationId:
+          type: string
+        amount:
+          type: number
+        date:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [draft, sent, paid, overdue]
+          default: draft
+        dueDate:
+          type: string
+          format: date-time
+
+  parameters:
+    ClientId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Client ID
+
+  responses:
+    Unauthorized:
+      description: Not authenticated
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: spy_session

@@ -1,8 +1,10 @@
+// src/app/praticien/[slug]/page.tsx
 import Link from "next/link";
 import PassBadge from "@/components/public/PassBadge";
 
+/** ——— Types ——— */
 type Praticien = {
-  userId?: string; // 👈 ajouté pour lier au PASS
+  userId?: string; // 👈 id du pro (lien PASS + match articles)
   slug: string;
   name: string;
   title: string;
@@ -17,9 +19,22 @@ type Praticien = {
   avis: { author: string; rating: number; text: string }[];
 };
 
+type Article = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt?: string;
+  coverUrl?: string;
+  tags?: string[];
+  publishedAt?: string; // ISO
+  author?: string;      // affichage public
+  authorId?: string;    // 👈 pour lier au praticien
+};
+
+/** ——— MOCK fiches ——— */
 const DB: Record<string, Praticien> = {
   "aline-dupont": {
-    userId: "p1", // 👈 id du pro pour récupérer le PASS
+    userId: "p1",
     slug: "aline-dupont",
     name: "Aline Dupont",
     title: "Naturopathe",
@@ -52,15 +67,49 @@ const DB: Record<string, Praticien> = {
   },
 };
 
-function stars(n: number) {
-  return "★★★★★☆☆☆☆☆".slice(5 - Math.max(0, Math.min(5, n)), 10 - Math.max(0, Math.min(5, n)));
+/** ——— MOCK articles (supprime quand API prête) ——— */
+const MOCK_ARTICLES: Article[] = [
+  {
+    id: "a-pr-1",
+    slug: "routine-matin-energie",
+    title: "Routine du matin : 5 minutes pour l’énergie",
+    excerpt: "Un rituel ultra-simple pour démarrer la journée sans pic de stress.",
+    coverUrl: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=1200&auto=format&fit=crop",
+    tags: ["énergie", "habitudes"],
+    publishedAt: "2025-08-10",
+    author: "Aline Dupont",
+    authorId: "p1",
+  },
+  {
+    id: "a-pr-2",
+    slug: "digestion-apaisee-3-reflexes",
+    title: "Digestion apaisée : 3 réflexes à instaurer",
+    excerpt: "Respiration, mastication, timing — des leviers concrets à tester cette semaine.",
+    coverUrl: "https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?q=80&w=1200&auto=format&fit=crop",
+    tags: ["digestion", "respiration"],
+    publishedAt: "2025-09-02",
+    author: "Aline Dupont",
+    authorId: "p1",
+  },
+];
+
+/** ——— Helpers ——— */
+function fmtDate(iso?: string) {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
+  } catch {
+    return iso;
+  }
 }
 
+/** ——— Page ——— */
 export default function PraticienPage({ params }: { params: { slug: string } }) {
   const data: Praticien =
     DB[params.slug] ??
     ({
-      userId: "p_fallback", // 👈 au cas où
+      userId: "p_fallback",
       slug: params.slug,
       name: "Praticien·ne",
       title: "Spécialité",
@@ -76,6 +125,9 @@ export default function PraticienPage({ params }: { params: { slug: string } }) 
       avis: [],
     } as Praticien);
 
+  // 🔌 À brancher plus tard : GET /api/public/blog/by-author?userId=data.userId
+  const articles = (MOCK_ARTICLES || []).filter((a) => a.authorId === data.userId);
+
   return (
     <main>
       {/* HERO */}
@@ -85,22 +137,15 @@ export default function PraticienPage({ params }: { params: { slug: string } }) 
           <div>
             <h1 className="fiche-name flex items-center gap-3">
               <span>{data.name}</span>
-              {/* 👉 Badge PASS (affiché si partenaire actif) */}
               {data.userId && <PassBadge userId={data.userId} />}
             </h1>
             <p className="fiche-sub">
               {data.title} — {data.city} · {data.distanceKm} km
             </p>
             <div className="fiche-ctas">
-              <Link href={`/praticien/${data.slug}#rdv`} className="btn">
-                Prendre RDV
-              </Link>
-              <Link href={`/auth/login?next=/praticien/${data.slug}#message`} className="btn btn-outline">
-                Envoyer un message
-              </Link>
-              <button className="btn btn-ghost" type="button" title="Ajouter aux favoris (connexion requise)">
-                ☆ Favori
-              </button>
+              <Link href={`/praticien/${data.slug}#rdv`} className="btn">Prendre RDV</Link>
+              <Link href={`/auth/login?next=/praticien/${data.slug}#message`} className="btn btn-outline">Envoyer un message</Link>
+              <button className="btn btn-ghost" type="button" title="Ajouter aux favoris (connexion requise)">☆ Favori</button>
             </div>
           </div>
         </div>
@@ -109,8 +154,8 @@ export default function PraticienPage({ params }: { params: { slug: string } }) 
       {/* LAYOUT */}
       <section className="section">
         <div className="fiche-layout">
-          {/* MAIN */}
-          <div className="fiche-main">
+          {/* MAIN — petites marges entre blocs */}
+          <div className="fiche-main space-y-3 sm:space-y-4">
             {/* Présentation */}
             <article className="card">
               <h2 className="section-title m-0 mb-2">Présentation</h2>
@@ -169,38 +214,62 @@ export default function PraticienPage({ params }: { params: { slug: string } }) 
                 )}
               </div>
               <div className="mt-3">
-                <Link href={`/auth/login?next=/praticien/${data.slug}#rdv`} className="btn">
-                  Voir plus de créneaux
-                </Link>
+                <Link href={`/auth/login?next=/praticien/${data.slug}#rdv`} className="btn">Voir plus de créneaux</Link>
               </div>
             </article>
 
-            {/* Avis */}
+            {/* ✍️ Articles du praticien */}
             <article className="card">
-              <h2 className="section-title m-0 mb-2">Avis</h2>
-              <div className="avis">
-                {data.avis.length === 0 && (
-                  <div className="empty-state">
-                    <p className="m-0">Pas encore d’avis. Soyez le premier à partager votre retour.</p>
-                  </div>
-                )}
-                {data.avis.map((a, i) => (
-                  <div key={i} className="avis-item">
-                    <div className="flex items-center justify-between">
-                      <strong>{a.author}</strong>
-                      <div className="avis-stars" aria-label={`${a.rating} sur 5`}>
-                        {"★".repeat(a.rating)}<span className="text-muted">{"★".repeat(5 - a.rating)}</span>
-                      </div>
-                    </div>
-                    <p className="m-0 mt-1">{a.text}</p>
-                  </div>
-                ))}
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <h2 className="section-title m-0">Articles (Spym’Blog)</h2>
+                <Link href="/blog" className="pill pill-muted">Voir le blog</Link>
               </div>
+
+              {articles.length === 0 ? (
+                <div className="empty-state">
+                  <p className="m-0">Pas (encore) d’article publié par {data.name}.</p>
+                  <p className="m-0 text-slate-600">Revenez bientôt, ou parcourez le Spym’Blog.</p>
+                </div>
+              ) : (
+                <ul className="grid gap-3 sm:grid-cols-2">
+                  {articles.map((a) => (
+                    <li key={a.id} className="soft-card p-0 overflow-hidden">
+                      <Link href={`/blog/${a.slug}`} className="block hover:no-underline">
+                        <div className="aspect-[16/9] w-full bg-slate-100">
+                          {a.coverUrl ? (
+                            <img
+                              src={a.coverUrl}
+                              alt=""
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : null}
+                        </div>
+
+                        <div className="p-3">
+                          <div className="text-xs text-slate-500">
+                            {fmtDate(a.publishedAt)} · {a.author || data.name}
+                          </div>
+                          <div className="mt-1 font-semibold line-clamp-2">{a.title}</div>
+                          {a.excerpt && <p className="mt-1 text-sm text-slate-600 line-clamp-3">{a.excerpt}</p>}
+                          {a.tags?.length ? (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {a.tags.map((t) => (
+                                <span key={t} className="pill bg-slate-100 text-slate-700">{t}</span>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </article>
           </div>
 
-          {/* SIDE */}
-          <aside className="fiche-side">
+          {/* SIDE — petites marges entre blocs */}
+          <aside className="fiche-side space-y-3 sm:space-y-4">
             {/* Carte */}
             <div className="map" aria-label="Localisation sur la carte" />
 
@@ -220,6 +289,30 @@ export default function PraticienPage({ params }: { params: { slug: string } }) 
               </div>
             </div>
 
+            {/* ✅ Avis déplacés près du contact */}
+            <div className="card">
+              <h3 className="m-0 mb-2">Avis</h3>
+              <div className="avis">
+                {data.avis.length === 0 && (
+                  <div className="empty-state">
+                    <p className="m-0">Pas encore d’avis. Soyez le premier à partager votre retour.</p>
+                  </div>
+                )}
+                {data.avis.map((a, i) => (
+                  <div key={i} className="avis-item">
+                    <div className="flex items-center justify-between">
+                      <strong>{a.author}</strong>
+                      <div className="avis-stars" aria-label={`${a.rating} sur 5`}>
+                        {"★".repeat(a.rating)}
+                        <span className="text-muted">{"★".repeat(5 - a.rating)}</span>
+                      </div>
+                    </div>
+                    <p className="m-0 mt-1">{a.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Infos pratiques */}
             <div className="card">
               <h3 className="m-0 mb-2">Infos pratiques</h3>
@@ -232,7 +325,7 @@ export default function PraticienPage({ params }: { params: { slug: string } }) 
               </ul>
             </div>
 
-            {/* CTA PASS (teasing) */}
+            {/* CTA PASS */}
             <div className="card">
               <h3 className="m-0 mb-2">PASS SPYMEO</h3>
               <p className="m-0">Tarifs préférentiels, ressources premium et carnet de vie.</p>

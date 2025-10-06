@@ -1,0 +1,531 @@
+openapi: 3.0.3
+info:
+  title: SPYMEO Professional API
+  description: Professional features (advantages, impact, resources)
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+
+tags:
+  - name: Advantages
+    description: Community member perks
+  - name: Impact
+    description: Impact program
+  - name: Resources
+    description: Shared resources
+  - name: Statistics
+    description: Professional statistics
+  - name: Articles
+    description: Blog content
+
+security:
+  - cookieAuth: []
+
+paths:
+  /pro/avantages:
+    get:
+      tags: [Advantages]
+      summary: List advantages
+      description: Returns advantages created by the current professional
+      responses:
+        '200':
+          description: List of advantages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Advantage'
+
+    post:
+      tags: [Advantages]
+      summary: Create advantage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdvantageInput'
+      responses:
+        '201':
+          description: Advantage created
+
+  /pro/avantages/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [Advantages]
+      summary: Get advantage details
+      responses:
+        '200':
+          description: Advantage details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Advantage'
+
+    put:
+      tags: [Advantages]
+      summary: Update advantage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdvantageInput'
+      responses:
+        '200':
+          description: Advantage updated
+
+    delete:
+      tags: [Advantages]
+      summary: Delete advantage
+      responses:
+        '200':
+          description: Advantage deleted
+
+  /pro/impact:
+    get:
+      tags: [Impact]
+      summary: Get impact program status
+      description: Returns user's impact program participation and candidatures
+      responses:
+        '200':
+          description: Impact status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  enrolled:
+                    type: boolean
+                  candidatures:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ImpactCandidature'
+
+  /pro/impact/candidature:
+    post:
+      tags: [Impact]
+      summary: Submit impact candidature
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImpactCandidatureInput'
+      responses:
+        '201':
+          description: Candidature submitted
+
+  /resources:
+    get:
+      tags: [Resources]
+      summary: List resources
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: tag
+          in: query
+          schema:
+            type: string
+        - name: q
+          in: query
+          description: Search query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Resource'
+
+    post:
+      tags: [Resources]
+      summary: Upload resource
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                title:
+                  type: string
+                description:
+                  type: string
+                category:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+                sharedWith:
+                  type: string
+                  enum: [PUBLIC, PASS, PRO]
+      responses:
+        '201':
+          description: Resource uploaded
+
+  /resources/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [Resources]
+      summary: Get resource details
+      responses:
+        '200':
+          description: Resource details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resource'
+
+  /resources/{id}/download:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [Resources]
+      summary: Download resource
+      responses:
+        '200':
+          description: Resource file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  /resources/share:
+    post:
+      tags: [Resources]
+      summary: Share resource with users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resourceId:
+                  type: string
+                userIds:
+                  type: array
+                  items:
+                    type: string
+                message:
+                  type: string
+      responses:
+        '200':
+          description: Resource shared
+
+  /stats:
+    get:
+      tags: [Statistics]
+      summary: Get professional statistics
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month, year]
+          default: month
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Statistics data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stats'
+
+  /articles:
+    get:
+      tags: [Articles]
+      summary: List articles
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, pending, published, archived]
+        - name: authorId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of articles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+
+    post:
+      tags: [Articles]
+      summary: Submit article
+      description: Practitioners can submit blog articles for moderation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleInput'
+      responses:
+        '201':
+          description: Article submitted
+
+components:
+  schemas:
+    Advantage:
+      type: object
+      properties:
+        id:
+          type: string
+        providerId:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        discountRate:
+          type: number
+        validUntil:
+          type: string
+          format: date-time
+        terms:
+          type: string
+        category:
+          type: string
+        targetRoles:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    AdvantageInput:
+      type: object
+      required: [title, description]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        discountRate:
+          type: number
+        validUntil:
+          type: string
+          format: date-time
+        terms:
+          type: string
+        category:
+          type: string
+        targetRoles:
+          type: array
+          items:
+            type: string
+
+    ImpactCandidature:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        projectTitle:
+          type: string
+        projectDescription:
+          type: string
+        motivation:
+          type: string
+        status:
+          type: string
+          enum: [draft, submitted, reviewing, accepted, rejected]
+        submittedAt:
+          type: string
+          format: date-time
+        reviewedAt:
+          type: string
+          format: date-time
+        feedback:
+          type: string
+
+    ImpactCandidatureInput:
+      type: object
+      required: [projectTitle, projectDescription, motivation]
+      properties:
+        projectTitle:
+          type: string
+        projectDescription:
+          type: string
+        motivation:
+          type: string
+
+    Resource:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        fileUrl:
+          type: string
+        thumbnailUrl:
+          type: string
+        uploadedBy:
+          type: string
+        uploadedAt:
+          type: string
+          format: date-time
+        downloads:
+          type: integer
+        rating:
+          type: number
+        sharedWith:
+          type: string
+          enum: [PUBLIC, PASS, PRO]
+
+    Stats:
+      type: object
+      properties:
+        period:
+          type: string
+          enum: [day, week, month, year]
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        metrics:
+          type: object
+          properties:
+            revenue:
+              type: number
+            consultations:
+              type: integer
+            newClients:
+              type: integer
+            cancelledAppointments:
+              type: integer
+            averageTicket:
+              type: number
+            occupancyRate:
+              type: number
+        chartData:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              value:
+                type: number
+              label:
+                type: string
+
+    Article:
+      type: object
+      properties:
+        id:
+          type: string
+        slug:
+          type: string
+        title:
+          type: string
+        excerpt:
+          type: string
+        content:
+          type: string
+        coverImage:
+          type: string
+        authorId:
+          type: string
+        authorName:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [draft, pending, published, archived]
+        publishedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        views:
+          type: integer
+        likes:
+          type: integer
+
+    ArticleInput:
+      type: object
+      required: [title, content]
+      properties:
+        title:
+          type: string
+        excerpt:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [draft, pending]
+          default: pending
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: spy_session

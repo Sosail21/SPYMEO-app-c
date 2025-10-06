@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(mkdir:*)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma:*)",
+      "Bash(cat:*)",
+      "Bash(test:*)",
+      "Bash(npm test:*)",
+      "Bash(del vitest.config.ts)",
+      "Bash(npm run test:unit:*)",
+      "Bash(npm pkg set:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

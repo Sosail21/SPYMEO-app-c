@@ -1,0 +1,401 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schema/server.json",
+  "name": "stripe-payment",
+  "version": "1.0.0",
+  "description": "Stripe MCP server for SPYMEO payment processing",
+  "type": "payment",
+  "provider": "stripe",
+  "capabilities": [
+    "payment:create",
+    "payment:capture",
+    "payment:refund",
+    "subscription:create",
+    "subscription:update",
+    "subscription:cancel",
+    "customer:create",
+    "customer:update",
+    "invoice:create",
+    "webhook:handle",
+    "product:manage"
+  ],
+  "tools": [
+    {
+      "name": "stripe:payment:create",
+      "description": "Create a payment intent",
+      "parameters": {
+        "amount": {
+          "type": "number",
+          "required": true,
+          "description": "Amount in cents"
+        },
+        "currency": {
+          "type": "string",
+          "default": "eur",
+          "enum": ["eur", "usd", "gbp"]
+        },
+        "customerId": {
+          "type": "string",
+          "description": "Stripe customer ID"
+        },
+        "paymentMethodTypes": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": ["card"]
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional metadata"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "stripe:payment:capture",
+      "description": "Capture an authorized payment",
+      "parameters": {
+        "paymentIntentId": {
+          "type": "string",
+          "required": true
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount to capture (optional, captures full amount if not specified)"
+        }
+      }
+    },
+    {
+      "name": "stripe:payment:refund",
+      "description": "Refund a payment",
+      "parameters": {
+        "paymentIntentId": {
+          "type": "string",
+          "required": true
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount to refund (optional, refunds full amount if not specified)"
+        },
+        "reason": {
+          "type": "string",
+          "enum": ["duplicate", "fraudulent", "requested_by_customer"]
+        }
+      }
+    },
+    {
+      "name": "stripe:customer:create",
+      "description": "Create a new Stripe customer",
+      "parameters": {
+        "email": {
+          "type": "string",
+          "required": true
+        },
+        "name": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "metadata": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "name": "stripe:customer:update",
+      "description": "Update an existing customer",
+      "parameters": {
+        "customerId": {
+          "type": "string",
+          "required": true
+        },
+        "email": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "metadata": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "name": "stripe:subscription:create",
+      "description": "Create a subscription for a customer",
+      "parameters": {
+        "customerId": {
+          "type": "string",
+          "required": true
+        },
+        "priceId": {
+          "type": "string",
+          "required": true,
+          "description": "Stripe price ID for the subscription"
+        },
+        "trialPeriodDays": {
+          "type": "number",
+          "description": "Number of trial days"
+        },
+        "metadata": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "name": "stripe:subscription:update",
+      "description": "Update an existing subscription",
+      "parameters": {
+        "subscriptionId": {
+          "type": "string",
+          "required": true
+        },
+        "priceId": {
+          "type": "string",
+          "description": "New price ID"
+        },
+        "cancelAtPeriodEnd": {
+          "type": "boolean"
+        },
+        "metadata": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "name": "stripe:subscription:cancel",
+      "description": "Cancel a subscription",
+      "parameters": {
+        "subscriptionId": {
+          "type": "string",
+          "required": true
+        },
+        "cancelImmediately": {
+          "type": "boolean",
+          "default": false,
+          "description": "Cancel immediately or at period end"
+        }
+      }
+    },
+    {
+      "name": "stripe:invoice:create",
+      "description": "Create an invoice for a customer",
+      "parameters": {
+        "customerId": {
+          "type": "string",
+          "required": true
+        },
+        "items": {
+          "type": "array",
+          "required": true,
+          "items": {
+            "type": "object",
+            "properties": {
+              "description": {"type": "string"},
+              "amount": {"type": "number"},
+              "currency": {"type": "string"}
+            }
+          }
+        },
+        "autoAdvance": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    {
+      "name": "stripe:product:create",
+      "description": "Create a product",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true
+        },
+        "description": {
+          "type": "string"
+        },
+        "images": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "metadata": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "name": "stripe:price:create",
+      "description": "Create a price for a product",
+      "parameters": {
+        "productId": {
+          "type": "string",
+          "required": true
+        },
+        "unitAmount": {
+          "type": "number",
+          "required": true,
+          "description": "Price in cents"
+        },
+        "currency": {
+          "type": "string",
+          "default": "eur"
+        },
+        "recurring": {
+          "type": "object",
+          "properties": {
+            "interval": {"type": "string", "enum": ["day", "week", "month", "year"]},
+            "intervalCount": {"type": "number"}
+          }
+        }
+      }
+    },
+    {
+      "name": "stripe:webhook:construct",
+      "description": "Construct and verify a webhook event",
+      "parameters": {
+        "payload": {
+          "type": "string",
+          "required": true
+        },
+        "signature": {
+          "type": "string",
+          "required": true
+        },
+        "secret": {
+          "type": "string",
+          "required": true
+        }
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "stripe://products",
+      "name": "Products",
+      "description": "All Stripe products",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "stripe://prices",
+      "name": "Prices",
+      "description": "All Stripe prices",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "stripe://customers",
+      "name": "Customers",
+      "description": "Stripe customer list",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "stripe://subscriptions",
+      "name": "Subscriptions",
+      "description": "Active subscriptions",
+      "mimeType": "application/json"
+    }
+  ],
+  "prompts": [
+    {
+      "name": "create-pass-subscription",
+      "description": "Create a PASS subscription for a user",
+      "arguments": [
+        {
+          "name": "userEmail",
+          "description": "User's email address"
+        },
+        {
+          "name": "passType",
+          "description": "PASS type (free, premium, pro)"
+        }
+      ]
+    },
+    {
+      "name": "process-practitioner-payment",
+      "description": "Process a payment for a practitioner service",
+      "arguments": [
+        {
+          "name": "amount",
+          "description": "Payment amount in euros"
+        },
+        {
+          "name": "serviceDescription",
+          "description": "Description of the service"
+        }
+      ]
+    },
+    {
+      "name": "setup-recurring-billing",
+      "description": "Set up recurring billing for a practitioner",
+      "arguments": [
+        {
+          "name": "practitionerId",
+          "description": "Practitioner ID"
+        },
+        {
+          "name": "planType",
+          "description": "Billing plan type"
+        }
+      ]
+    }
+  ],
+  "configuration": {
+    "secretKey": "${STRIPE_SECRET_KEY}",
+    "publishableKey": "${STRIPE_PUBLISHABLE_KEY}",
+    "webhookSecret": "${STRIPE_WEBHOOK_SECRET}",
+    "currency": "eur",
+    "products": {
+      "passFree": {
+        "id": "prod_pass_free",
+        "name": "SPYMEO PASS Free",
+        "priceId": "price_pass_free"
+      },
+      "passPremium": {
+        "id": "prod_pass_premium",
+        "name": "SPYMEO PASS Premium",
+        "priceId": "price_pass_premium"
+      },
+      "passPro": {
+        "id": "prod_pass_pro",
+        "name": "SPYMEO PASS Pro",
+        "priceId": "price_pass_pro"
+      },
+      "practitionerMembership": {
+        "id": "prod_practitioner_membership",
+        "name": "Practitioner Membership",
+        "priceId": "price_practitioner_monthly"
+      },
+      "merchantMembership": {
+        "id": "prod_merchant_membership",
+        "name": "Merchant Membership",
+        "priceId": "price_merchant_monthly"
+      }
+    },
+    "webhookEvents": [
+      "payment_intent.succeeded",
+      "payment_intent.payment_failed",
+      "customer.subscription.created",
+      "customer.subscription.updated",
+      "customer.subscription.deleted",
+      "invoice.paid",
+      "invoice.payment_failed"
+    ]
+  },
+  "examples": [
+    {
+      "name": "Create PASS Subscription",
+      "description": "Create a premium PASS subscription",
+      "prompt": "Create a premium PASS subscription for user@example.com"
+    },
+    {
+      "name": "Process One-Time Payment",
+      "description": "Process a one-time payment for a service",
+      "prompt": "Process a 50 EUR payment for consultation service"
+    },
+    {
+      "name": "Refund Payment",
+      "description": "Issue a refund for a payment",
+      "prompt": "Refund payment intent pi_123456 due to customer request"
+    }
+  ]
+}

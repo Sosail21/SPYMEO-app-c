@@ -1,0 +1,348 @@
+openapi: 3.0.3
+info:
+  title: SPYMEO User API
+  description: End-user features (appointments, documents, messaging)
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+
+tags:
+  - name: Appointments
+  - name: Documents
+  - name: Conversations
+  - name: Messages
+
+security:
+  - cookieAuth: []
+
+paths:
+  /user/appointments:
+    get:
+      tags: [Appointments]
+      summary: List user appointments
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [upcoming, past]
+      responses:
+        '200':
+          description: List of appointments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Appointment'
+
+    post:
+      tags: [Appointments]
+      summary: Book appointment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentInput'
+      responses:
+        '201':
+          description: Appointment booked
+
+  /user/appointments/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [Appointments]
+      summary: Get appointment details
+      responses:
+        '200':
+          description: Appointment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+
+    put:
+      tags: [Appointments]
+      summary: Update appointment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentInput'
+      responses:
+        '200':
+          description: Appointment updated
+
+    delete:
+      tags: [Appointments]
+      summary: Cancel appointment
+      responses:
+        '200':
+          description: Appointment cancelled
+
+  /user/documents:
+    get:
+      tags: [Documents]
+      summary: List user documents
+      responses:
+        '200':
+          description: List of documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserDocument'
+
+    post:
+      tags: [Documents]
+      summary: Upload document
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                title:
+                  type: string
+                category:
+                  type: string
+      responses:
+        '201':
+          description: Document uploaded
+
+  /user/documents/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [Documents]
+      summary: Download document
+      responses:
+        '200':
+          description: Document file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+    delete:
+      tags: [Documents]
+      summary: Delete document
+      responses:
+        '200':
+          description: Document deleted
+
+  /user/conversations:
+    get:
+      tags: [Conversations]
+      summary: List conversations
+      responses:
+        '200':
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Conversation'
+
+  /user/conversations/{conversationId}/messages:
+    parameters:
+      - name: conversationId
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [Messages]
+      summary: Get conversation messages
+      responses:
+        '200':
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+
+    post:
+      tags: [Messages]
+      summary: Send message
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                body:
+                  type: string
+                attachments:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Message sent
+
+components:
+  schemas:
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        practitionerName:
+          type: string
+        practitionerSlug:
+          type: string
+        date:
+          type: string
+          format: date-time
+        durationMin:
+          type: integer
+        place:
+          type: string
+          enum: [Cabinet, Visio, Domicile]
+        address:
+          type: string
+        notesForUser:
+          type: string
+        status:
+          type: string
+          enum: [CONFIRMED, CANCELLED, DONE]
+        canCancelUntil:
+          type: string
+          format: date-time
+        documents:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              title:
+                type: string
+
+    AppointmentInput:
+      type: object
+      required: [practitionerSlug, date, place]
+      properties:
+        practitionerSlug:
+          type: string
+        date:
+          type: string
+          format: date-time
+        durationMin:
+          type: integer
+          default: 60
+        place:
+          type: string
+          enum: [Cabinet, Visio, Domicile]
+        notes:
+          type: string
+
+    UserDocument:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        filename:
+          type: string
+        mimeType:
+          type: string
+        uploadedAt:
+          type: string
+          format: date-time
+        size:
+          type: integer
+        category:
+          type: string
+        sharedBy:
+          type: string
+          description: Practitioner who shared it
+        url:
+          type: string
+
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: string
+        participantIds:
+          type: array
+          items:
+            type: string
+        participantNames:
+          type: array
+          items:
+            type: string
+        lastMessage:
+          type: string
+        lastMessageAt:
+          type: string
+          format: date-time
+        unreadCount:
+          type: integer
+        type:
+          type: string
+          enum: [direct, group]
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+        conversationId:
+          type: string
+        senderId:
+          type: string
+        senderName:
+          type: string
+        body:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+        readAt:
+          type: string
+          format: date-time
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              filename:
+                type: string
+              url:
+                type: string
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: spy_session

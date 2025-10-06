@@ -1,0 +1,304 @@
+openapi: 3.0.3
+info:
+  title: SPYMEO PASS API
+  description: Subscription management system for PASS members
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+
+tags:
+  - name: PASS User
+    description: End-user PASS features
+  - name: PASS Pro
+    description: Professional PASS features
+
+security:
+  - cookieAuth: []
+
+paths:
+  /user/pass:
+    get:
+      tags: [PASS User]
+      summary: Get PASS subscription status
+      description: Returns complete PASS snapshot including resources, discounts, and carnet status
+      responses:
+        '200':
+          description: PASS subscription data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pass:
+                    $ref: '#/components/schemas/PassSnapshot'
+              example:
+                pass:
+                  active: true
+                  plan: "MONTHLY"
+                  startedAt: "2025-04-05T10:00:00Z"
+                  nextBillingAt: "2025-10-05T10:00:00Z"
+                  monthsPaid: 5
+                  resources:
+                    - id: "res-2025-04"
+                      title: "Podcast — Respiration & système nerveux"
+                      type: "PODCAST"
+                      month: "2025-04"
+                      url: "/media/podcast/respiration.mp3"
+                      availableFrom: "2025-04-01"
+                  discounts:
+                    - id: "d1"
+                      kind: "Praticien"
+                      name: "Aline Dupont (Naturopathe)"
+                      city: "Dijon"
+                      rate: 15
+                      href: "/praticien/aline-dupont"
+                  carnet:
+                    status: "NOT_ELIGIBLE"
+                    note: "Encore 1 mois pour débloquer l'envoi du carnet."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /user/pass/toggle-plan:
+    post:
+      tags: [PASS User]
+      summary: Switch between monthly/annual plan
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [plan]
+              properties:
+                plan:
+                  type: string
+                  enum: [MONTHLY, ANNUAL]
+      responses:
+        '200':
+          description: Plan updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  newPlan:
+                    type: string
+
+  /user/pass/increment-month:
+    post:
+      tags: [PASS User]
+      summary: Increment paid months (mock/demo)
+      description: For development/demo purposes - simulates monthly billing
+      responses:
+        '200':
+          description: Month incremented
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  monthsPaid:
+                    type: integer
+
+  /user/pass/ship-carnet:
+    post:
+      tags: [PASS User]
+      summary: Request carnet shipment
+      description: |
+        Advances carnet status through shipment stages.
+        Only available when eligible (6 months monthly or annual plan).
+      responses:
+        '200':
+          description: Carnet shipment initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  status:
+                    type: string
+                    enum: [PENDING, PROCESSING, SHIPPED, DELIVERED]
+                  eta:
+                    type: string
+                    format: date-time
+                  tracking:
+                    type: string
+        '400':
+          description: Not eligible
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Not eligible for carnet"
+
+  /user/pass/discounts:
+    get:
+      tags: [PASS User]
+      summary: Get partner discounts
+      description: Returns all available discounts for PASS members
+      responses:
+        '200':
+          description: List of discounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PassDiscount'
+
+  /user/pass/resources:
+    get:
+      tags: [PASS User]
+      summary: Get exclusive resources
+      description: Returns monthly resources (podcasts, booklets, videos)
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}$'
+          example: "2025-10"
+      responses:
+        '200':
+          description: List of resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PassResource'
+
+  /pro/pass:
+    get:
+      tags: [PASS Pro]
+      summary: Get professional PASS benefits
+      description: Returns PASS features available to professionals
+      responses:
+        '200':
+          description: Pro PASS benefits
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  enrolled:
+                    type: boolean
+                  benefits:
+                    type: array
+                    items:
+                      type: string
+                  discountOffered:
+                    type: object
+                    properties:
+                      rate:
+                        type: number
+                      active:
+                        type: boolean
+
+components:
+  schemas:
+    PassSnapshot:
+      type: object
+      properties:
+        active:
+          type: boolean
+        plan:
+          type: string
+          enum: [ANNUAL, MONTHLY]
+        startedAt:
+          type: string
+          format: date-time
+        nextBillingAt:
+          type: string
+          format: date-time
+        monthsPaid:
+          type: integer
+          description: Total months paid (for monthly plan)
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/PassResource'
+        discounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PassDiscount'
+        carnet:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [NOT_ELIGIBLE, PENDING, PROCESSING, SHIPPED, DELIVERED]
+            note:
+              type: string
+            eta:
+              type: string
+              format: date-time
+            tracking:
+              type: string
+
+    PassResource:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        type:
+          type: string
+          enum: [PODCAST, BOOKLET, VIDEO]
+        month:
+          type: string
+          pattern: '^\d{4}-\d{2}$'
+          description: Attribution month (YYYY-MM)
+        description:
+          type: string
+        url:
+          type: string
+        availableFrom:
+          type: string
+          format: date-time
+
+    PassDiscount:
+      type: object
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+          enum: [Praticien, Commerçant, Artisan, Centre]
+        name:
+          type: string
+        city:
+          type: string
+        rate:
+          type: number
+          description: Discount percentage
+        href:
+          type: string
+          description: Link to partner profile
+
+  responses:
+    Unauthorized:
+      description: Not authenticated
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: spy_session

@@ -16,3 +16,14 @@ Thumbs.db
 
 # misc
 *.zip
+
+# environment variables
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# MCP (Model Context Protocol)
+.mcp/cache/
+.mcp/logs/
+.mcp/node_modules/

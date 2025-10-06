@@ -1,0 +1,417 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schema/server.json",
+  "name": "algolia-search",
+  "version": "1.0.0",
+  "description": "Algolia MCP server for SPYMEO search functionality",
+  "type": "search",
+  "provider": "algolia",
+  "capabilities": [
+    "index:manage",
+    "search:query",
+    "search:faceted",
+    "record:add",
+    "record:update",
+    "record:delete",
+    "record:batch",
+    "settings:configure",
+    "synonyms:manage",
+    "rules:manage"
+  ],
+  "tools": [
+    {
+      "name": "algolia:search:query",
+      "description": "Search across one or more indices",
+      "parameters": {
+        "indexName": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the index to search"
+        },
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "Search query"
+        },
+        "filters": {
+          "type": "string",
+          "description": "Algolia filter expression"
+        },
+        "facets": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Facets to retrieve"
+        },
+        "hitsPerPage": {
+          "type": "number",
+          "default": 20
+        },
+        "page": {
+          "type": "number",
+          "default": 0
+        },
+        "attributesToRetrieve": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "getRankingInfo": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "algolia:search:multi",
+      "description": "Search across multiple indices simultaneously",
+      "parameters": {
+        "queries": {
+          "type": "array",
+          "required": true,
+          "items": {
+            "type": "object",
+            "properties": {
+              "indexName": {"type": "string"},
+              "query": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "algolia:record:add",
+      "description": "Add a record to an index",
+      "parameters": {
+        "indexName": {
+          "type": "string",
+          "required": true
+        },
+        "record": {
+          "type": "object",
+          "required": true,
+          "description": "Record data with objectID"
+        }
+      }
+    },
+    {
+      "name": "algolia:record:update",
+      "description": "Update a record in an index",
+      "parameters": {
+        "indexName": {
+          "type": "string",
+          "required": true
+        },
+        "objectID": {
+          "type": "string",
+          "required": true
+        },
+        "updates": {
+          "type": "object",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "algolia:record:delete",
+      "description": "Delete a record from an index",
+      "parameters": {
+        "indexName": {
+          "type": "string",
+          "required": true
+        },
+        "objectID": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "algolia:record:batch",
+      "description": "Perform batch operations on records",
+      "parameters": {
+        "indexName": {
+          "type": "string",
+          "required": true
+        },
+        "operations": {
+          "type": "array",
+          "required": true,
+          "items": {
+            "type": "object",
+            "properties": {
+              "action": {"type": "string", "enum": ["addObject", "updateObject", "deleteObject"]},
+              "body": {"type": "object"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "algolia:index:create",
+      "description": "Create a new index",
+      "parameters": {
+        "indexName": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "algolia:index:delete",
+      "description": "Delete an index",
+      "parameters": {
+        "indexName": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "algolia:settings:configure",
+      "description": "Configure index settings",
+      "parameters": {
+        "indexName": {
+          "type": "string",
+          "required": true
+        },
+        "settings": {
+          "type": "object",
+          "required": true,
+          "properties": {
+            "searchableAttributes": {"type": "array"},
+            "attributesForFaceting": {"type": "array"},
+            "customRanking": {"type": "array"},
+            "ranking": {"type": "array"}
+          }
+        }
+      }
+    },
+    {
+      "name": "algolia:synonyms:add",
+      "description": "Add synonyms to an index",
+      "parameters": {
+        "indexName": {
+          "type": "string",
+          "required": true
+        },
+        "objectID": {
+          "type": "string",
+          "required": true
+        },
+        "synonyms": {
+          "type": "array",
+          "required": true,
+          "items": {"type": "string"}
+        },
+        "type": {
+          "type": "string",
+          "enum": ["synonym", "oneWaySynonym", "altCorrection1", "altCorrection2"],
+          "default": "synonym"
+        }
+      }
+    },
+    {
+      "name": "algolia:rules:add",
+      "description": "Add a query rule to an index",
+      "parameters": {
+        "indexName": {
+          "type": "string",
+          "required": true
+        },
+        "objectID": {
+          "type": "string",
+          "required": true
+        },
+        "conditions": {
+          "type": "array",
+          "required": true
+        },
+        "consequence": {
+          "type": "object",
+          "required": true
+        }
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "algolia://indices",
+      "name": "Search Indices",
+      "description": "List of all Algolia indices",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "algolia://analytics",
+      "name": "Search Analytics",
+      "description": "Search analytics and popular queries",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "algolia://synonyms",
+      "name": "Synonym Sets",
+      "description": "Configured synonym sets",
+      "mimeType": "application/json"
+    }
+  ],
+  "prompts": [
+    {
+      "name": "search-practitioners",
+      "description": "Search for practitioners by specialty and location",
+      "arguments": [
+        {
+          "name": "specialty",
+          "description": "Practitioner specialty"
+        },
+        {
+          "name": "location",
+          "description": "City or region"
+        }
+      ]
+    },
+    {
+      "name": "configure-index",
+      "description": "Configure search index with optimal settings",
+      "arguments": [
+        {
+          "name": "indexName",
+          "description": "Name of the index"
+        },
+        {
+          "name": "indexType",
+          "description": "Type of data (practitioners, products, articles)"
+        }
+      ]
+    },
+    {
+      "name": "sync-database-to-algolia",
+      "description": "Sync database records to Algolia index",
+      "arguments": [
+        {
+          "name": "model",
+          "description": "Database model to sync"
+        }
+      ]
+    }
+  ],
+  "configuration": {
+    "appId": "${ALGOLIA_APP_ID}",
+    "apiKey": "${ALGOLIA_API_KEY}",
+    "adminKey": "${ALGOLIA_ADMIN_KEY}",
+    "indices": {
+      "practitioners": {
+        "name": "spymeo_practitioners",
+        "searchableAttributes": [
+          "name",
+          "specialty",
+          "bio",
+          "services"
+        ],
+        "attributesForFaceting": [
+          "specialty",
+          "city",
+          "region",
+          "acceptsPass",
+          "rating"
+        ],
+        "customRanking": [
+          "desc(rating)",
+          "desc(reviewCount)",
+          "asc(price)"
+        ]
+      },
+      "merchants": {
+        "name": "spymeo_merchants",
+        "searchableAttributes": [
+          "name",
+          "category",
+          "description",
+          "products"
+        ],
+        "attributesForFaceting": [
+          "category",
+          "city",
+          "region",
+          "acceptsPass"
+        ]
+      },
+      "products": {
+        "name": "spymeo_products",
+        "searchableAttributes": [
+          "name",
+          "description",
+          "brand",
+          "tags"
+        ],
+        "attributesForFaceting": [
+          "category",
+          "brand",
+          "price",
+          "inStock"
+        ],
+        "customRanking": [
+          "desc(salesCount)",
+          "desc(rating)"
+        ]
+      },
+      "articles": {
+        "name": "spymeo_articles",
+        "searchableAttributes": [
+          "title",
+          "excerpt",
+          "content",
+          "tags"
+        ],
+        "attributesForFaceting": [
+          "category",
+          "author",
+          "publishedAt",
+          "tags"
+        ],
+        "customRanking": [
+          "desc(publishedAt)",
+          "desc(views)"
+        ]
+      },
+      "centers": {
+        "name": "spymeo_centers",
+        "searchableAttributes": [
+          "name",
+          "description",
+          "courses"
+        ],
+        "attributesForFaceting": [
+          "city",
+          "region",
+          "certifications"
+        ]
+      }
+    },
+    "synonyms": {
+      "practitioners": [
+        {
+          "objectID": "health-synonyms",
+          "synonyms": ["thérapeute", "praticien", "professionnel de santé"]
+        },
+        {
+          "objectID": "yoga-synonyms",
+          "synonyms": ["yoga", "yogi", "yogathérapie"]
+        }
+      ]
+    }
+  },
+  "examples": [
+    {
+      "name": "Search Practitioners",
+      "description": "Search for yoga practitioners in Paris",
+      "prompt": "Search for yoga practitioners in Paris with filters for accepting PASS"
+    },
+    {
+      "name": "Faceted Search",
+      "description": "Perform faceted search with filters",
+      "prompt": "Search products with facets for category, price range, and brand"
+    },
+    {
+      "name": "Sync Records",
+      "description": "Sync database records to Algolia",
+      "prompt": "Sync all practitioners from the database to the Algolia index"
+    }
+  ]
+}

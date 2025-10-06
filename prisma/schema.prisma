@@ -1,0 +1,1261 @@
+// SPYMEO Platform - Complete Prisma Schema
+// This schema supports all platform features: user management, practitioners,
+// artisans, merchants, training centers, blog, academy, messaging, and more.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum Role {
+  FREE_USER
+  PASS_USER
+  PRACTITIONER
+  ARTISAN
+  COMMERCANT
+  CENTER
+  ADMIN
+}
+
+enum PassPlan {
+  ANNUAL
+  MONTHLY
+}
+
+enum CarnetShipmentStatus {
+  NOT_ELIGIBLE
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+}
+
+enum PassResourceType {
+  PODCAST
+  BOOKLET
+  VIDEO
+}
+
+enum ArticleStatus {
+  SUBMITTED
+  NEEDS_CHANGES
+  REJECTED
+  DRAFT
+  PUBLISHED
+}
+
+enum ArticleSource {
+  ADMIN
+  PRACTITIONER
+}
+
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum StockMovementType {
+  IN
+  OUT
+  ADJUSTMENT
+}
+
+enum AdvantageType {
+  REDUCTION
+  ECHANGE
+  INVITATION
+}
+
+enum OpportunityKind {
+  EMPLOI
+  INTERVENTION_B2B
+}
+
+enum AnnonceKind {
+  OFFER
+  DEMAND
+}
+
+enum MessageAuthor {
+  USER
+  PRO
+  SYSTEM
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum PaymentMethod {
+  CARD
+  CASH
+  CHECK
+  BANK_TRANSFER
+  OTHER
+}
+
+// ============================================================================
+// CORE USER & AUTH
+// ============================================================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(FREE_USER)
+  avatar    String?
+  avatarPublicId String? // Cloudinary public ID for avatar
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Stripe integration
+  stripeCustomerId String? @unique
+
+  // Relations
+  profile  Profile?
+  sessions Session[]
+
+  // Practitioner features
+  clients         Client[]
+  consultations   Consultation[]
+  agendaEvents    AgendaEvent[]
+  agendaSettings  AgendaSettings?
+  precomptaConfig PrecomptaConfig?
+  transactions    Transaction[]
+  receipts        Receipt[]
+  resources       Resource[]
+
+  // Academy
+  lessons         Lesson[]
+  chapters        Chapter[]
+  progress        Progress[]
+  academyNotes    AcademyNote[]
+  academyComments AcademyComment[]
+
+  // Blog
+  articles Article[]
+
+  // PASS
+  passSubscription PassSubscription?
+
+  // E-commerce
+  products       Product[]
+  services       Service[]
+  ordersAsSeller Order[]         @relation("SellerOrders")
+  ordersAsBuyer  Order[]         @relation("BuyerOrders")
+  stockMovements StockMovement[]
+
+  // Training Center
+  formations        Formation[]
+  formationSessions FormationSession[]
+  enrollments       Enrollment[]
+  learners          Learner[]
+
+  // Community
+  advantages   Advantage[]
+  candidatures Candidature[]
+  passPartner  PassPartner?
+
+  // Messaging
+  conversationsAsUser Conversation[] @relation("UserConversations")
+  conversationsAsPro  Conversation[] @relation("ProConversations")
+  messages            Message[]
+
+  // Shared office
+  annonces Annonce[]
+
+  // User features
+  documents    Document[]
+  appointments Appointment[]
+  favorites    Favorite[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Profile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  bio        String? @db.Text
+  phone      String?
+  address    String?
+  city       String?
+  postalCode String?
+  website    String?
+  slug       String? @unique
+
+  // Professional info
+  specialty  String?
+  siret      String?
+  licenseNum String?
+
+  // Settings
+  emailNotifications Boolean @default(true)
+  smsNotifications   Boolean @default(false)
+  marketingEmails    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([city])
+}
+
+model Session {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+}
+
+// ============================================================================
+// PRACTITIONER FEATURES - Client Management
+// ============================================================================
+
+model Client {
+  id             String @id @default(cuid())
+  practitionerId String
+  practitioner   User   @relation(fields: [practitionerId], references: [id], onDelete: Cascade)
+
+  firstName  String
+  lastName   String
+  email      String?
+  phone      String?
+  birthDate  DateTime?
+  address    String?
+  city       String?
+  postalCode String?
+
+  notes String?  @db.Text
+  tags  String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  consultations Consultation[]
+  antecedents   Antecedent[]
+  documents     ClientDocument[]
+  invoices      Invoice[]
+  agendaEvents  AgendaEvent[]
+
+  @@index([practitionerId])
+  @@index([lastName])
+  @@index([email])
+}
+
+model Consultation {
+  id             String @id @default(cuid())
+  clientId       String
+  client         Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  practitionerId String
+  practitioner   User   @relation(fields: [practitionerId], references: [id], onDelete: Cascade)
+
+  date            DateTime
+  duration        Int? // minutes
+  type            String?
+  notes           String?  @db.Text
+  recommendations String?  @db.Text
+  nextSteps       String?  @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([practitionerId])
+  @@index([date])
+}
+
+model Antecedent {
+  id       String @id @default(cuid())
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  category String // medical, surgical, familial, allergies, etc.
+  label    String
+  details  String?   @db.Text
+  date     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([category])
+}
+
+model ClientDocument {
+  id       String @id @default(cuid())
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  title          String
+  fileName       String
+  fileUrl        String
+  fileType       String?
+  fileSize       Int? // bytes
+  cloudinaryPublicId String? // Cloudinary public ID
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+}
+
+model Invoice {
+  id       String @id @default(cuid())
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  invoiceNumber String    @unique
+  date          DateTime
+  dueDate       DateTime?
+
+  items     Json // Array of {description, quantity, unitPrice, total}
+  subtotal  Float
+  vatRate   Float @default(0)
+  vatAmount Float @default(0)
+  total     Float
+
+  paid          Boolean        @default(false)
+  paidAt        DateTime?
+  paymentMethod PaymentMethod?
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([invoiceNumber])
+  @@index([date])
+}
+
+// ============================================================================
+// PRACTITIONER FEATURES - Agenda
+// ============================================================================
+
+model AgendaEvent {
+  id             String @id @default(cuid())
+  practitionerId String
+  practitioner   User   @relation(fields: [practitionerId], references: [id], onDelete: Cascade)
+
+  title  String
+  start  DateTime
+  end    DateTime?
+  allDay Boolean   @default(false)
+
+  clientId   String?
+  client     Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  clientName String?
+
+  notes String? @db.Text
+  color String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([practitionerId])
+  @@index([clientId])
+  @@index([start])
+}
+
+model AgendaSettings {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  workingHours Json // {monday: {start: "09:00", end: "18:00"}, ...}
+  slotDuration Int  @default(30) // minutes
+  bufferTime   Int  @default(0) // minutes between appointments
+
+  allowOnlineBooking Boolean @default(true)
+  autoConfirm        Boolean @default(false)
+
+  appointmentTypes Json @default("[]") // Array of {id, name, duration, price, color}
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================================
+// ACADEMY SYSTEM
+// ============================================================================
+
+model Lesson {
+  id       String @id @default(cuid())
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  title       String
+  slug        String  @unique
+  description String? @db.Text
+  thumbnail   String?
+
+  order     Int     @default(0)
+  published Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  chapters Chapter[]
+  progress Progress[]
+
+  @@index([slug])
+  @@index([authorId])
+  @@index([published])
+}
+
+model Chapter {
+  id       String @id @default(cuid())
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  title    String
+  content  String  @db.Text
+  videoUrl String?
+  duration Int? // minutes
+
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lessonId])
+  @@index([authorId])
+}
+
+model Progress {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  chaptersCompleted String[]  @default([]) // Array of chapter IDs
+  completed         Boolean   @default(false)
+  completedAt       DateTime?
+
+  lastAccessedAt DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
+}
+
+model AcademyNote {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  lessonId  String?
+  chapterId String?
+
+  content String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([lessonId])
+}
+
+model AcademyComment {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  lessonId  String?
+  chapterId String?
+
+  content String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([lessonId])
+}
+
+// ============================================================================
+// PRE-ACCOUNTING
+// ============================================================================
+
+model PrecomptaConfig {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  businessName   String?
+  siret          String?
+  vatNumber      String?
+  defaultVatRate Float   @default(20)
+
+  bankName String?
+  iban     String?
+
+  categories Json @default("[]") // Array of {id, name, type: "income"|"expense"}
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Transaction {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        TransactionType
+  amount      Float
+  date        DateTime
+  category    String?
+  description String?
+
+  invoiceId String? // Link to Invoice if applicable
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([type])
+  @@index([date])
+}
+
+model Receipt {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fileName           String
+  fileUrl            String
+  fileSize           Int? // bytes
+  cloudinaryPublicId String? // Cloudinary public ID
+
+  amount   Float?
+  date     DateTime?
+  vendor   String?
+  category String?
+  notes    String?   @db.Text
+
+  processed Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([date])
+}
+
+// ============================================================================
+// PASS SYSTEM
+// ============================================================================
+
+model PassSubscription {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  active        Boolean   @default(true)
+  plan          PassPlan
+  startedAt     DateTime
+  nextBillingAt DateTime?
+  monthsPaid    Int       @default(0)
+
+  // Stripe integration
+  stripeSubscriptionId String? @unique
+  stripePriceId        String?
+  stripeCurrentPeriodEnd DateTime?
+
+  carnetStatus CarnetShipmentStatus @default(NOT_ELIGIBLE)
+  carnetNote   String?
+  carnetEta    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  resources PassResource[]
+  discounts PassDiscount[]
+  shipments CarnetShipment[]
+  payments  Payment[]
+
+  @@index([userId])
+  @@index([active])
+  @@index([stripeSubscriptionId])
+}
+
+model PassResource {
+  id             String           @id @default(cuid())
+  subscriptionId String
+  subscription   PassSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  title         String
+  type          PassResourceType
+  month         String // YYYY-MM
+  description   String?          @db.Text
+  url           String?
+  availableFrom DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([subscriptionId])
+  @@index([month])
+}
+
+model PassDiscount {
+  id             String            @id @default(cuid())
+  subscriptionId String?
+  subscription   PassSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  kind String // Praticien, Commerçant, Artisan, Centre
+  name String
+  city String?
+  rate Int // percentage
+  href String
+
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([subscriptionId])
+  @@index([kind])
+  @@index([city])
+}
+
+model CarnetShipment {
+  id             String           @id @default(cuid())
+  subscriptionId String
+  subscription   PassSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  status         CarnetShipmentStatus
+  trackingNumber String?
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+  address        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([subscriptionId])
+  @@index([status])
+}
+
+// ============================================================================
+// PAYMENT SYSTEM
+// ============================================================================
+
+model Payment {
+  id             String            @id @default(cuid())
+  subscriptionId String?
+  subscription   PassSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  // Stripe details
+  stripePaymentIntentId String? @unique
+  stripeInvoiceId       String? @unique
+  stripeChargeId        String?
+
+  amount         Float
+  currency       String        @default("eur")
+  status         PaymentStatus @default(PENDING)
+  paymentMethod  String? // card, bank_transfer, etc.
+
+  // Metadata
+  description String?
+  metadata    Json?
+
+  failureReason  String?
+  failureMessage String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([subscriptionId])
+  @@index([stripePaymentIntentId])
+  @@index([stripeInvoiceId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+// ============================================================================
+// E-COMMERCE (Artisan/Merchant)
+// ============================================================================
+
+model Product {
+  id       String @id @default(cuid())
+  sellerId String
+  seller   User   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  title       String
+  slug        String
+  description String? @db.Text
+
+  priceTTC Float
+  vatRate  Float
+  sku      String?
+  category String?
+
+  stock Int?
+
+  status ProductStatus @default(DRAFT)
+
+  images             String[] @default([])
+  cloudinaryPublicIds String[] @default([]) // Cloudinary public IDs for images
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  orderItems     OrderItem[]
+  stockMovements StockMovement[]
+
+  @@unique([sellerId, slug])
+  @@index([sellerId])
+  @@index([slug])
+  @@index([status])
+}
+
+model Service {
+  id         String @id @default(cuid())
+  providerId String
+  provider   User   @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  title       String
+  slug        String
+  description String? @db.Text
+
+  priceTTC Float
+  vatRate  Float
+  duration Int? // minutes
+  category String?
+
+  active Boolean @default(true)
+
+  images             String[] @default([])
+  cloudinaryPublicIds String[] @default([]) // Cloudinary public IDs for images
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([providerId, slug])
+  @@index([providerId])
+  @@index([slug])
+  @@index([active])
+}
+
+model Order {
+  id          String @id @default(cuid())
+  orderNumber String @unique
+
+  sellerId String
+  seller   User   @relation("SellerOrders", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  buyerId String?
+  buyer   User?   @relation("BuyerOrders", fields: [buyerId], references: [id], onDelete: SetNull)
+
+  status OrderStatus @default(PENDING)
+
+  subtotal     Float
+  vatAmount    Float
+  shippingCost Float @default(0)
+  total        Float
+
+  shippingAddress String? @db.Text
+  billingAddress  String? @db.Text
+
+  notes String? @db.Text
+
+  placedAt    DateTime  @default(now())
+  confirmedAt DateTime?
+  shippedAt   DateTime?
+  deliveredAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  items OrderItem[]
+
+  @@index([sellerId])
+  @@index([buyerId])
+  @@index([orderNumber])
+  @@index([status])
+  @@index([placedAt])
+}
+
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  title     String
+  quantity  Int
+  unitPrice Float
+  vatRate   Float
+  total     Float
+
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model StockMovement {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type     StockMovementType
+  quantity Int
+  reason   String?
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// TRAINING CENTER
+// ============================================================================
+
+model Formation {
+  id       String @id @default(cuid())
+  centerId String
+  center   User   @relation(fields: [centerId], references: [id], onDelete: Cascade)
+
+  title       String
+  slug        String
+  description String? @db.Text
+
+  duration Int? // hours
+  price    Float?
+  category String?
+
+  published Boolean @default(false)
+
+  images             String[] @default([])
+  cloudinaryPublicIds String[] @default([]) // Cloudinary public IDs for images
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  sessions FormationSession[]
+
+  @@unique([centerId, slug])
+  @@index([centerId])
+  @@index([slug])
+  @@index([published])
+}
+
+model FormationSession {
+  id          String    @id @default(cuid())
+  formationId String
+  formation   Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
+
+  instructorId String
+  instructor   User   @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+
+  title           String
+  startDate       DateTime
+  endDate         DateTime
+  location        String?
+  maxParticipants Int?
+
+  published Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  enrollments Enrollment[]
+
+  @@index([formationId])
+  @@index([instructorId])
+  @@index([startDate])
+}
+
+model Learner {
+  id       String @id @default(cuid())
+  centerId String
+  center   User   @relation(fields: [centerId], references: [id], onDelete: Cascade)
+
+  firstName String
+  lastName  String
+  email     String
+  phone     String?
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  enrollments Enrollment[]
+
+  @@index([centerId])
+  @@index([email])
+}
+
+model Enrollment {
+  id        String           @id @default(cuid())
+  sessionId String
+  session   FormationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  learnerId String
+  learner   Learner @relation(fields: [learnerId], references: [id], onDelete: Cascade)
+
+  enrolledBy     String
+  enrolledByUser User   @relation(fields: [enrolledBy], references: [id], onDelete: Cascade)
+
+  status String @default("registered") // registered, completed, cancelled
+
+  enrolledAt  DateTime  @default(now())
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([sessionId, learnerId])
+  @@index([sessionId])
+  @@index([learnerId])
+  @@index([enrolledBy])
+}
+
+// ============================================================================
+// BLOG
+// ============================================================================
+
+model Article {
+  id       String @id @default(cuid())
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  title   String
+  slug    String  @unique
+  content String? @db.Text
+  excerpt String? @db.Text
+
+  status ArticleStatus @default(DRAFT)
+  source ArticleSource @default(ADMIN)
+
+  tags               String[] @default([])
+  thumbnail          String?
+  thumbnailPublicId  String? // Cloudinary public ID for thumbnail
+
+  submittedAt DateTime?
+  publishedAt DateTime?
+
+  moderationNotes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([authorId])
+  @@index([slug])
+  @@index([status])
+  @@index([source])
+}
+
+// ============================================================================
+// COMMUNITY FEATURES
+// ============================================================================
+
+model Advantage {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title       String
+  type        AdvantageType
+  description String?       @db.Text
+  percentage  Int? // for REDUCTION
+
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([type])
+  @@index([active])
+}
+
+model Opportunity {
+  id   String          @id @default(cuid())
+  kind OpportunityKind
+
+  title       String
+  company     String
+  location    String?
+  description String  @db.Text
+  applyUrl    String?
+
+  open Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  candidatures Candidature[]
+
+  @@index([kind])
+  @@index([open])
+}
+
+model Candidature {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  opportunityId String
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  message String? @db.Text
+  status  String  @default("pending") // pending, reviewed, accepted, rejected
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, opportunityId])
+  @@index([userId])
+  @@index([opportunityId])
+}
+
+model PassPartner {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  enabled Boolean @default(false)
+  rate    Int // 5, 10, 15, 20, 25, 30
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([enabled])
+}
+
+// ============================================================================
+// MESSAGING
+// ============================================================================
+
+model Conversation {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation("UserConversations", fields: [userId], references: [id], onDelete: Cascade)
+
+  proId String
+  pro   User   @relation("ProConversations", fields: [proId], references: [id], onDelete: Cascade)
+
+  lastMessageAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  messages Message[]
+
+  @@unique([userId, proId])
+  @@index([userId])
+  @@index([proId])
+  @@index([lastMessageAt])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  authorType MessageAuthor
+  text       String        @db.Text
+
+  read Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([conversationId])
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// SHARED OFFICE
+// ============================================================================
+
+model Annonce {
+  id       String @id @default(cuid())
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  kind        AnnonceKind
+  title       String
+  description String      @db.Text
+
+  images             String[] @default([])
+  cloudinaryPublicIds String[] @default([]) // Cloudinary public IDs for images
+  city               String
+  surface            Int? // m²
+  equiped            Boolean  @default(false)
+
+  published Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([authorId])
+  @@index([kind])
+  @@index([city])
+  @@index([published])
+}
+
+// ============================================================================
+// USER FEATURES
+// ============================================================================
+
+model Document {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title              String
+  fileName           String
+  fileUrl            String
+  fileType           String?
+  fileSize           Int? // bytes
+  cloudinaryPublicId String? // Cloudinary public ID
+  category           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([category])
+}
+
+model Appointment {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  practitionerId   String?
+  practitionerName String
+  practitionerSlug String?
+
+  date   DateTime
+  time   String
+  type   String?
+  status String   @default("confirmed") // confirmed, cancelled, completed
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([practitionerId])
+  @@index([date])
+  @@index([status])
+}
+
+model Favorite {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  targetType String // practitioner, artisan, commercant, center, product, formation
+  targetId   String
+  targetName String
+  targetSlug String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, targetType, targetId])
+  @@index([userId])
+  @@index([targetType])
+}
+
+// ============================================================================
+// RESOURCES (Practitioner shared resources)
+// ============================================================================
+
+model Resource {
+  id      String @id @default(cuid())
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  title              String
+  fileName           String
+  fileUrl            String
+  fileType           String?
+  fileSize           Int? // bytes
+  cloudinaryPublicId String? // Cloudinary public ID
+
+  category    String?
+  tags        String[] @default([])
+  description String?  @db.Text
+
+  sharedWith String[] @default([]) // Array of user IDs
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([category])
+}

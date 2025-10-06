@@ -1,0 +1,303 @@
+openapi: 3.0.3
+info:
+  title: SPYMEO Academy API
+  description: Learning platform for practitioners
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+
+tags:
+  - name: Lessons
+  - name: Chapters
+  - name: Progress
+  - name: Notes
+  - name: Comments
+
+security:
+  - cookieAuth: []
+
+paths:
+  /academy/lessons:
+    get:
+      tags: [Lessons]
+      summary: List all lessons
+      responses:
+        '200':
+          description: List of lessons
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Lesson'
+
+    post:
+      tags: [Lessons]
+      summary: Like a lesson
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                  enum: [like]
+                lessonId:
+                  type: string
+      responses:
+        '200':
+          description: Lesson liked
+
+  /academy/chapters:
+    get:
+      tags: [Chapters]
+      summary: List all chapters
+      responses:
+        '200':
+          description: List of chapters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Chapter'
+
+  /academy/chapters/completed:
+    post:
+      tags: [Chapters]
+      summary: Mark chapter as completed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                chapterId:
+                  type: string
+      responses:
+        '200':
+          description: Chapter marked complete
+
+  /academy/progress:
+    get:
+      tags: [Progress]
+      summary: Get user progress
+      responses:
+        '200':
+          description: Progress data
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/Progress'
+
+    put:
+      tags: [Progress]
+      summary: Update progress
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Progress'
+      responses:
+        '200':
+          description: Progress updated
+
+  /academy/progress/by-lesson:
+    get:
+      tags: [Progress]
+      summary: Get progress by lesson
+      parameters:
+        - name: lessonId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lesson progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Progress'
+
+  /academy/notes:
+    get:
+      tags: [Notes]
+      summary: List user notes
+      parameters:
+        - name: lessonId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+
+    post:
+      tags: [Notes]
+      summary: Create note
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lessonId, body]
+              properties:
+                lessonId:
+                  type: string
+                body:
+                  type: string
+      responses:
+        '201':
+          description: Note created
+
+  /academy/comments:
+    get:
+      tags: [Comments]
+      summary: List comments
+      parameters:
+        - name: lessonId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+
+    post:
+      tags: [Comments]
+      summary: Post comment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lessonId, body]
+              properties:
+                lessonId:
+                  type: string
+                body:
+                  type: string
+      responses:
+        '201':
+          description: Comment posted
+
+components:
+  schemas:
+    Lesson:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        durationMin:
+          type: integer
+        kind:
+          type: string
+          enum: [cours, guide, atelier]
+        tags:
+          type: array
+          items:
+            type: string
+        difficulty:
+          type: string
+          enum: [débutant, intermédiaire, avancé]
+        coverUrl:
+          type: string
+        description:
+          type: string
+        content:
+          type: string
+        likes:
+          type: integer
+        comments:
+          type: integer
+
+    Chapter:
+      type: object
+      properties:
+        id:
+          type: string
+        courseId:
+          type: string
+        title:
+          type: string
+        order:
+          type: integer
+        lessons:
+          type: array
+          items:
+            type: string
+
+    Progress:
+      type: object
+      properties:
+        lessonId:
+          type: string
+        status:
+          type: string
+          enum: [non_commencé, en_cours, terminé]
+        percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+        favorite:
+          type: boolean
+        lastViewedAt:
+          type: string
+          format: date-time
+
+    Note:
+      type: object
+      properties:
+        id:
+          type: string
+        lessonId:
+          type: string
+        body:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        lessonId:
+          type: string
+        authorId:
+          type: string
+        body:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: spy_session

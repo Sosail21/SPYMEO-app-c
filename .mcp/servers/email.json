@@ -1,0 +1,271 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schema/server.json",
+  "name": "resend-email",
+  "version": "1.0.0",
+  "description": "Resend MCP server for SPYMEO transactional email",
+  "type": "email",
+  "provider": "resend",
+  "capabilities": [
+    "email:send",
+    "email:send:batch",
+    "template:render",
+    "domain:verify",
+    "analytics:track"
+  ],
+  "tools": [
+    {
+      "name": "resend:email:send",
+      "description": "Send a transactional email",
+      "parameters": {
+        "to": {
+          "type": "array",
+          "items": {"type": "string"},
+          "required": true,
+          "description": "Recipient email addresses"
+        },
+        "from": {
+          "type": "string",
+          "required": true,
+          "description": "Sender email (must be verified domain)"
+        },
+        "subject": {
+          "type": "string",
+          "required": true
+        },
+        "html": {
+          "type": "string",
+          "description": "HTML email body"
+        },
+        "text": {
+          "type": "string",
+          "description": "Plain text email body"
+        },
+        "template": {
+          "type": "string",
+          "description": "Template ID to use"
+        },
+        "templateData": {
+          "type": "object",
+          "description": "Data to populate template variables"
+        },
+        "cc": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "bcc": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "replyTo": {
+          "type": "string"
+        },
+        "attachments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "filename": {"type": "string"},
+              "content": {"type": "string"}
+            }
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {"type": "string"},
+              "value": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "resend:email:send:batch",
+      "description": "Send multiple emails in batch",
+      "parameters": {
+        "emails": {
+          "type": "array",
+          "required": true,
+          "items": {
+            "type": "object"
+          },
+          "description": "Array of email objects"
+        }
+      }
+    },
+    {
+      "name": "resend:template:render",
+      "description": "Render an email template with data",
+      "parameters": {
+        "templateId": {
+          "type": "string",
+          "required": true
+        },
+        "data": {
+          "type": "object",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "resend:domain:verify",
+      "description": "Verify a domain for sending emails",
+      "parameters": {
+        "domain": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "resend:analytics:get",
+      "description": "Get email analytics and delivery stats",
+      "parameters": {
+        "emailId": {
+          "type": "string"
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "endDate": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "resend://templates",
+      "name": "Email Templates",
+      "description": "Available email templates",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "resend://domains",
+      "name": "Verified Domains",
+      "description": "List of verified sending domains",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "resend://analytics",
+      "name": "Email Analytics",
+      "description": "Email delivery and engagement statistics",
+      "mimeType": "application/json"
+    }
+  ],
+  "prompts": [
+    {
+      "name": "send-welcome-email",
+      "description": "Send a welcome email to a new user",
+      "arguments": [
+        {
+          "name": "userEmail",
+          "description": "New user's email address"
+        },
+        {
+          "name": "userName",
+          "description": "New user's name"
+        }
+      ]
+    },
+    {
+      "name": "send-appointment-confirmation",
+      "description": "Send appointment confirmation to user and practitioner",
+      "arguments": [
+        {
+          "name": "appointmentDetails",
+          "description": "JSON object with appointment information"
+        }
+      ]
+    },
+    {
+      "name": "send-password-reset",
+      "description": "Send password reset email with secure token",
+      "arguments": [
+        {
+          "name": "userEmail",
+          "description": "User's email address"
+        },
+        {
+          "name": "resetToken",
+          "description": "Password reset token"
+        }
+      ]
+    }
+  ],
+  "configuration": {
+    "apiKey": "${RESEND_API_KEY}",
+    "defaultFrom": "noreply@spymeo.com",
+    "domains": [
+      "spymeo.com"
+    ],
+    "templates": {
+      "welcome": {
+        "id": "welcome-user",
+        "name": "Welcome Email",
+        "variables": ["userName", "activationLink"]
+      },
+      "appointmentConfirmation": {
+        "id": "appointment-confirm",
+        "name": "Appointment Confirmation",
+        "variables": ["practitionerName", "dateTime", "location", "cancelLink"]
+      },
+      "appointmentReminder": {
+        "id": "appointment-reminder",
+        "name": "Appointment Reminder",
+        "variables": ["practitionerName", "dateTime", "location"]
+      },
+      "passwordReset": {
+        "id": "password-reset",
+        "name": "Password Reset",
+        "variables": ["userName", "resetLink", "expiryTime"]
+      },
+      "invoiceGenerated": {
+        "id": "invoice-generated",
+        "name": "Invoice Generated",
+        "variables": ["invoiceNumber", "amount", "dueDate", "downloadLink"]
+      },
+      "passActivation": {
+        "id": "pass-activation",
+        "name": "PASS Activation",
+        "variables": ["userName", "passType", "benefits", "expiryDate"]
+      },
+      "practitionerApproval": {
+        "id": "practitioner-approval",
+        "name": "Practitioner Account Approved",
+        "variables": ["practitionerName", "dashboardLink", "nextSteps"]
+      },
+      "articlePublished": {
+        "id": "article-published",
+        "name": "Blog Article Published",
+        "variables": ["authorName", "articleTitle", "articleUrl"]
+      }
+    },
+    "tags": {
+      "transactional": ["auth", "appointment", "invoice"],
+      "marketing": ["newsletter", "promotion"],
+      "system": ["notification", "alert"]
+    }
+  },
+  "examples": [
+    {
+      "name": "Send Welcome Email",
+      "description": "Send a welcome email to a new user",
+      "prompt": "Send welcome email to john@example.com with name John Doe"
+    },
+    {
+      "name": "Batch Appointment Reminders",
+      "description": "Send appointment reminders to all users with appointments tomorrow",
+      "prompt": "Send appointment reminder emails for all appointments scheduled for tomorrow"
+    },
+    {
+      "name": "Invoice Email",
+      "description": "Send invoice notification with PDF attachment",
+      "prompt": "Send invoice #INV-001 to client@example.com with PDF attachment"
+    }
+  ]
+}

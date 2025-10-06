@@ -1,0 +1,285 @@
+openapi: 3.0.3
+info:
+  title: SPYMEO Pre-Accounting API
+  description: Financial tracking and receipt management for professionals
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+
+tags:
+  - name: Configuration
+  - name: Transactions
+  - name: Receipts
+
+security:
+  - cookieAuth: []
+
+paths:
+  /precompta/config:
+    get:
+      tags: [Configuration]
+      summary: Get accounting configuration
+      responses:
+        '200':
+          description: Configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrecomptaConfig'
+
+    put:
+      tags: [Configuration]
+      summary: Update configuration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrecomptaConfig'
+      responses:
+        '200':
+          description: Configuration updated
+
+  /precompta/transactions:
+    get:
+      tags: [Transactions]
+      summary: List transactions
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [income, expense]
+      responses:
+        '200':
+          description: List of transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+
+    post:
+      tags: [Transactions]
+      summary: Create transaction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionInput'
+      responses:
+        '201':
+          description: Transaction created
+
+  /precompta/receipts:
+    get:
+      tags: [Receipts]
+      summary: List receipts
+      description: Returns metadata only, not file content
+      responses:
+        '200':
+          description: List of receipts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReceiptMetadata'
+
+    post:
+      tags: [Receipts]
+      summary: Upload receipt
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                txId:
+                  type: string
+                  description: Link to transaction
+      responses:
+        '201':
+          description: Receipt uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+
+  /precompta/receipts/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [Receipts]
+      summary: Download receipt
+      responses:
+        '200':
+          description: Receipt file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+    delete:
+      tags: [Receipts]
+      summary: Delete receipt
+      responses:
+        '200':
+          description: Receipt deleted
+
+components:
+  schemas:
+    PrecomptaConfig:
+      type: object
+      properties:
+        userId:
+          type: string
+        fiscalYear:
+          type: string
+          pattern: '^\d{4}$'
+          example: "2025"
+        regime:
+          type: string
+          enum: [micro, réel simplifié, réel normal]
+        categories:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              type:
+                type: string
+                enum: [income, expense]
+              deductible:
+                type: boolean
+        bankAccounts:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              iban:
+                type: string
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: date-time
+        label:
+          type: string
+        amount:
+          type: number
+        category:
+          type: string
+        type:
+          type: string
+          enum: [income, expense]
+        receiptId:
+          type: string
+        paymentMethod:
+          type: string
+          enum: [cash, card, transfer, check]
+        status:
+          type: string
+          enum: [pending, validated, reconciled]
+
+    TransactionInput:
+      type: object
+      required: [date, label, amount, category, type]
+      properties:
+        date:
+          type: string
+          format: date-time
+        label:
+          type: string
+        amount:
+          type: number
+        category:
+          type: string
+        type:
+          type: string
+          enum: [income, expense]
+        receiptId:
+          type: string
+        paymentMethod:
+          type: string
+          enum: [cash, card, transfer, check]
+        status:
+          type: string
+          enum: [pending, validated, reconciled]
+          default: pending
+
+    ReceiptMetadata:
+      type: object
+      properties:
+        id:
+          type: string
+        filename:
+          type: string
+        mimeType:
+          type: string
+        uploadedAt:
+          type: string
+          format: date-time
+        size:
+          type: integer
+          description: Size in bytes
+        txId:
+          type: string
+          description: Linked transaction ID
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: spy_session

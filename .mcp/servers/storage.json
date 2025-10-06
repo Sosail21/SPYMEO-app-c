@@ -1,0 +1,261 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schema/server.json",
+  "name": "cloudinary-storage",
+  "version": "1.0.0",
+  "description": "Cloudinary MCP server for SPYMEO media and file storage",
+  "type": "storage",
+  "provider": "cloudinary",
+  "capabilities": [
+    "upload:image",
+    "upload:video",
+    "upload:document",
+    "transform:image",
+    "transform:video",
+    "delete:asset",
+    "search:assets",
+    "folder:manage",
+    "tag:manage"
+  ],
+  "tools": [
+    {
+      "name": "cloudinary:upload:image",
+      "description": "Upload an image to Cloudinary",
+      "parameters": {
+        "file": {
+          "type": "string",
+          "required": true,
+          "description": "File path or data URI"
+        },
+        "folder": {
+          "type": "string",
+          "description": "Folder to upload to (e.g., 'practitioners', 'products')"
+        },
+        "publicId": {
+          "type": "string",
+          "description": "Custom public ID for the asset"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tags for categorization"
+        },
+        "transformation": {
+          "type": "object",
+          "description": "Transformation options (width, height, crop, etc.)"
+        }
+      }
+    },
+    {
+      "name": "cloudinary:upload:document",
+      "description": "Upload a document (PDF, DOC, etc.) to Cloudinary",
+      "parameters": {
+        "file": {
+          "type": "string",
+          "required": true
+        },
+        "folder": {
+          "type": "string",
+          "default": "documents"
+        },
+        "publicId": {
+          "type": "string"
+        },
+        "resourceType": {
+          "type": "string",
+          "enum": ["raw", "auto"],
+          "default": "raw"
+        }
+      }
+    },
+    {
+      "name": "cloudinary:transform:image",
+      "description": "Transform an existing image",
+      "parameters": {
+        "publicId": {
+          "type": "string",
+          "required": true
+        },
+        "transformation": {
+          "type": "object",
+          "required": true,
+          "properties": {
+            "width": {"type": "number"},
+            "height": {"type": "number"},
+            "crop": {"type": "string", "enum": ["fill", "fit", "scale", "crop"]},
+            "quality": {"type": "string"},
+            "format": {"type": "string"}
+          }
+        }
+      }
+    },
+    {
+      "name": "cloudinary:delete:asset",
+      "description": "Delete an asset from Cloudinary",
+      "parameters": {
+        "publicId": {
+          "type": "string",
+          "required": true
+        },
+        "resourceType": {
+          "type": "string",
+          "enum": ["image", "video", "raw"],
+          "default": "image"
+        }
+      }
+    },
+    {
+      "name": "cloudinary:search:assets",
+      "description": "Search for assets in Cloudinary",
+      "parameters": {
+        "expression": {
+          "type": "string",
+          "required": true,
+          "description": "Search query (e.g., 'folder:practitioners AND tags:profile')"
+        },
+        "maxResults": {
+          "type": "number",
+          "default": 50
+        },
+        "sortBy": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "name": "cloudinary:folder:create",
+      "description": "Create a new folder in Cloudinary",
+      "parameters": {
+        "path": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "cloudinary:url:generate",
+      "description": "Generate an optimized URL for an asset",
+      "parameters": {
+        "publicId": {
+          "type": "string",
+          "required": true
+        },
+        "transformation": {
+          "type": "object"
+        },
+        "secure": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "cloudinary://folders",
+      "name": "Folder Structure",
+      "description": "Current folder organization in Cloudinary",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "cloudinary://usage",
+      "name": "Storage Usage",
+      "description": "Current storage and bandwidth usage statistics",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "cloudinary://transformations",
+      "name": "Transformation Presets",
+      "description": "Saved transformation presets",
+      "mimeType": "application/json"
+    }
+  ],
+  "prompts": [
+    {
+      "name": "upload-profile-image",
+      "description": "Upload and optimize a practitioner profile image",
+      "arguments": [
+        {
+          "name": "imagePath",
+          "description": "Path to the image file"
+        }
+      ]
+    },
+    {
+      "name": "batch-upload",
+      "description": "Upload multiple images with consistent settings",
+      "arguments": [
+        {
+          "name": "folder",
+          "description": "Target folder"
+        },
+        {
+          "name": "files",
+          "description": "List of file paths"
+        }
+      ]
+    },
+    {
+      "name": "optimize-images",
+      "description": "Optimize existing images for web performance",
+      "arguments": [
+        {
+          "name": "folder",
+          "description": "Folder containing images to optimize"
+        }
+      ]
+    }
+  ],
+  "configuration": {
+    "cloudName": "${CLOUDINARY_CLOUD_NAME}",
+    "apiKey": "${CLOUDINARY_API_KEY}",
+    "apiSecret": "${CLOUDINARY_API_SECRET}",
+    "folders": {
+      "practitioners": "spymeo/practitioners",
+      "merchants": "spymeo/merchants",
+      "products": "spymeo/products",
+      "articles": "spymeo/blog",
+      "documents": "spymeo/documents",
+      "avatars": "spymeo/avatars"
+    },
+    "transformations": {
+      "thumbnail": {
+        "width": 150,
+        "height": 150,
+        "crop": "fill",
+        "quality": "auto",
+        "format": "webp"
+      },
+      "profile": {
+        "width": 400,
+        "height": 400,
+        "crop": "fill",
+        "quality": "auto:good",
+        "format": "webp"
+      },
+      "banner": {
+        "width": 1200,
+        "height": 400,
+        "crop": "fill",
+        "quality": "auto:good",
+        "format": "webp"
+      }
+    }
+  },
+  "examples": [
+    {
+      "name": "Upload Profile Picture",
+      "description": "Upload a practitioner profile picture with automatic optimization",
+      "prompt": "Upload profile.jpg to the practitioners folder with thumbnail and profile transformations"
+    },
+    {
+      "name": "Generate Responsive URLs",
+      "description": "Generate responsive image URLs for different screen sizes",
+      "prompt": "Generate URLs for practitioner/john-doe with widths 320, 640, 1024, 1920"
+    }
+  ]
+}

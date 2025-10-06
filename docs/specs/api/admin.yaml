@@ -1,0 +1,478 @@
+openapi: 3.0.3
+info:
+  title: SPYMEO Admin API
+  description: Administrative endpoints for platform management
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+
+tags:
+  - name: Users
+    description: User management
+  - name: Professionals
+    description: Professional profile management
+  - name: Centers
+    description: Training center management
+  - name: PASS
+    description: PASS subscription management
+  - name: Blog
+    description: Blog moderation
+  - name: Analytics
+    description: Platform analytics
+
+security:
+  - cookieAuth: []
+
+paths:
+  /admin/users:
+    get:
+      tags: [Users]
+      summary: List all users
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+        - name: q
+          in: query
+          description: Search query
+          schema:
+            type: string
+        - name: verified
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+    post:
+      tags: [Users]
+      summary: Create user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '201':
+          description: User created
+
+  /admin/users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [Users]
+      summary: Get user details
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+    put:
+      tags: [Users]
+      summary: Update user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '200':
+          description: User updated
+
+    delete:
+      tags: [Users]
+      summary: Delete user
+      responses:
+        '200':
+          description: User deleted
+
+  /admin/users/{id}/verify:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    post:
+      tags: [Users]
+      summary: Verify user profile
+      responses:
+        '200':
+          description: User verified
+
+  /admin/pros:
+    get:
+      tags: [Professionals]
+      summary: List professional profiles
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [PRACTITIONER, ARTISAN, COMMERCANT, CENTER]
+        - name: verified
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of professional profiles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProfessionalProfile'
+
+  /admin/pros/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [Professionals]
+      summary: Get professional profile
+      responses:
+        '200':
+          description: Professional profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfessionalProfile'
+
+    put:
+      tags: [Professionals]
+      summary: Update professional profile
+      responses:
+        '200':
+          description: Profile updated
+
+  /admin/centres:
+    get:
+      tags: [Centers]
+      summary: List training centers
+      responses:
+        '200':
+          description: List of centers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Center'
+
+  /admin/pass:
+    get:
+      tags: [PASS]
+      summary: List PASS subscriptions
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, paused, cancelled]
+        - name: plan
+          in: query
+          schema:
+            type: string
+            enum: [MONTHLY, ANNUAL]
+      responses:
+        '200':
+          description: List of subscriptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PassSubscription'
+
+  /admin/pass/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [PASS]
+      summary: Get user PASS details
+      responses:
+        '200':
+          description: PASS subscription details
+
+    put:
+      tags: [PASS]
+      summary: Update PASS subscription
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                active:
+                  type: boolean
+                plan:
+                  type: string
+                  enum: [MONTHLY, ANNUAL]
+                monthsPaid:
+                  type: integer
+      responses:
+        '200':
+          description: Subscription updated
+
+  /admin/blog/articles:
+    get:
+      tags: [Blog]
+      summary: List all articles
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, pending, published, archived]
+      responses:
+        '200':
+          description: List of articles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+
+  /admin/blog/articles/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      tags: [Blog]
+      summary: Get article details
+      responses:
+        '200':
+          description: Article details
+
+    put:
+      tags: [Blog]
+      summary: Update article
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, published, archived]
+                feedback:
+                  type: string
+      responses:
+        '200':
+          description: Article updated
+
+    delete:
+      tags: [Blog]
+      summary: Delete article
+      responses:
+        '200':
+          description: Article deleted
+
+  /admin/analytics:
+    get:
+      tags: [Analytics]
+      summary: Get platform analytics
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month, year]
+          default: month
+      responses:
+        '200':
+          description: Analytics data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformAnalytics'
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+        verified:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        lastLoginAt:
+          type: string
+          format: date-time
+
+    UserInput:
+      type: object
+      required: [email, name, role]
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          type: string
+        password:
+          type: string
+
+    ProfessionalProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        displayName:
+          type: string
+        slug:
+          type: string
+        role:
+          type: string
+        specialty:
+          type: string
+        bio:
+          type: string
+        siret:
+          type: string
+        verified:
+          type: boolean
+        featured:
+          type: boolean
+
+    Center:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        verified:
+          type: boolean
+        formationsCount:
+          type: integer
+        learnersCount:
+          type: integer
+
+    PassSubscription:
+      type: object
+      properties:
+        userId:
+          type: string
+        userName:
+          type: string
+        plan:
+          type: string
+        active:
+          type: boolean
+        startedAt:
+          type: string
+          format: date-time
+        monthsPaid:
+          type: integer
+
+    Article:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        authorId:
+          type: string
+        authorName:
+          type: string
+        status:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+
+    PlatformAnalytics:
+      type: object
+      properties:
+        period:
+          type: string
+        users:
+          type: object
+          properties:
+            total:
+              type: integer
+            new:
+              type: integer
+            active:
+              type: integer
+        professionals:
+          type: object
+          properties:
+            total:
+              type: integer
+            verified:
+              type: integer
+        pass:
+          type: object
+          properties:
+            totalSubscribers:
+              type: integer
+            monthlyRevenue:
+              type: number
+        appointments:
+          type: object
+          properties:
+            total:
+              type: integer
+            completed:
+              type: integer
+            cancelled:
+              type: integer
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: spy_session

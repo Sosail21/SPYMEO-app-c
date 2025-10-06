@@ -1,0 +1,175 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schema/server.json",
+  "name": "prisma-database",
+  "version": "1.0.0",
+  "description": "Prisma MCP server for SPYMEO database operations",
+  "type": "database",
+  "provider": "prisma",
+  "capabilities": [
+    "schema:read",
+    "schema:generate",
+    "schema:validate",
+    "migration:create",
+    "migration:apply",
+    "migration:status",
+    "query:execute",
+    "model:introspect",
+    "seed:run"
+  ],
+  "tools": [
+    {
+      "name": "prisma:schema:read",
+      "description": "Read and parse the Prisma schema file",
+      "parameters": {
+        "schemaPath": {
+          "type": "string",
+          "default": "./prisma/schema.prisma"
+        }
+      }
+    },
+    {
+      "name": "prisma:migration:create",
+      "description": "Create a new database migration",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Migration name"
+        },
+        "createOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "Create migration file without applying"
+        }
+      }
+    },
+    {
+      "name": "prisma:migration:apply",
+      "description": "Apply pending migrations to the database",
+      "parameters": {
+        "skipSeed": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "prisma:query:execute",
+      "description": "Execute a Prisma query",
+      "parameters": {
+        "model": {
+          "type": "string",
+          "required": true
+        },
+        "operation": {
+          "type": "string",
+          "enum": ["findMany", "findUnique", "create", "update", "delete", "upsert"],
+          "required": true
+        },
+        "data": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "name": "prisma:model:generate",
+      "description": "Generate Prisma Client from schema",
+      "parameters": {}
+    },
+    {
+      "name": "prisma:db:seed",
+      "description": "Seed the database with initial data",
+      "parameters": {
+        "file": {
+          "type": "string",
+          "default": "./prisma/seed.ts"
+        }
+      }
+    },
+    {
+      "name": "prisma:studio:launch",
+      "description": "Launch Prisma Studio for database management",
+      "parameters": {
+        "port": {
+          "type": "number",
+          "default": 5555
+        }
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "prisma://schema",
+      "name": "Database Schema",
+      "description": "Current Prisma schema definition",
+      "mimeType": "text/prisma"
+    },
+    {
+      "uri": "prisma://migrations",
+      "name": "Migration History",
+      "description": "List of all database migrations",
+      "mimeType": "application/json"
+    },
+    {
+      "uri": "prisma://models",
+      "name": "Database Models",
+      "description": "All Prisma models with their fields",
+      "mimeType": "application/json"
+    }
+  ],
+  "prompts": [
+    {
+      "name": "create-migration",
+      "description": "Guide for creating a new database migration",
+      "arguments": [
+        {
+          "name": "description",
+          "description": "What changes are you making to the database?"
+        }
+      ]
+    },
+    {
+      "name": "optimize-query",
+      "description": "Analyze and optimize a Prisma query",
+      "arguments": [
+        {
+          "name": "query",
+          "description": "The Prisma query to optimize"
+        }
+      ]
+    },
+    {
+      "name": "design-schema",
+      "description": "Help design a database schema based on requirements",
+      "arguments": [
+        {
+          "name": "requirements",
+          "description": "Feature requirements and data relationships"
+        }
+      ]
+    }
+  ],
+  "configuration": {
+    "databaseUrl": "${DATABASE_URL}",
+    "schemaPath": "./prisma/schema.prisma",
+    "migrationsPath": "./prisma/migrations",
+    "seedPath": "./prisma/seed.ts"
+  },
+  "examples": [
+    {
+      "name": "Create User Model",
+      "description": "Example of creating a new User model with relations",
+      "prompt": "Create a User model with email, name, role, and relations to Appointments"
+    },
+    {
+      "name": "Add Migration",
+      "description": "Create and apply a database migration",
+      "prompt": "Add a 'bio' field to the Practitioner model (Text, optional)"
+    },
+    {
+      "name": "Query Optimization",
+      "description": "Optimize a slow query with includes",
+      "prompt": "Optimize this query to fetch users with their appointments and practitioners"
+    }
+  ]
+}

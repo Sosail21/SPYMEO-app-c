@@ -1,0 +1,380 @@
+openapi: 3.0.3
+info:
+  title: SPYMEO Account API
+  description: User account and profile management endpoints
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://spymeo.com/api
+    description: Production server
+
+tags:
+  - name: Account
+    description: User account and profile operations
+
+security:
+  - cookieAuth: []
+
+paths:
+  /account/me:
+    get:
+      tags:
+        - Account
+      summary: Get current user profile
+      description: Returns the profile of the currently authenticated user
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /account:
+    put:
+      tags:
+        - Account
+      summary: Update user profile
+      description: Updates the profile information for the current user
+      operationId: updateProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+            example:
+              displayName: "Dr. Alice Dupont"
+              bio: "Naturopathe certifiée, spécialisée en gestion du stress"
+              phone: "0612345678"
+              address: "12 rue du Bien-Être, 21000 Dijon"
+              website: "https://alice-naturo.fr"
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /account/avatar:
+    post:
+      tags:
+        - Account
+      summary: Upload user avatar
+      description: Uploads a new avatar image for the user
+      operationId: uploadAvatar
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Avatar image (max 5MB, JPG/PNG/WEBP)
+      responses:
+        '200':
+          description: Avatar uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  url:
+                    type: string
+                    example: "/uploads/avatars/user-123.jpg"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /account/billing:
+    get:
+      tags:
+        - Account
+      summary: Get billing information
+      description: Returns billing history and current subscription details
+      operationId: getBilling
+      responses:
+        '200':
+          description: Billing information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillingInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /account/plan:
+    get:
+      tags:
+        - Account
+      summary: Get subscription plan
+      description: Returns current subscription plan details
+      operationId: getPlan
+      responses:
+        '200':
+          description: Plan information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /account/plan/pause:
+    post:
+      tags:
+        - Account
+      summary: Pause subscription
+      description: Pauses the current subscription (PASS only)
+      operationId: pausePlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  example: "Vacances prolongées"
+                pauseUntil:
+                  type: string
+                  format: date
+                  example: "2025-12-01"
+      responses:
+        '200':
+          description: Subscription paused
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  pausedUntil:
+                    type: string
+                    format: date-time
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /account/delete:
+    delete:
+      tags:
+        - Account
+      summary: Delete user account
+      description: |
+        Permanently deletes the user account and all associated data.
+        This action cannot be undone.
+      operationId: deleteAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - confirmation
+              properties:
+                confirmation:
+                  type: string
+                  example: "DELETE"
+                reason:
+                  type: string
+                  example: "No longer needed"
+      responses:
+        '200':
+          description: Account deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Account deleted"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  schemas:
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        displayName:
+          type: string
+        role:
+          type: string
+          enum: [ADMIN, PRACTITIONER, ARTISAN, COMMERCANT, CENTER, PASS_USER, FREE_USER, AMBASSADOR, PARTNER]
+        avatar:
+          type: string
+        bio:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        website:
+          type: string
+        specialty:
+          type: string
+          description: For practitioners
+        siret:
+          type: string
+          description: For professionals
+        verified:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      example:
+        id: "user-123"
+        email: "alice@example.com"
+        name: "Alice Dupont"
+        displayName: "Dr. Alice Dupont"
+        role: "PRACTITIONER"
+        bio: "Naturopathe certifiée"
+        phone: "0612345678"
+        specialty: "Naturopathie"
+        verified: true
+
+    ProfileUpdate:
+      type: object
+      properties:
+        displayName:
+          type: string
+          minLength: 2
+          maxLength: 100
+        bio:
+          type: string
+          maxLength: 500
+        phone:
+          type: string
+        address:
+          type: string
+        website:
+          type: string
+          format: uri
+        specialty:
+          type: string
+
+    BillingInfo:
+      type: object
+      properties:
+        currentPlan:
+          type: string
+          enum: [FREE, PASS_MONTHLY, PASS_ANNUAL]
+        nextBillingDate:
+          type: string
+          format: date-time
+        paymentMethod:
+          type: object
+          properties:
+            type:
+              type: string
+              example: "card"
+            last4:
+              type: string
+              example: "4242"
+        invoices:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              date:
+                type: string
+                format: date-time
+              amount:
+                type: number
+              status:
+                type: string
+                enum: [paid, pending, failed]
+              downloadUrl:
+                type: string
+
+    PlanInfo:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [FREE, PASS_MONTHLY, PASS_ANNUAL]
+        status:
+          type: string
+          enum: [active, paused, cancelled, expired]
+        startedAt:
+          type: string
+          format: date-time
+        renewsAt:
+          type: string
+          format: date-time
+        features:
+          type: array
+          items:
+            type: string
+
+  responses:
+    Unauthorized:
+      description: Not authenticated
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "UNAUTHORIZED"
+
+    BadRequest:
+      description: Invalid request data
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              details:
+                type: object
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: spy_session
