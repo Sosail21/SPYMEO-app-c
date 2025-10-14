@@ -1,3 +1,4 @@
+// Cdw-Spm
 // Mocks PASS (utilisateur) — Free à remplacer par vraie source plus tard.
 
 export type PassPlan = "ANNUAL" | "MONTHLY";

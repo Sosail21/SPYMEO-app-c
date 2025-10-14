@@ -1,3 +1,4 @@
+// Cdw-Spm
 
 export const dynamic = "force-dynamic";
 
@@ -28,8 +29,8 @@ function slugify(input: string) {
 }
 
 // @ts-ignore – dev-only in-memory store
-globalThis.__ARTICLES__ = globalThis.__ARTICLES__ || seed();
-const store = globalThis.__ARTICLES__ as Article[];
+(globalThis as any).__ARTICLES__ = (globalThis as any).__ARTICLES__ || seed();
+const store = (globalThis as any).__ARTICLES__ as Article[];
 
 export async function GET() {
   return Response.json(store);

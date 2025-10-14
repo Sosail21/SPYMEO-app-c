@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/lib/mockdb/precompta-commercant.ts
 
 export type PaymentMethod = "CARD" | "CASH" | "TRANSFER" | "CHECK";

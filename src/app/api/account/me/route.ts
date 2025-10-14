@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/app/api/account/me/route.ts
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth/session";

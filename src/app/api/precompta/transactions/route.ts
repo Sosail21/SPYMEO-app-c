@@ -1,3 +1,4 @@
+// Cdw-Spm
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ type Tx = {
 };
 
 // @ts-ignore
-const db = globalThis.__PRECOMPTA__ as { config: any; txs: Tx[]; receipts: any };
+const db = (globalThis as any).__PRECOMPTA__ as { config: any; txs: Tx[]; receipts: any };
 
 export async function GET() {
   // seed some data if empty

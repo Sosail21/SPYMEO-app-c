@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/components/header-public.tsx
 "use client";
 import Link from "next/link";
@@ -130,13 +131,13 @@ export default function HeaderPublic() {
 
       {/* Desktop CTAs (droite) */}
       <div className="ml-auto hidden lg:flex items-center gap-2">
-        {/* Professionnel ? (jaune #ffc400) */}
+        {/* Membre PRO ? (jaune #ffc400) */}
         <Link
           href="/devenir-membre-pro"
           title="Vous êtes un pro ? Rejoignez SPYMEO"
           className="btn border-transparent bg-[#ffc400] text-[#0b1239] hover:brightness-95 focus:ring-2 focus:ring-[#ffc400]/40"
         >
-          Professionnel&nbsp;?
+          Membre PRO&nbsp;?
         </Link>
 
         <Link className="btn btn-outline" href="/auth/login">Se connecter</Link>
@@ -215,13 +216,13 @@ export default function HeaderPublic() {
                 Spym’Blog
               </Link>
 
-              {/* Professionnel ? (jaune #ffc400) */}
+              {/* Membre PRO ? (jaune #ffc400) */}
               <Link
                 href="/devenir-membre-pro"
                 className="btn border-transparent bg-[#ffc400] text-[#0b1239] hover:brightness-95 focus:ring-2 focus:ring-[#ffc400]/40"
                 onClick={() => setOpen(false)}
               >
-                Professionnel&nbsp;?
+                Membre PRO&nbsp;?
               </Link>
             </nav>
 

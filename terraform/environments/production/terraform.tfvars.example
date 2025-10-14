@@ -1,0 +1,64 @@
+# Cdw-Spm: Terraform variables for PRODUCTION environment
+
+# ══════════════════════════════════════════════════════════════════
+# GENERAL
+# ══════════════════════════════════════════════════════════════════
+
+aws_region  = "eu-west-3"
+environment = "production"
+
+domain_name     = "spymeo.com"
+certificate_arn = "arn:aws:acm:eu-west-3:ACCOUNT_ID:certificate/CERT_ID"
+
+# ══════════════════════════════════════════════════════════════════
+# NETWORKING
+# ══════════════════════════════════════════════════════════════════
+
+vpc_cidr = "10.0.0.0/16"
+
+availability_zones = ["eu-west-3a", "eu-west-3b", "eu-west-3c"]
+
+public_subnets  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+private_subnets = ["10.0.11.0/24", "10.0.12.0/24", "10.0.13.0/24"]
+
+# ══════════════════════════════════════════════════════════════════
+# DATABASE
+# ══════════════════════════════════════════════════════════════════
+
+db_name     = "spymeo"
+db_username = "spymeo_admin"
+db_password = "CHANGE_ME_STRONG_PASSWORD_PRODUCTION"
+
+# Production: robust instance
+db_instance_class        = "db.t4g.medium"
+db_allocated_storage     = 50
+db_max_allocated_storage = 200
+
+# ══════════════════════════════════════════════════════════════════
+# ECS / APPLICATION
+# ══════════════════════════════════════════════════════════════════
+
+container_image = "123456789012.dkr.ecr.eu-west-3.amazonaws.com/spymeo:latest"
+
+# Production: production-ready resources
+ecs_task_cpu    = 512
+ecs_task_memory = 1024
+
+# Production: 2+ tasks for HA
+ecs_desired_count = 2
+
+# ══════════════════════════════════════════════════════════════════
+# SECRETS
+# ══════════════════════════════════════════════════════════════════
+
+nextauth_secret = "CHANGE_ME_RANDOM_SECRET_PRODUCTION"
+
+# ══════════════════════════════════════════════════════════════════
+# MONITORING
+# ══════════════════════════════════════════════════════════════════
+
+alert_emails = [
+  "ops@spymeo.com",
+  "tech@spymeo.com",
+  "cdorbane@spymeo.com"
+]

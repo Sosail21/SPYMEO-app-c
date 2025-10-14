@@ -1,3 +1,4 @@
+// Cdw-Spm
 
 // src/components/cabinet/ModalAnnonce.tsx
 "use client";
@@ -13,8 +14,8 @@ export default function ModalAnnonce({ ann, onClose, onContact }: { ann: Annonce
         <div className="grid gap-3 sm:grid-cols-3">{ann.images.slice(0,3).map((src,i)=>(<img key={i} src={src} alt={ann.title} className="rounded-xl"/>))}</div>
         <p>{ann.description}</p>
         <div className="flex justify-between">
-          <Link href={`/pro/repertoire/spymeo?u=${ann.author.id}`}>{ann.author.name}</Link>
-          <button className="btn" onClick={onContact}>Contacter</button>
+          <Link href={`/pro/commun/repertoire/spymeo?u=${ann.author.id}`}>{ann.author.name}</Link>
+          <Link href={`/pro/commun/messages?to=${ann.author.id}`} onClick={e=>e.stopPropagation()} className="btn">Contacter</Link>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+// Cdw-Spm
 'use client';
 import useSWR from 'swr';
 import { useMemo, useState } from 'react';
@@ -75,7 +76,7 @@ export default function ClientList() {
                 <div className="font-semibold">{c.firstName} {c.lastName}</div>
                 <div className="text-sm text-muted">{c.email ?? '—'} · {c.phone ?? '—'}</div>
               </div>
-              <Link className="pill pill-solid" href={`/pro/fiches-clients/${c.id}`}>
+              <Link className="pill pill-solid" href={`/pro/praticien/fiches-clients/${c.id}`}>
                 Ouvrir la fiche
               </Link>
             </li>

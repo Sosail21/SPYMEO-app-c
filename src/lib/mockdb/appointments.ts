@@ -1,3 +1,4 @@
+// Cdw-Spm
 // Types & mocks RDV (utilisateurs Free/Pass)
 
 export type Place = "Cabinet" | "Visio" | "Domicile";

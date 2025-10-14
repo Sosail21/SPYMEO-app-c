@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/components/admin/menu.ts
 export type AdminItem = { label: string; href: string; icon?: string };
 

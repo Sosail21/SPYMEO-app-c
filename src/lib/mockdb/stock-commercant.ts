@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/lib/mockdb/stock-commercant.ts
 
 export type StockMovementType = "IN" | "OUT" | "ADJUSTMENT";

@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/lib/mockdb/user-favorites.ts
 export type FavoriteKind = "Article" | "Praticien" | "Artisan" | "Commerçant" | "Produit";
 export type UserFavorite = {

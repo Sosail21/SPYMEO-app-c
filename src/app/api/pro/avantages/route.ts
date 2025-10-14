@@ -1,3 +1,4 @@
+// Cdw-Spm
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth/session";
 import { listAdvantages, createAdvantage } from "@/lib/db/community";

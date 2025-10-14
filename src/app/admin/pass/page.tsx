@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/app/admin/pass/page.tsx
 "use client";
 
@@ -48,7 +49,7 @@ export default function AdminPassPage() {
             <input type="checkbox" checked={onlyActive} onChange={(e) => setOnlyActive(e.target.checked)} />
             Actifs uniquement
           </label>
-          <Link href="/api/admin/pass/resources" className="pill pill-ghost">+ Ajouter ressource (mock)</Link>
+          <button className="pill pill-ghost" onClick={() => alert("Ajouter ressource (mock)")}>+ Ajouter ressource (mock)</button>
         </div>
       </div>
 

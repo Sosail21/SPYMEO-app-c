@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/lib/mockdb/products-commercant.ts
 
 export type ProductStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";

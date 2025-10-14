@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/app/spymeo-web/page.tsx
 import Link from "next/link";
 
@@ -62,7 +63,7 @@ export default function SpymeoWebPage() {
         <div className="container-spy">
           <div className="flex items-center justify-between gap-4 mb-2">
             <h2 className="section-title m-0">Templates prêts à l’emploi</h2>
-            <Link href="/spymeo-start" className="pill pill-ghost">
+            <Link href="/services/spymeo-start" className="pill pill-ghost">
               Besoin d’aide pour le contenu ?
             </Link>
           </div>
@@ -220,7 +221,7 @@ export default function SpymeoWebPage() {
             <Link href="/auth/signup?contact=web" className="btn">
               Demander une mise en ligne
             </Link>
-            <Link href="/spymeo-start" className="btn btn-outline">
+            <Link href="/services/spymeo-start" className="btn btn-outline">
               Besoin d’un cadrage Start
             </Link>
           </div>

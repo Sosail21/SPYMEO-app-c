@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/lib/mockdb/stats-artisan.ts
 // Indicateurs clés et tendance (placeholder chart-ready).
 

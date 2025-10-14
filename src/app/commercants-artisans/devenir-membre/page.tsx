@@ -1,3 +1,4 @@
+// Cdw-Spm
 "use client";
 
 import { useState } from "react";
@@ -10,7 +11,7 @@ export default function DevenirMembreCommerçantsArtisans() {
 
   const isComm = secteur === "COMMERCANT";
   const roleLabel = isComm ? "Commerçant" : "Artisan";
-  const signupHref = `/auth/signup?role=${secteur}`;
+  const signupHref = `/auth/signup?role=${secteur}` as any;
 
   return (
     <main>

@@ -1,20 +1,21 @@
+// Cdw-Spm
 // src/lib/db/profiles.ts
 export type Profile = {
   userId: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-  avatarUrl?: string;
-  website?: string;
-  companyName?: string;
-  siret?: string;
-  addressLine1?: string;
-  addressLine2?: string;
-  zip?: string;
-  city?: string;
-  country?: string;
-  iban?: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  avatarUrl?: string | null;
+  website?: string | null;
+  companyName?: string | null;
+  siret?: string | null;
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  zip?: string | null;
+  city?: string | null;
+  country?: string | null;
+  iban?: string | null;
   role?: "PRACTITIONER" | "ARTISAN" | "COMMERCANT" | "CENTER" | "FREE_USER" | "PASS_USER" | "ADMIN";
   plan?: "FREE" | "PASS" | "PRO";
   renewal?: "MONTHLY" | "ANNUAL";

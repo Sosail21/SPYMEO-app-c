@@ -1,3 +1,4 @@
+// Cdw-Spm
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -92,6 +93,6 @@ export default function ArtisanPrecomptaPage(){
 }
 
 function Th({children}:{children:React.ReactNode}){ return <th className="text-left px-4 py-3 font-semibold">{children}</th>; }
-function Td({children,colSpan}:{children:React.ReactNode; colSpan?:number}){ return <td className="px-4 py-3" colSpan={colSpan}>{children}</td>; }
+function Td({children,colSpan,className}:{children:React.ReactNode; colSpan?:number; className?:string}){ return <td className={`px-4 py-3 ${className||""}`} colSpan={colSpan}>{children}</td>; }
 function fmtCurrency(v:number){ return new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0}).format(v); }
 function fmtDate(iso:string){ try{ return new Date(iso).toLocaleDateString("fr-FR",{year:"numeric",month:"short",day:"2-digit"});}catch{return iso;} }

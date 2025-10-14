@@ -1,8 +1,9 @@
+// Cdw-Spm
 
 export const dynamic = "force-dynamic";
 
 // @ts-ignore
-const db = globalThis.__PRECOMPTA__ as { receipts: Record<string, { id: string; filename: string; mime: string; data: ArrayBuffer; uploadedAt: string; size: number; txId?: string }> };
+const db = (globalThis as any).__PRECOMPTA__ as { receipts: Record<string, { id: string; filename: string; mime: string; data: ArrayBuffer; uploadedAt: string; size: number; txId?: string }> };
 
 export async function GET() {
   // list all receipts (meta only)

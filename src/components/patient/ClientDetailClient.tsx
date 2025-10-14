@@ -1,3 +1,4 @@
+// Cdw-Spm
 'use client';
 
 import ClientTabs from "@/components/patient/ClientTabs";
@@ -40,7 +41,7 @@ export default function ClientDetailClient({ client }: { client: Client }) {
           </aside>
         </div>
       </div>
-      <ClientTabs clientId={client.id} />
+      <ClientTabs client={client as any} />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+// Cdw-Spm
 export type PaymentMethod = { brand: string; last4: string; expMonth: number; expYear: number };
 export type Invoice = { id: string; date: string; amount: number; description: string; status: "paid" | "open" | "void"; pdfUrl: string };
 export type BillingState = {

@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/app/admin/page.tsx
 "use client";
 
@@ -65,7 +66,7 @@ export default function AdminHomePage() {
 
 function StatCard({ label, value, href }: { label: string; value: number; href: string }) {
   return (
-    <Link href={href} className="soft-card p-4 hover:no-underline hover:shadow-md transition">
+    <Link href={href as any} className="soft-card p-4 hover:no-underline hover:shadow-md transition">
       <div className="text-slate-600 text-sm">{label}</div>
       <div className="text-2xl font-semibold">{value}</div>
     </Link>

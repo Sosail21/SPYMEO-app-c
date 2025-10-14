@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/app/api/account/route.ts
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth/session";
@@ -11,7 +12,7 @@ export async function PUT(req: Request) {
   try {
     const data = await req.json();
     const parsed = profileSchema.parse(data);
-    await upsertProfile(me.id, parsed);
+    await upsertProfile(me.id, { ...parsed, userId: me.id });
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "INVALID" }, { status: 400 });

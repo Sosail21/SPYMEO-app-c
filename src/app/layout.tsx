@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
@@ -5,7 +6,7 @@ import { cookies } from "next/headers";
 import { COOKIE_NAME } from "@/lib/auth/session";
 import HeaderPublic from "@/components/header-public";
 import HeaderUser from "@/components/header-user";
-import Footer from "@/components/layout/Footer";
+import Footer from "@/components/layout/footer";
 
 export const metadata: Metadata = {
   title: "SPYMEO",
@@ -19,17 +20,17 @@ type SessionShape = {
   email?: string;
 };
 
-function roleToPlan(role?: string): Plan | null {
-  if (!role) return null;
+function roleToPlan(role?: string): Plan | undefined {
+  if (!role) return undefined;
   const r = String(role).toUpperCase().trim();
   if (r === "PASS_USER") return "pass";
   if (r === "FREE_USER") return "free";
-  return null;
+  return undefined;
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const raw = cookies().get(COOKIE_NAME)?.value;
-  let plan: Plan | null = null;
+  let plan: Plan | undefined = undefined;
   let userName: string | undefined = undefined;
   let email: string | undefined = undefined;
 

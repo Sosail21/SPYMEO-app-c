@@ -1,3 +1,4 @@
+// Cdw-Spm
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -219,7 +220,7 @@ function Params({ data, onSaved }: { data: SessionDetail; onSaved: () => void })
 
 /* ---------- UI helpers ---------- */
 function Th({ children }: { children: React.ReactNode }) { return <th className="text-left px-4 py-3 font-semibold">{children}</th>; }
-function Td({ children }: { children: React.ReactNode }) { return <td className="px-4 py-3">{children}</td>; }
+function Td({ children, className }: { children?: React.ReactNode; className?: string }) { return <td className={`px-4 py-3 ${className||""}`}>{children}</td>; }
 function Skeleton() { return (<div className="soft-card p-4 animate-pulse"><div className="h-4 w-1/3 bg-slate-200 rounded" /><div className="mt-2 h-3 w-2/3 bg-slate-100 rounded" /><div className="mt-2 h-3 w-2/5 bg-slate-100 rounded" /></div>); }
 function StatusBadge({ status }: { status: SessionStatus }) {
   const map: Record<SessionStatus, { label: string; cls: string }> = {

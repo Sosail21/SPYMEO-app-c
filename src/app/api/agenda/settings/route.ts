@@ -1,3 +1,4 @@
+// Cdw-Spm
 import { NextResponse } from "next/server";
 import { getAgendaSettings, updateAgendaSettings, type AgendaSettings } from "@/lib/mockdb/agendaSettings";
 

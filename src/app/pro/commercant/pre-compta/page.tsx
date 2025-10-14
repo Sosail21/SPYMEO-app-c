@@ -1,3 +1,4 @@
+// Cdw-Spm
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -120,8 +121,8 @@ export default function PreComptaShopPage() {
 function Th({ children }: { children: React.ReactNode }) {
   return <th className="text-left px-4 py-3 font-semibold">{children}</th>;
 }
-function Td({ children }: { children: React.ReactNode }) {
-  return <td className="px-4 py-3">{children}</td>;
+function Td({ children, className, colSpan }: { children?: React.ReactNode; className?: string; colSpan?: number }) {
+  return <td className={`px-4 py-3 ${className || ""}`} colSpan={colSpan}>{children}</td>;
 }
 function fmtDate(iso: string) {
   try {

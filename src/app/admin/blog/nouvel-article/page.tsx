@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/app/admin/blog/nouvel-article/page.tsx
 "use client";
 

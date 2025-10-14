@@ -1,3 +1,4 @@
+// Cdw-Spm
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth/session";
 import { getPassPartner, updatePassPartner } from "@/lib/db/community";

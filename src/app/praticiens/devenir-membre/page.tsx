@@ -1,3 +1,4 @@
+// Cdw-Spm
 "use client";
 
 import Link from "next/link";
@@ -22,7 +23,7 @@ export default function DevenirMembrePraticien() {
               <Link href="/auth/signup?role=PRACTITIONER" className="btn">
                 Créer mon compte praticien
               </Link>
-              <Link href="/spymeo-start" className="btn btn-outline">
+              <Link href="/services/spymeo-start" className="btn btn-outline">
                 SPYMEO Start (accompagnement optionnel)
               </Link>
             </div>
@@ -127,7 +128,7 @@ export default function DevenirMembrePraticien() {
                 On vous aide à structurer, clarifier et gagner du temps.
               </p>
               <div className="flex gap-2 mt-3">
-                <Link href="/spymeo-start" className="btn-light">Découvrir Start</Link>
+                <Link href="/services/spymeo-start" className="btn-light">Découvrir Start</Link>
                 <Link href="/auth/signup?role=PRACTITIONER" className="btn btn-outline-light">
                   Créer mon compte
                 </Link>

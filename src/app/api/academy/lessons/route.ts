@@ -1,3 +1,4 @@
+// Cdw-Spm
 
 export const dynamic = "force-dynamic";
 
@@ -25,8 +26,8 @@ export type Note = { id: string; lessonId: string; body: string; createdAt: stri
 export type Comment = { id: string; lessonId: string; authorId: string; body: string; createdAt: string; };
 
 // @ts-ignore — dev-only in-memory store
-globalThis.__ACADEMY__ = globalThis.__ACADEMY__ || seed();
-const db = globalThis.__ACADEMY__ as { lessons: Lesson[]; progress: Record<string, Progress>; notes: Note[]; comments: Comment[]; chapters?: any; progressChapters?: any; };
+(globalThis as any).__ACADEMY__ = (globalThis as any).__ACADEMY__ || seed();
+const db = (globalThis as any).__ACADEMY__ as { lessons: Lesson[]; progress: Record<string, Progress>; notes: Note[]; comments: Comment[]; chapters?: any; progressChapters?: any; };
 
 export async function GET() { return Response.json(db.lessons); }
 

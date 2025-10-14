@@ -1,3 +1,4 @@
+// Cdw-Spm
 // Simple in-memory mock DB for agenda settings
 export type DayKey = "monday"|"tuesday"|"wednesday"|"thursday"|"friday"|"saturday"|"sunday";
 

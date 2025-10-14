@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/lib/mockdb/precompta-artisan.ts
 // Écritures simples pour pilotage pré-comptable.
 

@@ -1,10 +1,11 @@
+// Cdw-Spm
 
 export const dynamic = "force-dynamic";
 export type Lesson = any; export type Progress = any; export type Note = any;
 export type Comment = { id: string; lessonId: string; authorId: string; body: string; createdAt: string; };
 
 // @ts-ignore
-const db4 = globalThis.__ACADEMY__ as { lessons: Lesson[]; progress: Record<string, Progress>; notes: Note[]; comments: Comment[]; };
+const db4 = (globalThis as any).__ACADEMY__ as { lessons: Lesson[]; progress: Record<string, Progress>; notes: Note[]; comments: Comment[]; };
 
 export async function POST(req: Request) {
   const body = await req.json();

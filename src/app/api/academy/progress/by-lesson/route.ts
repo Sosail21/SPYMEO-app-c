@@ -1,3 +1,4 @@
+// Cdw-Spm
 
 export const dynamic = "force-dynamic";
 export type Progress = { lessonId: string; status: "non_commencé" | "en_cours" | "terminé"; percent: number; favorite: boolean; lastViewedAt?: string; };

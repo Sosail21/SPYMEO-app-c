@@ -1,3 +1,4 @@
+// Cdw-Spm
 // Server Component (pas de "use client" ici)
 import type { Metadata } from "next";
 import ResourcesPageClient from "./page.client";

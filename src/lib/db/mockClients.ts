@@ -1,3 +1,4 @@
+// Cdw-Spm
 export type Consultation = {
   id: string;
   date: string; // ISO
@@ -109,4 +110,18 @@ export function createClient(input: Partial<Client>) {
   };
   CLIENTS.push(newC);
   return newC;
+}
+
+export function updateClient(id: string, patch: Partial<Client>) {
+  const idx = CLIENTS.findIndex((c) => c.id === id);
+  if (idx === -1) return null;
+  CLIENTS[idx] = { ...CLIENTS[idx], ...patch };
+  return CLIENTS[idx];
+}
+
+export function deleteClient(id: string) {
+  const idx = CLIENTS.findIndex((c) => c.id === id);
+  if (idx === -1) return false;
+  CLIENTS.splice(idx, 1);
+  return true;
 }

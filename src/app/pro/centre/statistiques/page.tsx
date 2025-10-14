@@ -1,3 +1,4 @@
+// Cdw-Spm
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -201,10 +202,10 @@ function MiniBars({ data, max }: { data: TimeBucket[]; max: number }) {
     </div>
   );
 }
-function Th({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Th({ children, className = "" }: { children?: React.ReactNode; className?: string }) {
   return <th className={`text-left px-4 py-2 font-semibold ${className}`}>{children}</th>;
 }
-function Td({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Td({ children, className = "" }: { children?: React.ReactNode; className?: string }) {
   return <td className={`px-4 py-2 ${className}`}>{children}</td>;
 }
 function labelPeriod(p: PeriodKey) {

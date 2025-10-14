@@ -1,0 +1,52 @@
+# Cdw-Spm: Docker ignore file
+
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Next.js
+.next
+out
+
+# Testing
+coverage
+.nyc_output
+playwright-report
+test-results
+
+# Misc
+.DS_Store
+*.pem
+*.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.gitignore
+.github
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Documentation
+README.md
+docs
+
+# Terraform
+terraform
+*.tfstate
+*.tfstate.backup
+.terraform
+
+# CI/CD
+.github/workflows
+
+# Scripts
+scripts

@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/lib/rbac.ts
 // Cdw-Spm — RBAC robuste (segments dynamiques + container /admin)
 

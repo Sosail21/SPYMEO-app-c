@@ -1,3 +1,4 @@
+// Cdw-Spm
 "use client";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -34,7 +35,7 @@ export default function LoginPage() {
       const data = await r.json();
       if (!r.ok) throw new Error(data?.error || "Erreur de connexion");
       const wanted = sp.get("next");
-      router.push(wanted || nextForRole(data.role));
+      router.push((wanted || nextForRole(data.role)) as any);
     } catch (err: any) {
       setError(err.message || "Erreur de connexion");
     }

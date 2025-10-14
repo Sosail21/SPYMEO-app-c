@@ -1,3 +1,4 @@
+// Cdw-Spm
 
 export const dynamic = "force-dynamic";
 
@@ -12,8 +13,8 @@ type Config = {
 };
 
 // @ts-ignore
-globalThis.__PRECOMPTA__ = globalThis.__PRECOMPTA__ || seed();
-const db = globalThis.__PRECOMPTA__ as { config: Config; txs: any[]; receipts: Record<string, { id: string; filename: string; mime: string; data: ArrayBuffer; uploadedAt: string; size: number; txId?: string }>} ;
+(globalThis as any).__PRECOMPTA__ = (globalThis as any).__PRECOMPTA__ || seed();
+const db = (globalThis as any).__PRECOMPTA__ as { config: Config; txs: any[]; receipts: Record<string, { id: string; filename: string; mime: string; data: ArrayBuffer; uploadedAt: string; size: number; txId?: string }>} ;
 
 export async function GET() {
   return Response.json(db.config);

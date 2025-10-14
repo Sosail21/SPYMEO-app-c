@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/app/spymeo-start/page.tsx
 import Link from "next/link";
 
@@ -180,7 +181,7 @@ export default function SpymeoStartPage() {
 
           <p className="text-sm text-muted mt-3">
             <strong>Option Web</strong> : besoin d’un site plus complet ? Découvrez{" "}
-            <Link href="/spymeo-web" className="link-muted underline">SPYMEO Web</Link> (service optionnel).
+            <Link href="/services/spymeo-web" className="link-muted underline">SPYMEO Web</Link> (service optionnel).
           </p>
         </div>
       </section>

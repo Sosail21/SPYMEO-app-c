@@ -1,0 +1,867 @@
+// Cdw-Spm: Schéma Prisma SPYMEO V1
+// Base PostgreSQL 15+ / HDS-compliant
+// Generated: 2025-10-13
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// USERS & AUTH
+// ═══════════════════════════════════════════════════════════════
+
+enum Role {
+  FREE_USER
+  PASS_USER
+  PRACTITIONER
+  ARTISAN
+  COMMERCANT
+  CENTER
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String?   // nullable pour SSO futur
+  role          Role      @default(FREE_USER)
+
+  firstName     String?
+  lastName      String?
+  phone         String?
+  birthDate     DateTime?
+  address       String?
+  city          String?
+  postalCode    String?
+
+  emailVerified Boolean   @default(false)
+  active        Boolean   @default(true)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime?
+
+  // Relations
+  profile       Profile?
+  passSubscription PassSubscription?
+  practitionerProfile PractitionerProfile?
+  artisanProfile      ArtisanProfile?
+  merchantProfile     MerchantProfile?
+  centerProfile       CenterProfile?
+
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  conversations    ConversationParticipant[]
+
+  appointments     Appointment[] @relation("UserAppointments")
+  documents        Document[] @relation("UserDocuments")
+  notes            Note[]
+  favorites        Favorite[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model Profile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  avatar      String?
+  bio         String?
+  website     String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("profiles")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PRACTITIONER (Praticien)
+// ═══════════════════════════════════════════════════════════════
+
+model PractitionerProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  slug            String   @unique
+  publicName      String
+  specialties     String[] // ["Naturopathe", "Sophrologue"]
+  description     String?
+
+  siret           String?
+  address         String?
+  city            String?
+  postalCode      String?
+
+  verified        Boolean  @default(false)
+  featured        Boolean  @default(false)
+
+  clients         Client[]
+  consultations   Consultation[]
+  resources       Resource[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([slug])
+  @@index([verified])
+  @@map("practitioner_profiles")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ARTISAN
+// ═══════════════════════════════════════════════════════════════
+
+model ArtisanProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  slug            String   @unique
+  publicName      String
+  category        String?  // "Bien-être artisanal", etc.
+  description     String?
+
+  siret           String?
+  address         String?
+  city            String?
+  postalCode      String?
+
+  verified        Boolean  @default(false)
+  featured        Boolean  @default(false)
+
+  services        ArtisanService[]
+  orders          ArtisanOrder[]
+  clients         ArtisanClient[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([slug])
+  @@index([verified])
+  @@map("artisan_profiles")
+}
+
+model ArtisanService {
+  id              String   @id @default(cuid())
+  artisanId       String
+  artisan         ArtisanProfile @relation(fields: [artisanId], references: [id], onDelete: Cascade)
+
+  slug            String   @unique
+  title           String
+  description     String?
+  priceTTC        Float
+  vatRate         Float    @default(20.0)
+  duration        Int?     // minutes
+
+  status          String   @default("ACTIVE") // ACTIVE, PAUSED, ARCHIVED
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([artisanId])
+  @@index([status])
+  @@map("artisan_services")
+}
+
+model ArtisanClient {
+  id          String   @id @default(cuid())
+  artisanId   String
+  artisan     ArtisanProfile @relation(fields: [artisanId], references: [id], onDelete: Cascade)
+
+  firstName   String
+  lastName    String
+  email       String?
+  phone       String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([artisanId])
+  @@map("artisan_clients")
+}
+
+model ArtisanOrder {
+  id          String   @id @default(cuid())
+  artisanId   String
+  artisan     ArtisanProfile @relation(fields: [artisanId], references: [id], onDelete: Cascade)
+
+  orderNumber String   @unique
+  clientName  String
+  clientEmail String?
+
+  totalTTC    Float
+  status      String   @default("PENDING") // PENDING, PAID, CANCELLED
+
+  items       Json     // [{title, qty, priceTTC}]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([artisanId])
+  @@index([status])
+  @@map("artisan_orders")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MERCHANT (Commerçant)
+// ═══════════════════════════════════════════════════════════════
+
+model MerchantProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  slug            String   @unique
+  publicName      String
+  category        String?
+  description     String?
+
+  siret           String?
+  address         String?
+  city            String?
+  postalCode      String?
+
+  verified        Boolean  @default(false)
+  featured        Boolean  @default(false)
+
+  products        Product[]
+  orders          MerchantOrder[]
+  clients         MerchantClient[]
+  stockMovements  StockMovement[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([slug])
+  @@index([verified])
+  @@map("merchant_profiles")
+}
+
+model Product {
+  id              String   @id @default(cuid())
+  merchantId      String
+  merchant        MerchantProfile @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  slug            String   @unique
+  title           String
+  description     String?
+  category        String?
+  sku             String?  @unique
+
+  priceTTC        Float
+  vatRate         Float    @default(20.0)
+  stock           Int      @default(0)
+
+  status          String   @default("ACTIVE") // ACTIVE, PAUSED, ARCHIVED
+
+  images          String[] // URLs
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([merchantId])
+  @@index([sku])
+  @@index([status])
+  @@map("products")
+}
+
+model StockMovement {
+  id          String   @id @default(cuid())
+  merchantId  String
+  merchant    MerchantProfile @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  productName String
+  sku         String?
+  type        String   // IN, OUT, ADJUSTMENT
+  quantity    Int      // positif ou négatif
+  reason      String?
+  ref         String?  // référence commande, etc.
+
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([merchantId])
+  @@index([sku])
+  @@index([date])
+  @@map("stock_movements")
+}
+
+model MerchantClient {
+  id          String   @id @default(cuid())
+  merchantId  String
+  merchant    MerchantProfile @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  firstName   String
+  lastName    String
+  email       String?
+  phone       String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([merchantId])
+  @@map("merchant_clients")
+}
+
+model MerchantOrder {
+  id          String   @id @default(cuid())
+  merchantId  String
+  merchant    MerchantProfile @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  orderNumber String   @unique
+  clientName  String
+  clientEmail String?
+
+  totalTTC    Float
+  status      String   @default("PENDING") // PENDING, PAID, SHIPPED, CANCELLED
+
+  items       Json     // [{productId, title, qty, priceTTC}]
+
+  shippingAddress String?
+  trackingNumber  String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([merchantId])
+  @@index([status])
+  @@map("merchant_orders")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TRAINING CENTER (Centre de formation)
+// ═══════════════════════════════════════════════════════════════
+
+model CenterProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  slug            String   @unique
+  publicName      String
+  description     String?
+
+  siret           String?
+  address         String?
+  city            String?
+  postalCode      String?
+
+  verified        Boolean  @default(false)
+  featured        Boolean  @default(false)
+
+  formations      Formation[]
+  learners        Learner[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([slug])
+  @@index([verified])
+  @@map("center_profiles")
+}
+
+model Formation {
+  id          String   @id @default(cuid())
+  centerId    String
+  center      CenterProfile @relation(fields: [centerId], references: [id], onDelete: Cascade)
+
+  slug        String   @unique
+  title       String
+  description String?
+  category    String?
+  duration    Int?     // heures
+  priceTTC    Float?
+
+  status      String   @default("DRAFT") // DRAFT, PUBLISHED, ARCHIVED
+
+  sessions    FormationSession[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([centerId])
+  @@index([status])
+  @@map("formations")
+}
+
+model FormationSession {
+  id          String   @id @default(cuid())
+  formationId String
+  formation   Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
+
+  title       String
+  startDate   DateTime
+  endDate     DateTime
+  location    String?
+  maxSeats    Int?
+  bookedSeats Int      @default(0)
+
+  status      String   @default("OPEN") // OPEN, FULL, CANCELLED, COMPLETED
+
+  enrollments LearnerEnrollment[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([formationId])
+  @@index([startDate])
+  @@index([status])
+  @@map("formation_sessions")
+}
+
+model Learner {
+  id          String   @id @default(cuid())
+  centerId    String
+  center      CenterProfile @relation(fields: [centerId], references: [id], onDelete: Cascade)
+
+  firstName   String
+  lastName    String
+  email       String
+  phone       String?
+
+  enrollments LearnerEnrollment[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([centerId])
+  @@index([email])
+  @@map("learners")
+}
+
+model LearnerEnrollment {
+  id          String   @id @default(cuid())
+  learnerId   String
+  learner     Learner  @relation(fields: [learnerId], references: [id], onDelete: Cascade)
+
+  sessionId   String
+  session     FormationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  status      String   @default("REGISTERED") // REGISTERED, CANCELLED, COMPLETED
+  paidAmount  Float?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([learnerId, sessionId])
+  @@index([learnerId])
+  @@index([sessionId])
+  @@map("learner_enrollments")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CLIENTS (Patients / Consultants pour praticiens)
+// ═══════════════════════════════════════════════════════════════
+
+model Client {
+  id              String   @id @default(cuid())
+  practitionerId  String
+  practitioner    PractitionerProfile @relation(fields: [practitionerId], references: [id], onDelete: Cascade)
+
+  firstName       String
+  lastName        String
+  email           String?
+  phone           String?
+  birthDate       DateTime?
+  address         String?
+
+  antecedents     String[] // tableau de strings
+  notes           String?
+
+  consultations   Consultation[]
+  documents       Document[] @relation("ClientDocuments")
+  invoices        Invoice[]
+
+  totalVisits     Int      @default(0)
+  lastVisitAt     DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([practitionerId])
+  @@index([email])
+  @@map("clients")
+}
+
+model Consultation {
+  id              String   @id @default(cuid())
+  practitionerId  String
+  practitioner    PractitionerProfile @relation(fields: [practitionerId], references: [id], onDelete: Cascade)
+
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  date            DateTime
+  motif           String
+  notes           String?
+  duration        Int?     // minutes
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([practitionerId])
+  @@index([clientId])
+  @@index([date])
+  @@map("consultations")
+}
+
+model Invoice {
+  id          String   @id @default(cuid())
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  invoiceNumber String @unique
+  date        DateTime
+  amount      Float
+  status      String   @default("PENDING") // PAID, PENDING, OVERDUE
+
+  items       Json?    // détails de facturation
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([status])
+  @@map("invoices")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// APPOINTMENTS (RDV)
+// ═══════════════════════════════════════════════════════════════
+
+model Appointment {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation("UserAppointments", fields: [userId], references: [id], onDelete: Cascade)
+
+  practitionerId  String?
+
+  title           String
+  description     String?
+  startAt         DateTime
+  endAt           DateTime?
+  location        String?
+
+  status          String   @default("SCHEDULED") // SCHEDULED, CONFIRMED, CANCELLED, COMPLETED
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([startAt])
+  @@index([status])
+  @@map("appointments")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DOCUMENTS
+// ═══════════════════════════════════════════════════════════════
+
+model Document {
+  id          String   @id @default(cuid())
+
+  userId      String?
+  user        User?    @relation("UserDocuments", fields: [userId], references: [id], onDelete: Cascade)
+
+  clientId    String?
+  client      Client?  @relation("ClientDocuments", fields: [clientId], references: [id], onDelete: Cascade)
+
+  title       String
+  type        String   // PDF, IMAGE, etc.
+  url         String?  // S3 path
+  sizeKb      Int?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([clientId])
+  @@map("documents")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PASS SUBSCRIPTION
+// ═══════════════════════════════════════════════════════════════
+
+enum PassPlan {
+  MONTHLY
+  ANNUAL
+}
+
+enum CarnetShipmentStatus {
+  NOT_ELIGIBLE
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+}
+
+model PassSubscription {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  active          Boolean  @default(false)
+  plan            PassPlan @default(MONTHLY)
+
+  startedAt       DateTime?
+  nextBillingAt   DateTime?
+  monthsPaid      Int      @default(0)
+
+  carnetStatus    CarnetShipmentStatus @default(NOT_ELIGIBLE)
+  carnetShippedAt DateTime?
+  carnetEta       DateTime?
+
+  stripeCustomerId      String?
+  stripeSubscriptionId  String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([active])
+  @@map("pass_subscriptions")
+}
+
+model PassResource {
+  id              String   @id @default(cuid())
+
+  title           String
+  type            String   // PODCAST, BOOKLET, VIDEO
+  month           String   // YYYY-MM
+  description     String?
+  url             String?
+  availableFrom   DateTime
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([month])
+  @@index([availableFrom])
+  @@map("pass_resources")
+}
+
+model PassDiscount {
+  id          String   @id @default(cuid())
+
+  kind        String   // Praticien, Commerçant, Artisan, Centre
+  name        String
+  city        String?
+  rate        Float    // % remise
+  href        String   // lien fiche publique
+
+  active      Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([kind])
+  @@index([active])
+  @@map("pass_discounts")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MESSAGING
+// ═══════════════════════════════════════════════════════════════
+
+model Conversation {
+  id              String   @id @default(cuid())
+
+  title           String?
+  lastMessageAt   DateTime?
+
+  participants    ConversationParticipant[]
+  messages        Message[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([lastMessageAt])
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id              String   @id @default(cuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  lastReadAt      DateTime?
+
+  createdAt       DateTime @default(now())
+
+  @@unique([conversationId, userId])
+  @@index([conversationId])
+  @@index([userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id              String   @id @default(cuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId        String
+  sender          User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  recipientId     String?
+  recipient       User?    @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: SetNull)
+
+  content         String
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NOTES (PASS feature)
+// ═══════════════════════════════════════════════════════════════
+
+model Note {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title       String
+  content     String
+  tags        String[] // pour filtrage
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("notes")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FAVORITES
+// ═══════════════════════════════════════════════════════════════
+
+model Favorite {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  targetType  String   // PRACTITIONER, ARTISAN, MERCHANT, CENTER, PRODUCT
+  targetId    String
+  targetSlug  String?
+
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, targetType, targetId])
+  @@index([userId])
+  @@index([targetType, targetId])
+  @@map("favorites")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RESOURCES (Academy)
+// ═══════════════════════════════════════════════════════════════
+
+model Resource {
+  id              String   @id @default(cuid())
+  practitionerId  String?
+  practitioner    PractitionerProfile? @relation(fields: [practitionerId], references: [id], onDelete: SetNull)
+
+  title           String
+  category        String?
+  type            String?  // VIDEO, PDF, LINK
+  url             String?
+  description     String?
+
+  featured        Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([practitionerId])
+  @@index([featured])
+  @@map("resources")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PRE-ACCOUNTING (Pré-compta)
+// ═══════════════════════════════════════════════════════════════
+
+model PreComptaEntry {
+  id              String   @id @default(cuid())
+
+  userId          String   // owner (praticien, artisan, commercant, centre)
+
+  date            DateTime
+  label           String
+  type            String   // SALE, REFUND, ADJUSTMENT, etc.
+  amountTTC       Float
+  vatRate         Float?
+  paymentMethod   String?
+  orderId         String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([date])
+  @@index([type])
+  @@map("precompta_entries")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BLOG
+// ═══════════════════════════════════════════════════════════════
+
+enum ArticleStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+model Article {
+  id              String   @id @default(cuid())
+
+  slug            String   @unique
+  title           String
+  content         String
+  excerpt         String?
+
+  authorId        String?  // praticien ou admin
+  authorType      String?  // PRACTITIONER, ADMIN
+
+  status          ArticleStatus @default(DRAFT)
+
+  publishedAt     DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([slug])
+  @@index([status])
+  @@index([publishedAt])
+  @@map("articles")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STATISTICS (optionnel, peut être calculé à la volée)
+// ═══════════════════════════════════════════════════════════════
+
+// Les stats peuvent être générées dynamiquement depuis les autres tables
+// Pas de modèle dédié pour l'instant

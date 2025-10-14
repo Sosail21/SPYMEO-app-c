@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/lib/routes.ts
 // Cdw-Spm — Routes canoniques PUBLIC/PRO/ADMIN + RBAC minimal
 

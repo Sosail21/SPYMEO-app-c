@@ -1,3 +1,4 @@
+// Cdw-Spm
 "use client";
 
 import { useEffect, useRef } from "react";
@@ -47,7 +48,7 @@ export default function EventModal({ open, onClose, data, onDelete }: Props) {
           )}
           {data.clientId && (
             <div className="mt-2">
-              <a className="link" href={`/pro/fiches-clients/${data.clientId}`} target="_self">
+              <a className="link" href={`/pro/praticien/fiches-clients/${data.clientId}`} target="_self">
                 Ouvrir la fiche du client ↗
               </a>
             </div>

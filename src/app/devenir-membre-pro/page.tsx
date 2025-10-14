@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/app/devenir-membre-pro/page.tsx
 "use client";
 
@@ -40,7 +41,7 @@ export default function DevenirMembrePro() {
     e.preventDefault();
     const href =
       mode === "service" ? MAP_SERVICE_BY_SECTOR[secteur] : MAP_SIGNUP_BY_SECTOR[secteur];
-    router.push(href);
+    router.push(href as any);
   };
 
   return (
@@ -129,8 +130,8 @@ export default function DevenirMembrePro() {
                 </button>
               </div>
               <div className="sm:ml-auto text-sm">
-                <Link href="/spymeo-start" className="pill pill-ghost">SPYMEO Start</Link>{" "}
-                <Link href="/spymeo-web" className="pill pill-ghost">SPYMEO Web</Link>
+                <Link href="/services/spymeo-start" className="pill pill-ghost">SPYMEO Start</Link>{" "}
+                <Link href="/services/spymeo-web" className="pill pill-ghost">SPYMEO Web</Link>
               </div>
             </div>
 
@@ -167,7 +168,7 @@ export default function DevenirMembrePro() {
           </div>
           <div className="flex gap-2">
             <Link href="/auth/signup?contact=pro" className="btn">Être rappelé·e</Link>
-            <Link href="/spymeo-start" className="btn btn-outline">Voir SPYMEO Start</Link>
+            <Link href="/services/spymeo-start" className="btn btn-outline">Voir SPYMEO Start</Link>
           </div>
         </div>
       </section>
@@ -225,8 +226,8 @@ function SectorCard({
       </ul>
 
       <div className="mt-3 flex gap-2">
-        <Link href={detailsHref} className="pill pill-ghost">Voir détails</Link>
-        <Link href={detailsHref} className="pill pill-muted">En savoir plus</Link>
+        <Link href={detailsHref as any} className="pill pill-ghost">Voir détails</Link>
+        <Link href={detailsHref as any} className="pill pill-muted">En savoir plus</Link>
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/app/admin/blog/page.tsx
 "use client";
 
@@ -111,7 +112,7 @@ export default function AdminBlogListPage() {
               <li key={a.id} className="soft-card p-3 flex items-center justify-between">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <Link href={"/admin/blog/" + a.id} className="font-semibold hover:underline truncate">
+                    <Link href={`/admin/blog/${a.id}`} className="font-semibold hover:underline truncate">
                       {a.title}
                     </Link>
                     <StatusBadge status={a.status} />
@@ -136,7 +137,7 @@ export default function AdminBlogListPage() {
                 {/* Actions par statut */}
                 <div className="flex items-center gap-2">
                   {/* Éditer toujours possible */}
-                  <Link href={"/admin/blog/" + a.id} className="pill pill-ghost">Ouvrir</Link>
+                  <Link href={`/admin/blog/${a.id}`} className="pill pill-ghost">Ouvrir</Link>
 
                   {a.status === "SUBMITTED" && (
                     <>
@@ -170,7 +171,7 @@ export default function AdminBlogListPage() {
                   )}
 
                   {a.status === "PUBLISHED" && (
-                    <Link href={"/blog/" + a.slug} target="_blank" className="pill pill-muted">Aperçu public</Link>
+                    <Link href={`/blog/${a.slug}`} target="_blank" className="pill pill-muted">Aperçu public</Link>
                   )}
 
                   <button className="pill pill-muted" onClick={() => alert("Supprimer (mock)")}>Supprimer</button>

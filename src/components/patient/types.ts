@@ -1,3 +1,4 @@
+// Cdw-Spm
 export type Client = {
   id: string;
   firstName: string;
@@ -7,4 +8,12 @@ export type Client = {
   birthDate?: string;
   address?: string;
   notes?: string;
+};
+
+export type Patient = {
+  id: string;
+  name: string;
+  birthdate?: string;
+  email?: string;
+  phone?: string;
 };

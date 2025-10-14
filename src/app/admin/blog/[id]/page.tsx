@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/app/admin/blog/[id]/page.tsx
 "use client";
 
@@ -137,7 +138,7 @@ export default function AdminBlogEditPage() {
           {status === "DRAFT" ? (
             <button className="btn" onClick={onPublish}>Publier</button>
           ) : (
-            <Link href={"/blog/" + (slug || autoSlug)} target="_blank" className="pill pill-muted">Aperçu public</Link>
+            <Link href={`/blog/${slug || autoSlug}`} target="_blank" className="pill pill-muted">Aperçu public</Link>
           )}
         </div>
       </div>

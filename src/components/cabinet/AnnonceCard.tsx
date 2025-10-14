@@ -1,3 +1,4 @@
+// Cdw-Spm
 'use client';
 import Link from "next/link";
 
@@ -18,7 +19,7 @@ export default function AnnonceCard({ annonce, onClick }) {
         <div className="flex gap-2">
           <button className="pill pill-muted">☆ Favori</button>
           <button className="pill pill-muted">↗ Partager</button>
-          <Link href={`/pro/messages?to=${annonce.userId}`} className="pill pill-solid">Contacter</Link>
+          <Link href={`/pro/commun/messages?to=${ann.author.id}`} onClick={e=>e.stopPropagation()} className="btn">Contacter</Link>
         </div>
       </div>
     </article>

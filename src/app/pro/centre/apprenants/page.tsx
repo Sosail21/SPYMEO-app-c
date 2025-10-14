@@ -1,3 +1,4 @@
+// Cdw-Spm
 // src/app/pro/apprenants/page.tsx
 "use client";
 
@@ -183,8 +184,8 @@ export default function LearnersPage() {
 function Th({ children }: { children: React.ReactNode }) {
   return <th className="text-left px-4 py-3 font-semibold">{children}</th>;
 }
-function Td({ children }: { children: React.ReactNode }) {
-  return <td className="px-4 py-3">{children}</td>;
+function Td({ children, className }: { children?: React.ReactNode; className?: string }) {
+  return <td className={`px-4 py-3 ${className||""}`}>{children}</td>;
 }
 
 function TableSkeleton() {

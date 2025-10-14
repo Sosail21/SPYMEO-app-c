@@ -1,3 +1,4 @@
+// Cdw-Spm
 import Link from "next/link";
 
 export const metadata = {
@@ -24,7 +25,7 @@ export default function DevenirMembreCentre() {
               <Link href="/auth/signup?role=CENTER" className="btn">
                 Créer mon compte centre
               </Link>
-              <Link href="/spymeo-start" className="btn btn-outline">
+              <Link href="/services/spymeo-start" className="btn btn-outline">
                 Découvrir SPYMEO Start
               </Link>
             </div>

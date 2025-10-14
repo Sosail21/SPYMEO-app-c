@@ -1,3 +1,4 @@
+// Cdw-Spm
 
 // src/components/cabinet/CardAnnonce.tsx
 "use client";
@@ -17,8 +18,8 @@ export default function CardAnnonce({ ann, onOpen }: { ann: Annonce; onOpen: () 
         <div className="flex justify-between"><h3 className="font-semibold">{ann.title}</h3><span>{ann.kind==="offer"?"Offre":"Demande"}</span></div>
         <div className="text-sm text-muted">{ann.city} • {ann.surface} m² {ann.equiped?"• équipé":""}</div>
         <div className="flex justify-between">
-          <Link href={`/pro/repertoire/spymeo?u=${ann.author.id}`} onClick={e=>e.stopPropagation()}>{ann.author.name}</Link>
-          <Link href={`/pro/messages?to=${ann.author.id}`} onClick={e=>e.stopPropagation()} className="btn">Contacter</Link>
+          <Link href={`/pro/commun/repertoire/spymeo?u=${ann.author.id}`} onClick={e=>e.stopPropagation()}>{ann.author.name}</Link>
+          <Link href={`/pro/commun/messages?to=${ann.author.id}`} onClick={e=>e.stopPropagation()} className="btn">Contacter</Link>
         </div>
       </div>
     </article>

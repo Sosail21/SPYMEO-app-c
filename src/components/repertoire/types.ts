@@ -1,3 +1,4 @@
+// Cdw-Spm
 export type ProRole = "PRACTITIONER" | "ARTISAN" | "COMMERÇANT" | "CENTER" | "ADMIN";
 
 export type ProContact = {
