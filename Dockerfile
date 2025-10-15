@@ -44,7 +44,6 @@ RUN npm run build
 # Stage 3: Runner (Production)
 # ══════════════════════════════════════════════════════════════════
 FROM node:20-alpine AS runner
-
 WORKDIR /app
 
 # Security: Create non-root user
@@ -55,8 +54,10 @@ RUN addgroup --system --gid 1001 nodejs && \
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Create public directory
+RUN mkdir -p ./public
+
 # Copy necessary files from builder
-COPY --from=builder /app/public* ./public/ || mkdir -p ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
