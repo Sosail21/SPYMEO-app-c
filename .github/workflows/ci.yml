@@ -354,7 +354,7 @@ jobs:
         run: |
           aws ecs update-service \
             --cluster spymeo-production \
-            --service spymeo-app \
+            --service spymeo-production-service \
             --force-new-deployment \
             --region eu-west-3
 
@@ -362,7 +362,7 @@ jobs:
         run: |
           aws ecs wait services-stable \
             --cluster spymeo-production \
-            --services spymeo-app \
+            --service spymeo-production-service \
             --region eu-west-3
 
       - name: Run smoke tests
