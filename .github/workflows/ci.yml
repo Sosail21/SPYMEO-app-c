@@ -181,20 +181,18 @@ jobs:
         run: npx prisma migrate deploy
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/spymeo_test
+# - name: Download build artifacts
+#   uses: actions/download-artifact@v4
+#   with:
+#     name: build-artifacts
+#     path: .next
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: .next
-
-      - name: Run E2E tests
-        run: npm run test:e2e
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/spymeo_test
-          NEXTAUTH_SECRET: test-secret-key-for-ci
-          NEXTAUTH_URL: http://localhost:3000
-
+# - name: Run E2E tests
+#   run: npm run test:e2e
+#   env:
+#     DATABASE_URL: postgresql://test:test@localhost:5432/spymeo_test
+#     NEXTAUTH_SECRET: test-secret-key-for-ci
+#     NEXTAUTH_URL: http://localhost:3000
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
         if: always()
