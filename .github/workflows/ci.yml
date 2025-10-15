@@ -293,7 +293,7 @@ jobs:
     if: github.ref == 'refs/heads/develop'
     environment:
       name: staging
-      url: https://staging.spymeo.com
+      url: https://staging.spymeo.fr
 
     steps:
       - name: Checkout code
@@ -324,7 +324,7 @@ jobs:
       - name: Run smoke tests
         run: |
           echo "Running smoke tests on staging..."
-          curl -f https://staging.spymeo.com/api/health || exit 1
+          curl -f https://staging.spymeo.fr/api/health || exit 1
 
   # ══════════════════════════════════════════════════════════════════
   # DEPLOY TO PRODUCTION
@@ -337,7 +337,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     environment:
       name: production
-      url: https://spymeo.com
+      url: https://spymeo.fr
 
     steps:
       - name: Checkout code
@@ -368,7 +368,7 @@ jobs:
       - name: Run smoke tests
         run: |
           echo "Running smoke tests on production..."
-          curl -f https://spymeo.com/api/health || exit 1
+          curl -f https://spymeo.fr/api/health || exit 1
 
       - name: Invalidate CloudFront cache
         run: |
