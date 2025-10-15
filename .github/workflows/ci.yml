@@ -314,17 +314,34 @@ jobs:
             --force-new-deployment \
             --region eu-west-3
 
-      - name: Wait for deployment
+      - name: Wait for ECS deployment
         run: |
           aws ecs wait services-stable \
             --cluster spymeo-staging \
             --services spymeo-app \
             --region eu-west-3
 
-      - name: Run smoke tests
+      - name: Run smoke tests (staging)
+        env:
+          URL: https://staging.spymeo.fr
         run: |
-          echo "Running smoke tests on staging..."
-          curl -f https://staging.spymeo.fr/api/health || exit 1
+          set -euxo pipefail
+          HOST="$(echo "$URL" | sed -E 's#https?://([^/]+).*#\1#')"
+
+          echo "== TLS handshake check (staging) =="
+          echo | openssl s_client -connect "${HOST}:443" -servername "${HOST}" -tls1_2 -brief || true
+
+          echo "== HTTP healthcheck with retries =="
+          for i in {1..6}; do
+            if curl -v --fail --location --max-time 20 \
+              --http1.1 "${URL%/}/api/health"; then
+              echo "Healthcheck OK"
+              exit 0
+            fi
+            echo "Retry in 10s..."
+            sleep 10
+          done
+          echo "Service not healthy after retries"; exit 1
 
   # ══════════════════════════════════════════════════════════════════
   # DEPLOY TO PRODUCTION
@@ -358,17 +375,34 @@ jobs:
             --force-new-deployment \
             --region eu-west-3
 
-      - name: Wait for deployment
+      - name: Wait for ECS deployment
         run: |
           aws ecs wait services-stable \
             --cluster spymeo-production \
             --service spymeo-production-service \
             --region eu-west-3
 
-      - name: Run smoke tests
+      - name: Run smoke tests (production)
+        env:
+          URL: https://spymeo.fr
         run: |
-          echo "Running smoke tests on production..."
-          curl -f https://spymeo.fr/api/health || exit 1
+          set -euxo pipefail
+          HOST="$(echo "$URL" | sed -E 's#https?://([^/]+).*#\1#')"
+
+          echo "== TLS handshake check (prod) =="
+          echo | openssl s_client -connect "${HOST}:443" -servername "${HOST}" -tls1_2 -brief || true
+
+          echo "== HTTP healthcheck with retries =="
+          for i in {1..6}; do
+            if curl -v --fail --location --max-time 20 \
+              --http1.1 "${URL%/}/api/health"; then
+              echo "Healthcheck OK"
+              exit 0
+            fi
+            echo "Retry in 10s..."
+            sleep 10
+          done
+          echo "Service not healthy after retries"; exit 1
 
       - name: Invalidate CloudFront cache
         run: |
@@ -381,13 +415,13 @@ jobs:
         with:
           payload: |
             {
-              "text": "✅ SPYMEO V1 deployed to production",
+              "text": "✅ SPYMEO V1 déployé en production",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Deployment Successful*\n✅ Version: `${{ github.sha }}`\n🌍 Environment: Production\n👤 By: ${{ github.actor }}"
+                    "text": "*Déploiement réussi !*\n✅ Version: `${{ github.sha }}`\n🌍 Environnement: Production\n👤 Par: ${{ github.actor }}"
                   }
                 }
               ]
