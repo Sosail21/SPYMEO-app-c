@@ -1,0 +1,173 @@
+openapi: 3.1.0
+info:
+  title: SPYMEO API
+  version: 1.0.0
+  description: |
+    API REST pour la plateforme SPYMEO - Santé & bien-être holistique.
+
+    Authentification: NextAuth.js (session cookies)
+  contact:
+    name: SPYMEO Team
+    url: https://spymeo.fr
+
+servers:
+  - url: https://spymeo.fr/api
+    description: Production
+  - url: http://localhost:3000/api
+    description: Development
+
+tags:
+  - name: Health
+    description: Healthcheck & monitoring
+  - name: Auth
+    description: Authentication & sessions
+  - name: User
+    description: User account management
+  - name: Practitioner
+    description: Practitioner-specific endpoints
+  - name: Artisan
+    description: Artisan-specific endpoints
+  - name: Merchant
+    description: Merchant/Commercant endpoints
+  - name: Training Center
+    description: Formation center endpoints
+  - name: Pass
+    description: PASS subscription features
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Service health check
+      description: Returns service health status including DB and S3 connectivity
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy]
+                  timestamp:
+                    type: string
+                    format: date-time
+                  uptime:
+                    type: number
+                  environment:
+                    type: string
+                  checks:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                        enum: [connected, disconnected]
+                      s3:
+                        type: string
+                        enum: [accessible, unavailable, skipped]
+        '503':
+          description: Service is unhealthy
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login successful
+        '401':
+          description: Invalid credentials
+
+  /user/appointments:
+    get:
+      tags: [User]
+      summary: List user appointments
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: List of appointments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Appointment'
+
+  /clients:
+    get:
+      tags: [Practitioner]
+      summary: List practitioner clients
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: List of clients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Client'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: next-auth.session-token
+
+  schemas:
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [SCHEDULED, CONFIRMED, CANCELLED, COMPLETED]
+
+    Client:
+      type: object
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+# TODO: Compléter avec tous les endpoints existants (~60 routes)
+# Voir src/app/api/** pour la liste complète

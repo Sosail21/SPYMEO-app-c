@@ -7,7 +7,10 @@
       "Bash(npm install:*)",
       "Bash(npm install @prisma/client)",
       "Bash(npx prisma generate:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
