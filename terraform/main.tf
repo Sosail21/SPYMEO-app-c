@@ -83,6 +83,18 @@ module "rds" {
 }
 
 # ══════════════════════════════════════════════════════════════════
+# ACM CERTIFICATE - HTTPS
+# ══════════════════════════════════════════════════════════════════
+
+module "acm" {
+  source = "./modules/acm"
+
+  domain_name               = var.domain_name
+  subject_alternative_names = ["www.${var.domain_name}"]
+  environment               = var.environment
+}
+
+# ══════════════════════════════════════════════════════════════════
 # ECS FARGATE - Application Next.js
 # ══════════════════════════════════════════════════════════════════
 
@@ -119,6 +131,10 @@ module "ecs" {
     {
       name  = "S3_BUCKET_NAME"
       value = module.s3.bucket_name
+    },
+    {
+      name  = "AWS_REGION"
+      value = var.aws_region
     }
   ]
 
@@ -135,10 +151,10 @@ module "ecs" {
   health_check_interval  = 30
   health_check_timeout   = 5
 
-  # ALB SSL certificate
-  certificate_arn        = var.certificate_arn
+  # ALB SSL certificate (from ACM module)
+  certificate_arn        = module.acm.certificate_arn
 
-  depends_on = [module.rds]
+  depends_on = [module.rds, module.acm]
 }
 
 # ══════════════════════════════════════════════════════════════════

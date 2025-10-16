@@ -8,6 +8,9 @@
       "Bash(npm install @prisma/client)",
       "Bash(npx prisma generate:*)",
       "Bash(node:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)"
       "Bash(npm run lint)",
       "Bash(chmod:*)",
       "Bash(npx prisma migrate:*)",
