@@ -1,18 +1,17 @@
 {
   "permissions": {
     "allow": [
-<<<<<<< Updated upstream
       "Bash(npm run build)",
       "Bash(find:*)",
       "Bash(tree:*)",
       "Bash(npm install:*)",
       "Bash(npm install @prisma/client)",
       "Bash(npx prisma generate:*)",
-      "Bash(node:*)"
-=======
-      "Bash(git checkout:*)",
-      "Bash(git stash:*)"
->>>>>>> Stashed changes
+      "Bash(node:*)",
+      "Bash(npm run lint)",
+      "Bash(chmod:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

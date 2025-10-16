@@ -10,8 +10,10 @@ const nextConfig = {
   // Compression
   compress: true,
 
-  // typedRoutes désactivé temporairement pour V1.0 (réactiver en V1.1 polish)
-  // experimental: { typedRoutes: true },
+  // Instrumentation hook pour observabilité (logs, traces)
+  experimental: {
+    instrumentationHook: true,
+  },
 
   // Images optimization
   images: {
