@@ -49,7 +49,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Copy standalone build + static assets
 COPY --from=build --chown=nextjs:nextjs /app/.next/standalone ./
 COPY --from=build --chown=nextjs:nextjs /app/.next/static ./.next/static
-COPY --from=build --chown=nextjs:nextjs /app/public ./public
+RUN mkdir -p ./public
 COPY --from=build --chown=nextjs:nextjs /app/prisma ./prisma
 COPY --from=build --chown=nextjs:nextjs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build --chown=nextjs:nextjs /app/node_modules/@prisma ./node_modules/@prisma
