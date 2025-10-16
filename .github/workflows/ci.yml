@@ -270,6 +270,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
+        id: docker-build
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -281,6 +282,21 @@ jobs:
           build-args: |
             NODE_ENV=production
             NEXT_TELEMETRY_DISABLED=1
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ steps.meta.outputs.tags }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
 
   # ══════════════════════════════════════════════════════════════════
   # DEPLOY TO STAGING
@@ -383,10 +399,24 @@ jobs:
             --region eu-west-3
 
       - name: Run smoke tests (production)
+        env:
+          URL: https://spymeo.fr
         run: |
-          echo "Running smoke tests on production..."
-          curl -f http://spymeo-production-alb-1290126245.eu-west-3.elb.amazonaws.com/api/health || echo "Health check skipped"
-        continue-on-error: true
+          set -euxo pipefail
+          echo "== Running smoke tests on production =="
+
+          echo "== HTTPS healthcheck with retries =="
+          for i in {1..8}; do
+            if curl -v --fail --location --max-time 20 \
+              --http1.1 "${URL%/}/api/health"; then
+              echo "✅ Healthcheck OK"
+              exit 0
+            fi
+            echo "⏳ Retry $i/8 in 10s..."
+            sleep 10
+          done
+          echo "❌ Service not healthy after retries"
+          exit 1
 
       #- name: Invalidate CloudFront cache
       #  run: |

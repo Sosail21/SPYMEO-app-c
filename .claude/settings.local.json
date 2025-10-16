@@ -11,6 +11,10 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git checkout:*)"
+      "Bash(npm run lint)",
+      "Bash(chmod:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
