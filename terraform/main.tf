@@ -35,6 +35,27 @@ provider "aws" {
 }
 
 # ══════════════════════════════════════════════════════════════════
+# Route 53 Hosted Zone
+# ══════════════════════════════════════════════════════════════════
+
+resource "aws_route53_zone" "main" {
+  name = var.domain_name
+
+  tags = {
+    Name        = "${var.environment}-${var.domain_name}"
+    Environment = var.environment
+    Project     = "SPYMEO"
+    ManagedBy   = "Terraform"
+  }
+}
+
+# Output nameservers for IONOS configuration
+output "route53_nameservers" {
+  description = "Configure these nameservers in IONOS DNS settings"
+  value       = aws_route53_zone.main.name_servers
+}
+
+# ══════════════════════════════════════════════════════════════════
 # NETWORKING - VPC avec sous-réseaux publics/privés
 # ══════════════════════════════════════════════════════════════════
 
