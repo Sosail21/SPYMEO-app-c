@@ -50,7 +50,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       # ---- TRIVY : option simple = scan du filesystem (pas d’auth image) ----
-            - name: Run Trivy vulnerability scanner (fs)
+      - name: Run Trivy vulnerability scanner (fs)
         uses: aquasecurity/trivy-action@0.21.0
         with:
           scan-type: 'fs'
