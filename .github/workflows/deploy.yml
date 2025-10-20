@@ -17,7 +17,7 @@ env:
   ECS_SERVICE: spymeo-production-service
   ECS_CLUSTER: spymeo-production
   CONTAINER_NAME: spymeo-app
-  GHCR_IMAGE: ghcr.io/sosail21/spymeo-app-c
+  GHCR_IMAGE: ghcr.io/Sosail21/SPYMEO-app-c
 
 jobs:
   build-and-deploy:
