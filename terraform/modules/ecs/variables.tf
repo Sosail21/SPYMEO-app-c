@@ -91,6 +91,6 @@ variable "health_check_timeout" {
 }
 
 variable "certificate_arn" {
-  description = "ACM certificate ARN for HTTPS"
+  description = "ARN of the ACM certificate for HTTPS"
   type        = string
 }
