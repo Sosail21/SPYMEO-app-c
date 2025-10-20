@@ -13,7 +13,7 @@ on:
 
 env:
   AWS_REGION: eu-west-3
-  ECR_REPOSITORY: spymeo-app
+  ECR_REPOSITORY: spymeo-app-c
   ECS_SERVICE: spymeo-production-service
   ECS_CLUSTER: spymeo-production
   CONTAINER_NAME: spymeo-app
