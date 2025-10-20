@@ -22,7 +22,7 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -35,7 +35,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          password: ${{ secrets.GHCR_TOKEN }}  # doit avoir scope read:packages + write:packages
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -49,19 +49,22 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-     # - name: Run Trivy vulnerability scanner
-      #  uses: aquasecurity/trivy-action@master
-      #  with:
-      #    image-ref: ${{ env.GHCR_IMAGE }}:${{ github.sha }}
-       #   format: 'sarif'
-      #    output: 'trivy-results.sarif'
-      #  continue-on-error: true
+      # ---- TRIVY : option simple = scan du filesystem (pas d’auth image) ----
+      - name: Run Trivy vulnerability scanner (fs)
+        uses: aquasecurity/trivy-action@0.21.0
+        with:
+          scan-type: 'fs'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true
 
-     # - name: Upload Trivy results to GitHub Security tab
-     #   uses: github/codeql-action/upload-sarif@v3
-     #   with:
-     #     sarif_file: 'trivy-results.sarif'
-     #   continue-on-error: true
+      - name: Upload Trivy results to GitHub Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -70,6 +73,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      # ⚠️ Ceci ne prend effet que si ta task definition ECS référence GHCR (ex: ghcr.io/...:latest)
       - name: Force ECS deployment
         run: |
           aws ecs update-service \
