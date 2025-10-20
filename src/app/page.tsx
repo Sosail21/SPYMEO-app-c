@@ -1,7 +1,8 @@
-// Cdw-Spm
+// src/app/page.tsx
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Home() {
   return (
@@ -18,53 +19,24 @@ export default function Home() {
               pas à pas vers votre bien-être au niveau local.
             </p>
 
-            {/* Mega search en pleine largeur */}
-            <form
-              className="search-wrap flex flex-col md:flex-row flex-wrap md:flex-nowrap gap-2 mt-6"
-              action="/recherche"
-            >
-              <input
-                name="q"
-                placeholder="Praticien, spécialité…"
-                className="input-pill flex-1 min-w-0"
-              />
-              <input
-                name="city"
-                placeholder="Ville ou code postal"
-                className="input-pill flex-1 min-w-0"
-              />
-              <select
-                name="radius"
-                className="pill pill-muted shrink-0 w-full md:w-auto"
-                defaultValue="20"
-                aria-label="Rayon"
-              >
+            {/* Mega search */}
+            <form className="search-wrap flex flex-col md:flex-row flex-wrap md:flex-nowrap gap-2 mt-6" action="/recherche">
+              <input name="q" placeholder="Praticien, spécialité…" className="input-pill flex-1 min-w-0" />
+              <input name="city" placeholder="Ville ou code postal" className="input-pill flex-1 min-w-0" />
+              <select name="radius" className="pill pill-muted shrink-0 w-full md:w-auto" defaultValue="20" aria-label="Rayon">
                 <option value="10">10 km</option>
                 <option value="20">20 km</option>
                 <option value="50">50 km</option>
               </select>
-              <button
-                className="pill pill-solid shrink-0 w-full md:w-auto"
-                type="submit"
-              >
-                Rechercher
-              </button>
+              <button className="pill pill-solid shrink-0 w-full md:w-auto" type="submit">Rechercher</button>
             </form>
 
             {/* quick chips */}
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              <button className="chip chip-active" type="button">
-                Proche de moi
-              </button>
-              <button className="chip" type="button">
-                Première consult.
-              </button>
-              <button className="chip" type="button">
-                Téléconsultation
-              </button>
-              <button className="chip" type="button">
-                Bio / Local
-              </button>
+              <button className="chip chip-active" type="button">Proche de moi</button>
+              <button className="chip" type="button">Première consult.</button>
+              <button className="chip" type="button">Téléconsultation</button>
+              <button className="chip" type="button">Bio / Local</button>
             </div>
 
             {/* KPIs */}
@@ -82,15 +54,23 @@ export default function Home() {
         <div className="container-spy">
           <h2 className="section-title">Parcourir par univers</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {UNIVERSES.map((u) => (
+            {UNIVERSES.map((u, idx) => (
               <article
                 key={u.href}
                 className="group relative overflow-hidden rounded-2xl shadow-sm bg-white ring-1 ring-[rgba(11,18,57,.08)]"
               >
-                <div
-                  className="h-36 sm:h-40 bg-cover bg-center transition-transform duration-300 group-hover:scale-[1.04]"
-                  style={{ backgroundImage: `url(${u.img})` }}
-                />
+                {/* image responsive optimisée */}
+                <div className="relative h-36 sm:h-40">
+                  <Image
+                    src={u.img}
+                    alt={u.alt}
+                    fill
+                    sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                    className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+                    // priorité légère sur les 2 premiers tuiles au-dessus de la ligne de flottaison
+                    priority={idx < 2}
+                  />
+                </div>
                 <div className="p-4">
                   <h3 className="text-lg font-semibold">{u.title}</h3>
                   <p className="text-muted">{u.desc}</p>
@@ -98,15 +78,8 @@ export default function Home() {
                 {/* overlay on hover */}
                 <div className="uni-overlay pointer-events-none group-hover:pointer-events-auto">
                   <div className="uni-overlay-inner">
-                    <Link className="btn" href={u.href}>
-                      Découvrir
-                    </Link>
-                    <Link
-                      className="btn btn-outline"
-                      href={`/recherche?type=${u.query}`}
-                    >
-                      Rechercher
-                    </Link>
+                    <Link className="btn" href={u.href}>Découvrir</Link>
+                    <Link className="btn btn-outline" href={`/recherche?type=${u.query}`}>Rechercher</Link>
                   </div>
                 </div>
               </article>
@@ -142,10 +115,7 @@ export default function Home() {
           <h2 className="section-title">Pourquoi SPYMEO ?</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {BENEFITS.map((b) => (
-              <div
-                key={b.t}
-                className="card transition duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(11,18,57,0.12)]"
-              >
+              <div key={b.t} className="card transition duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(11,18,57,0.12)]">
                 <div className="text-2xl mb-2">{b.emoji}</div>
                 <h3 className="font-semibold mb-1">{b.t}</h3>
                 <p className="muted">{b.d}</p>
@@ -165,15 +135,8 @@ export default function Home() {
                 Tarifs préférentiels chez nos partenaires, ressources premium et carnet de vie. Un accélérateur pour votre bien-être.
               </p>
               <div className="flex gap-2 mt-3">
-                <Link href="/pass" className="btn btn-light">
-                  Découvrir le PASS
-                </Link>
-                <Link
-                  href="/devenir-membre-pro"
-                  className="btn btn-outline-light"
-                >
-                  Devenir partenaire
-                </Link>
+                <Link href="/pass" className="btn btn-light">Découvrir le PASS</Link>
+                <Link href="/devenir-membre-pro" className="btn btn-outline-light">Devenir partenaire</Link>
               </div>
             </div>
             <div className="h-36 md:h-40 rounded-xl bg-white/15" />
@@ -186,21 +149,25 @@ export default function Home() {
         <div className="container-spy">
           <div className="flex items-center justify-between gap-4 mb-2">
             <h2 className="section-title m-0">Derniers articles</h2>
-            <Link href="/blog" className="pill pill-ghost">
-              Voir le blog
-            </Link>
+            <Link href="/blog" className="pill pill-ghost">Voir le blog</Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {POSTS.map((p) => (
+            {POSTS.map((p, idx) => (
               <Link
                 key={p.href}
                 href={p.href}
                 className="post-card transition duration-200 ease-out hover:-translate-y-0.5 hover:scale-[1.01] hover:shadow-[0_14px_36px_rgba(11,18,57,0.12)]"
               >
-                <span
-                  className="post-cover"
-                  style={{ backgroundImage: `url(${p.img})` }}
-                />
+                <div className="relative aspect-[16/9] w-full">
+                  <Image
+                    src={p.img}
+                    alt={p.alt}
+                    fill
+                    sizes="(min-width: 768px) 33vw, 100vw"
+                    className="object-cover"
+                    priority={idx === 0}
+                  />
+                </div>
                 <div className="post-body">
                   <h3 className="font-semibold">{p.t}</h3>
                   <p className="text-muted">{p.d}</p>
@@ -215,18 +182,12 @@ export default function Home() {
       <section className="section cta">
         <div className="container-spy cta-inner">
           <div>
-            <h3 className="text-xl md:text-2xl font-semibold mb-1">
-              Envie d’aller plus loin ?
-            </h3>
+            <h3 className="text-xl md:text-2xl font-semibold mb-1">Envie d’aller plus loin ?</h3>
             <p className="opacity-90">Créez votre compte ou découvrez le PASS.</p>
           </div>
           <div className="flex gap-2">
-            <Link href="/auth/signup" className="btn">
-              Créer mon compte
-            </Link>
-            <Link href="/pass" className="btn btn-outline">
-              Découvrir le PASS
-            </Link>
+            <Link href="/auth/signup" className="btn">Créer mon compte</Link>
+            <Link href="/pass" className="btn btn-outline">Découvrir le PASS</Link>
           </div>
         </div>
       </section>
@@ -235,6 +196,7 @@ export default function Home() {
 }
 
 /* ----------------------- Data ----------------------- */
+/* NB: les chemins pointent vers /public/images/...  */
 
 const UNIVERSES = [
   {
@@ -242,28 +204,32 @@ const UNIVERSES = [
     query: "praticien",
     title: "Praticiens",
     desc: "Naturopathes, sophrologues, réflexologues…",
-    img: "/images/univers/praticiens.jpg",
+    img: "/images/univers/praticiens.png",
+    alt: "Illustration de l’univers Praticiens",
   },
   {
     href: "/artisans",
     query: "artisan",
     title: "Artisans",
     desc: "Cosmétiques naturels, apiculteurs, savonniers…",
-    img: "/images/univers/artisans.jpg",
+    img: "/images/univers/artisans.png",
+    alt: "Illustration de l’univers Artisans",
   },
   {
     href: "/commercants",
     query: "commercant",
     title: "Commerçants",
     desc: "Boutiques locales engagées.",
-    img: "/images/univers/commercants.jpg",
+    img: "/images/univers/commercants.png",
+    alt: "Illustration de l’univers Commerçants",
   },
   {
     href: "/centres-de-formation",
     query: "centre",
     title: "Centres de formation",
     desc: "Formations éthiques & sérieuses.",
-    img: "/images/univers/centres.jpg",
+    img: "/images/univers/centres.png",
+    alt: "Illustration de l’univers Centres de formation",
   },
 ];
 
@@ -285,18 +251,21 @@ const POSTS = [
     href: "/blog/comprendre-errance-medicale",
     t: "Comprendre l’errance médicale",
     d: "Approche globale : pratiques alternatives, seconds avis, hygiène de vie…",
-    img: "/images/blog/errance.jpg",
+    img: "/images/blog/errance.png",
+    alt: "Couverture article : Comprendre l’errance médicale",
   },
   {
     href: "/blog/consommer-local-responsable",
     t: "Consommer local & responsable",
     d: "Des repères simples pour mieux choisir au quotidien.",
     img: "/images/blog/local.jpg",
+    alt: "Couverture article : Consommer local & responsable",
   },
   {
     href: "/blog/bien-choisir-son-praticien",
     t: "Bien choisir son praticien",
     d: "Ce qui compte vraiment : écoute, compétence, cadre, suivi.",
-    img: "/images/blog/praticien.jpg",
+    img: "/images/blog/praticien.png",
+    alt: "Couverture article : Bien choisir son praticien",
   },
 ];
