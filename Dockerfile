@@ -25,6 +25,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 ENV SKIP_ENV_VALIDATION=true
 ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+ENV JWT_SECRET="build-time-dummy-secret-will-be-replaced-at-runtime"
 
 RUN npm run build
 
