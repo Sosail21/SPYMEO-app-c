@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { success: false, error: error.errors[0].message },
+        { success: false, error: 'Données invalides', details: error.issues },
         { status: 400 }
       );
     }
