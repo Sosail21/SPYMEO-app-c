@@ -1,7 +1,15 @@
 // Cdw-Spm: JWT Token utilities
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'changeme_in_production';
+// JWT_SECRET must be defined in environment variables
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET || JWT_SECRET === 'changeme_in_production') {
+  throw new Error(
+    'JWT_SECRET environment variable is required and must be set to a secure value. ' +
+    'Generate one with: openssl rand -base64 32'
+  );
+}
 
 export function generateValidationToken(userId: string): string {
   return jwt.sign(

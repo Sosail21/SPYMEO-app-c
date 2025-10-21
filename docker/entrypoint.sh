@@ -41,6 +41,10 @@ fi
 # Exécuter les migrations
 run_migrations
 
+# Exécuter les seeds (nouveau)
+echo "[entrypoint] Running database seeds..."
+npm run db:seed:min || echo "[entrypoint] Seed already applied or skipped"
+
 # Générer le client Prisma (au cas où)
 echo "[entrypoint] Ensuring Prisma client is generated..."
 npx prisma generate || echo "[entrypoint] WARNING: Prisma generate failed (may already be generated)"
