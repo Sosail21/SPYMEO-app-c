@@ -4,6 +4,7 @@ import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import { prisma } from '@/lib/prisma';
 import { sendEmail, emailTemplates } from '@/lib/email';
+import { generateValidationToken } from '@/lib/jwt';
 
 const registerProSchema = z.object({
   firstName: z.string().min(2, 'Prénom requis'),
