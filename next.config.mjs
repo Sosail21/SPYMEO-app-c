@@ -5,7 +5,7 @@ const nextConfig = {
   reactStrictMode: true,
 
   // Production: output standalone pour Docker
-  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
+  output: 'standalone',
 
   // Compression
   compress: true,
