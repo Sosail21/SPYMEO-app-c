@@ -46,10 +46,10 @@ RUN useradd -m -u 1001 nextjs
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Copy standalone build + static assets
+# Copy standalone build + static assets + public files
 COPY --from=build --chown=nextjs:nextjs /app/.next/standalone ./
 COPY --from=build --chown=nextjs:nextjs /app/.next/static ./.next/static
-RUN mkdir -p ./public
+COPY --from=build --chown=nextjs:nextjs /app/public ./public
 COPY --from=build --chown=nextjs:nextjs /app/prisma ./prisma
 COPY --from=build --chown=nextjs:nextjs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build --chown=nextjs:nextjs /app/node_modules/@prisma ./node_modules/@prisma
