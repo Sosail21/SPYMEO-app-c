@@ -16,10 +16,13 @@ export async function GET(request: NextRequest) {
         firstName: true,
         lastName: true,
         name: true,
+        phone: true,
+        siret: true,
         role: true,
         status: true,
         profileData: true,
         businessData: true,
+        applicationDocuments: true,
         createdAt: true,
       },
     });

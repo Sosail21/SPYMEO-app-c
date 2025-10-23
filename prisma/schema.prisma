@@ -55,6 +55,12 @@ model User {
   profileData  Json? // pour PRACTITIONER
   businessData Json? // pour ARTISAN/COMMERCANT/CENTER
 
+  // Documents de candidature (URLs S3)
+  applicationDocuments Json? // {diploma, insurance, kbis, criminalRecord}
+
+  // SIRET (pour tous les professionnels)
+  siret String?
+
   // Abonnement particulier
   userPlan String? // 'FREE' ou 'PASS'
 

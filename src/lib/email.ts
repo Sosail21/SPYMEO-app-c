@@ -66,10 +66,121 @@ export const emailTemplates = {
 
       <div style="margin-top: 30px;">
         <h3>Actions</h3>
-        <a href="${process.env.NEXT_PUBLIC_URL}/admin/pros"
+        <a href="${process.env.NEXT_PUBLIC_URL || 'https://spymeo.fr'}/admin/pros"
            style="display: inline-block; padding: 12px 24px; background: #4CAF50; color: white; text-decoration: none; border-radius: 4px; margin-right: 10px;">
           📋 Voir dans le panneau admin
         </a>
+      </div>
+    </body>
+    </html>
+  `,
+
+  adminNotificationPro: (data: any) => `
+    <!DOCTYPE html>
+    <html>
+    <body style="font-family: Arial, sans-serif; padding: 20px;">
+      <div style="background: #17a2b8; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h2 style="margin: 0;">🧩 Nouvelle candidature Praticien</h2>
+        <p style="margin: 5px 0 0 0; opacity: 0.9;">Demande d'inscription reçue le ${new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+      </div>
+
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #333;">📋 Informations personnelles</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0;"><strong>Nom complet:</strong></td>
+            <td style="padding: 8px 0;">${data.firstName} ${data.lastName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Email:</strong></td>
+            <td style="padding: 8px 0;"><a href="mailto:${data.email}">${data.email}</a></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Téléphone:</strong></td>
+            <td style="padding: 8px 0;"><a href="tel:${data.phone}">${data.phone}</a></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Ville:</strong></td>
+            <td style="padding: 8px 0;">${data.city}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #333;">💼 Activité professionnelle</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0;"><strong>Discipline:</strong></td>
+            <td style="padding: 8px 0;">${data.discipline}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Expérience:</strong></td>
+            <td style="padding: 8px 0;">${data.experience} ans</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>SIRET:</strong></td>
+            <td style="padding: 8px 0;">${data.siret}</td>
+          </tr>
+        </table>
+      </div>
+
+      ${data.presentation ? `
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #333;">📝 Présentation</h3>
+        <p style="margin: 0; white-space: pre-wrap;">${data.presentation}</p>
+      </div>
+      ` : ''}
+
+      <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #856404;">📎 Documents justificatifs</h3>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          ${data.documents.diploma ? `
+          <li style="padding: 8px 0; border-bottom: 1px solid #ffc107;">
+            <strong>Diplôme:</strong>
+            <a href="${data.documents.diploma}" target="_blank" style="color: #007bff; text-decoration: none; margin-left: 10px;">
+              📄 Télécharger
+            </a>
+          </li>
+          ` : '<li style="padding: 8px 0; color: #dc3545;">❌ Diplôme non fourni</li>'}
+
+          ${data.documents.insurance ? `
+          <li style="padding: 8px 0; border-bottom: 1px solid #ffc107;">
+            <strong>Assurance RC Pro:</strong>
+            <a href="${data.documents.insurance}" target="_blank" style="color: #007bff; text-decoration: none; margin-left: 10px;">
+              📄 Télécharger
+            </a>
+          </li>
+          ` : '<li style="padding: 8px 0; color: #dc3545;">❌ Assurance RC Pro non fournie</li>'}
+
+          ${data.documents.kbis ? `
+          <li style="padding: 8px 0; border-bottom: 1px solid #ffc107;">
+            <strong>Kbis:</strong>
+            <a href="${data.documents.kbis}" target="_blank" style="color: #007bff; text-decoration: none; margin-left: 10px;">
+              📄 Télécharger
+            </a>
+          </li>
+          ` : '<li style="padding: 8px 0; color: #dc3545;">❌ Kbis non fourni</li>'}
+
+          ${data.documents.criminalRecord ? `
+          <li style="padding: 8px 0;">
+            <strong>Casier judiciaire:</strong>
+            <a href="${data.documents.criminalRecord}" target="_blank" style="color: #007bff; text-decoration: none; margin-left: 10px;">
+              📄 Télécharger
+            </a>
+          </li>
+          ` : '<li style="padding: 8px 0; color: #dc3545;">❌ Casier judiciaire non fourni</li>'}
+        </ul>
+      </div>
+
+      <div style="margin-top: 30px; text-align: center;">
+        <a href="${process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_URL || 'https://spymeo.fr'}/admin/pros"
+           style="display: inline-block; padding: 15px 30px; background: #28a745; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px;">
+          📋 Gérer dans le panneau admin
+        </a>
+      </div>
+
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #6c757d; font-size: 12px;">
+        <p>Cet email a été envoyé automatiquement depuis SPYMEO.</p>
       </div>
     </body>
     </html>

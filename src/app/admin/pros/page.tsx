@@ -1,7 +1,14 @@
-// Cdw-Spm: Admin Pro Validation Page
+// Cdw-Spm: Admin Pro Validation Page - Phase 2
 "use client";
 
 import { useEffect, useState } from 'react';
+
+interface Documents {
+  diploma?: string;
+  insurance?: string;
+  kbis?: string;
+  criminalRecord?: string;
+}
 
 interface PendingUser {
   id: string;
@@ -9,10 +16,13 @@ interface PendingUser {
   firstName?: string;
   lastName?: string;
   name?: string;
+  phone?: string;
+  siret?: string;
   role: string;
   status: string;
   profileData?: any;
   businessData?: any;
+  applicationDocuments?: Documents;
   createdAt: string;
 }
 
@@ -155,9 +165,33 @@ export default function AdminProPage() {
                     </span>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-500">Date de candidature</p>
+                  {/* Contact et infos générales */}
+                  <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                    <h4 className="font-semibold mb-3 text-blue-900">📞 Contact</h4>
+                    <div className="grid md:grid-cols-3 gap-3">
+                      <div>
+                        <p className="text-sm text-slate-500">Email</p>
+                        <a href={`mailto:${user.email}`} className="font-medium text-blue-600 hover:underline">
+                          {user.email}
+                        </a>
+                      </div>
+                      {user.phone && (
+                        <div>
+                          <p className="text-sm text-slate-500">Téléphone</p>
+                          <a href={`tel:${user.phone}`} className="font-medium text-blue-600 hover:underline">
+                            {user.phone}
+                          </a>
+                        </div>
+                      )}
+                      {user.siret && (
+                        <div>
+                          <p className="text-sm text-slate-500">SIRET</p>
+                          <p className="font-medium font-mono">{user.siret}</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-3">
+                      <p className="text-sm text-slate-500">Date de candidature</p>
                       <p className="text-slate-700">
                         {new Date(user.createdAt).toLocaleDateString('fr-FR', {
                           day: 'numeric',
@@ -170,9 +204,10 @@ export default function AdminProPage() {
                     </div>
                   </div>
 
+                  {/* Informations professionnelles */}
                   {user.profileData && (
                     <div className="bg-slate-50 p-4 rounded-lg mb-4">
-                      <h4 className="font-semibold mb-2">Informations professionnelles</h4>
+                      <h4 className="font-semibold mb-3">💼 Informations professionnelles</h4>
                       <div className="grid md:grid-cols-2 gap-3">
                         {user.profileData.discipline && (
                           <div>
@@ -192,29 +227,103 @@ export default function AdminProPage() {
                             <p className="font-medium">{user.profileData.experience} ans</p>
                           </div>
                         )}
-                        {user.profileData.ethics && (
+                        {user.profileData.presentation && (
                           <div className="md:col-span-2">
-                            <p className="text-sm text-slate-500">Charte éthique</p>
-                            <p className="text-sm mt-1">{user.profileData.ethics}</p>
-                          </div>
-                        )}
-                        {user.profileData.documents && (
-                          <div className="md:col-span-2">
-                            <p className="text-sm text-slate-500">Documents</p>
-                            <a
-                              href={user.profileData.documents}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-accent hover:underline"
-                            >
-                              {user.profileData.documents}
-                            </a>
+                            <p className="text-sm text-slate-500 mb-1">Présentation</p>
+                            <p className="text-sm bg-white p-3 rounded border whitespace-pre-wrap">
+                              {user.profileData.presentation}
+                            </p>
                           </div>
                         )}
                       </div>
                     </div>
                   )}
 
+                  {/* Documents justificatifs */}
+                  {user.applicationDocuments && (
+                    <div className="bg-yellow-50 border-2 border-yellow-200 p-4 rounded-lg mb-4">
+                      <h4 className="font-semibold mb-3 text-yellow-900">📎 Documents justificatifs</h4>
+                      <div className="grid md:grid-cols-2 gap-3">
+                        <div className="flex items-center justify-between p-3 bg-white rounded border">
+                          <div>
+                            <p className="text-sm font-semibold">Diplôme / Certificat</p>
+                            <p className="text-xs text-slate-500">Formation et qualification</p>
+                          </div>
+                          {user.applicationDocuments.diploma ? (
+                            <a
+                              href={user.applicationDocuments.diploma}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+                            >
+                              📄 Voir
+                            </a>
+                          ) : (
+                            <span className="px-4 py-2 bg-gray-200 text-gray-500 rounded text-sm">Non fourni</span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between p-3 bg-white rounded border">
+                          <div>
+                            <p className="text-sm font-semibold">Assurance RC Pro</p>
+                            <p className="text-xs text-slate-500">Responsabilité civile</p>
+                          </div>
+                          {user.applicationDocuments.insurance ? (
+                            <a
+                              href={user.applicationDocuments.insurance}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+                            >
+                              📄 Voir
+                            </a>
+                          ) : (
+                            <span className="px-4 py-2 bg-gray-200 text-gray-500 rounded text-sm">Non fourni</span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between p-3 bg-white rounded border">
+                          <div>
+                            <p className="text-sm font-semibold">Kbis</p>
+                            <p className="text-xs text-slate-500">Extrait d'immatriculation</p>
+                          </div>
+                          {user.applicationDocuments.kbis ? (
+                            <a
+                              href={user.applicationDocuments.kbis}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+                            >
+                              📄 Voir
+                            </a>
+                          ) : (
+                            <span className="px-4 py-2 bg-gray-200 text-gray-500 rounded text-sm">Non fourni</span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between p-3 bg-white rounded border">
+                          <div>
+                            <p className="text-sm font-semibold">Casier judiciaire</p>
+                            <p className="text-xs text-slate-500">Volet 3 vierge</p>
+                          </div>
+                          {user.applicationDocuments.criminalRecord ? (
+                            <a
+                              href={user.applicationDocuments.criminalRecord}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+                            >
+                              📄 Voir
+                            </a>
+                          ) : (
+                            <span className="px-4 py-2 bg-gray-200 text-gray-500 rounded text-sm">Non fourni</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Business data pour artisans/commerçants */}
                   {user.businessData && (
                     <div className="bg-slate-50 p-4 rounded-lg mb-4">
                       <h4 className="font-semibold mb-2">Informations de l'entreprise</h4>

@@ -1,21 +1,29 @@
-// Cdw-Spm: Professional Registration API (Praticiens)
+// Cdw-Spm: Professional Registration API - Phase 2
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { sendEmail, emailTemplates } from '@/lib/email';
-import { generateValidationToken } from '@/lib/jwt';
+
+const documentsSchema = z.object({
+  diploma: z.string().url().optional(),
+  insurance: z.string().url().optional(),
+  kbis: z.string().url().optional(),
+  criminalRecord: z.string().url().optional(),
+});
 
 const registerProSchema = z.object({
   firstName: z.string().min(2, 'Prénom requis'),
   lastName: z.string().min(2, 'Nom requis'),
   email: z.string().email('Email invalide'),
   password: z.string().min(8, 'Mot de passe minimum 8 caractères'),
+  phone: z.string().min(10, 'Téléphone requis'),
   discipline: z.string().min(2, 'Discipline requise'),
   city: z.string().min(2, 'Ville requise'),
   experience: z.number().min(0, 'Expérience invalide'),
-  ethics: z.string().optional().default(''),
-  documents: z.string().optional().default(''),
+  siret: z.string().min(14, 'SIRET invalide'),
+  presentation: z.string().optional().default(''),
+  documents: documentsSchema,
 });
 
 export async function POST(request: NextRequest) {
@@ -45,15 +53,17 @@ export async function POST(request: NextRequest) {
         password: passwordHash,
         firstName: data.firstName,
         lastName: data.lastName,
+        phone: data.phone,
+        city: data.city,
+        siret: data.siret,
         role: 'PRACTITIONER',
         status: 'PENDING_VALIDATION',
         profileData: {
           discipline: data.discipline,
-          city: data.city,
           experience: data.experience,
-          ethics: data.ethics,
-          documents: data.documents,
+          presentation: data.presentation,
         },
+        applicationDocuments: data.documents,
       },
     });
 
@@ -64,14 +74,17 @@ export async function POST(request: NextRequest) {
       await sendEmail({
         to: process.env.ADMIN_EMAIL || 'cindy-dorbane@spymeo.fr',
         subject: `Nouvelle candidature Praticien - ${data.firstName} ${data.lastName}`,
-        html: emailTemplates.adminNotification({
-          role: 'Praticien',
+        html: emailTemplates.adminNotificationPro({
           firstName: data.firstName,
           lastName: data.lastName,
           email: data.email,
+          phone: data.phone,
           city: data.city,
           discipline: data.discipline,
           experience: data.experience,
+          siret: data.siret,
+          presentation: data.presentation,
+          documents: data.documents,
         }),
       });
     } catch (emailError) {
