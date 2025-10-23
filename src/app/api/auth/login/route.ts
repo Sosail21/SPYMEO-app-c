@@ -1,7 +1,7 @@
 // Cdw-Spm: Login route with Prisma
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { COOKIE_NAME, type Session } from "@/lib/auth/session";
 
 export async function POST(req: Request) {
