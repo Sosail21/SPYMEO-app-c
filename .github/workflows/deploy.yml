@@ -85,11 +85,33 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Force ECS deployment
+      - name: Download current task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition spymeo-production-task \
+            --query taskDefinition \
+            --region ${{ env.AWS_REGION }} > task-definition.json
+
+      - name: Update task definition with new image
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ env.GHCR_IMAGE }}:${{ github.sha }}
+
+      - name: Register new task definition
+        run: |
+          aws ecs register-task-definition \
+            --cli-input-json file://${{ steps.task-def.outputs.task-definition }} \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Deploy to ECS
         run: |
           aws ecs update-service \
             --cluster ${{ env.ECS_CLUSTER }} \
             --service ${{ env.ECS_SERVICE }} \
+            --task-definition spymeo-production-task \
             --force-new-deployment \
             --region ${{ env.AWS_REGION }}
 
