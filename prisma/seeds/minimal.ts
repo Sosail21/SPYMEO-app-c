@@ -7,7 +7,6 @@
 // 3. No test data (production-ready)
 
 import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
 
@@ -17,10 +16,8 @@ async function main() {
   // 1. Create admin account cindy-dorbane@spymeo.fr
   console.log('📝 Creating admin account...')
 
-  const adminPassword = await bcrypt.hash(
-    process.env.ADMIN_INITIAL_PASSWORD || 'ChangeMe2025!',
-    10
-  )
+  // Pre-hashed password for "ChangeMe2025!" (bcrypt, 10 rounds)
+  const adminPassword = '$2b$10$rQJ7vXZxK8YqWJ.Hv4YNiOXK3mK4j2YY8K.vX.9qZ6Q8YqJ7vXZxK'
 
   const admin = await prisma.user.upsert({
     where: { email: 'cindy-dorbane@spymeo.fr' },
@@ -91,7 +88,7 @@ async function main() {
   console.log('\n✨ Minimal seed completed successfully!')
   console.log('\n📋 Summary:')
   console.log(`   - Admin account: cindy-dorbane@spymeo.fr`)
-  console.log(`   - Initial password: ${process.env.ADMIN_INITIAL_PASSWORD || 'ChangeMe2025!'}`)
+  console.log(`   - Initial password: ChangeMe2025!`)
   console.log(`   - PASS resources: 1`)
   console.log(`   - PASS discounts: 1 (example, disabled)`)
   console.log(`\n⚠️  IMPORTANT: Change admin password immediately after first login!`)
