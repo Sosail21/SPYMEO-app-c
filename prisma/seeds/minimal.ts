@@ -16,8 +16,8 @@ async function main() {
   // 1. Create admin account cindy-dorbane@spymeo.fr
   console.log('📝 Creating admin account...')
 
-  // Pre-hashed password for "ChangeMe2025!" (bcrypt, 10 rounds)
-  const adminPassword = '$2b$10$rQJ7vXZxK8YqWJ.Hv4YNiOXK3mK4j2YY8K.vX.9qZ6Q8YqJ7vXZxK'
+  // Pre-hashed password for "ChangeMe2025!" (bcryptjs, 10 rounds)
+  const adminPassword = '$2b$10$x8Az4M1s2fTb84JZzgvnCOZnBjf/dsmNdKMkCMFNBdD6jGLc41ukm'
 
   const admin = await prisma.user.upsert({
     where: { email: 'cindy-dorbane@spymeo.fr' },
