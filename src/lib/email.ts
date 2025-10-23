@@ -99,17 +99,17 @@ export const emailTemplates = {
       <h2>🎉 Candidature approuvée !</h2>
       <p>Bonjour ${data.firstName},</p>
       <p>Excellente nouvelle ! Votre candidature a été <strong>approuvée</strong> par notre équipe.</p>
-      <p>Pour finaliser votre inscription et activer votre compte professionnel, veuillez procéder au paiement de votre abonnement :</p>
+      <p>Vous pouvez dès maintenant vous connecter à votre espace professionnel pour commencer l'aventure avec SPYMEO :</p>
 
       <div style="margin: 30px 0;">
-        <a href="${process.env.NEXT_PUBLIC_URL}/payment/pro?token=${data.paymentToken}"
-           style="display: inline-block; padding: 15px 30px; background: #0066cc; color: white; text-decoration: none; border-radius: 4px; font-size: 16px;">
-          💳 Procéder au paiement
+        <a href="${process.env.NEXT_PUBLIC_URL || 'https://spymeo.fr'}/auth/login"
+           style="display: inline-block; padding: 15px 30px; background: #17a2b8; color: white; text-decoration: none; border-radius: 4px; font-size: 16px;">
+          🚀 Accéder à mon espace
         </a>
       </div>
 
-      <p>Ce lien est valide pendant 7 jours.</p>
-      <p>À très bientôt sur SPYMEO !</p>
+      <p>Bienvenue dans la communauté SPYMEO !</p>
+      <p>À très bientôt,<br>L'équipe SPYMEO</p>
     </body>
     </html>
   `,
