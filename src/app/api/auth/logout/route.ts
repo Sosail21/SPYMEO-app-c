@@ -29,7 +29,11 @@ function clearSessionCookie() {
 function redirectTo(request: Request) {
   const url = new URL(request.url);
   const to = url.searchParams.get("to") || "/";
-  const dest = new URL(to, url.origin);
+
+  // Utilise NEXTAUTH_URL ou NEXT_PUBLIC_URL pour éviter l'IP interne AWS
+  const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_URL || url.origin;
+  const dest = new URL(to, baseUrl);
+
   const res = NextResponse.redirect(dest, { status: 303 });
   res.headers.set("Cache-Control", "no-store");
   return res;
