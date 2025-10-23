@@ -60,7 +60,9 @@ export default function AdminTopbar() {
             🔎 Rechercher <kbd className="ml-2 text-[11px] text-slate-500">⌘K</kbd>
           </button>
 
-          <Link href="/auth/logout" className="pill pill-muted">Se déconnecter</Link>
+          <form action="/api/auth/logout" method="POST" className="inline">
+            <button type="submit" className="pill pill-muted">Se déconnecter</button>
+          </form>
         </div>
       </header>
 
