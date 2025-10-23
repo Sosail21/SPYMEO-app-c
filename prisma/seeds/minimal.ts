@@ -23,6 +23,7 @@ async function main() {
     where: { email: 'cindy-dorbane@spymeo.fr' },
     update: {
       // Update existing admin if already exists
+      password: adminPassword,
       role: 'ADMIN',
       status: 'ACTIVE',
       emailVerified: true,
