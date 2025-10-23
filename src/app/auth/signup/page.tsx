@@ -378,10 +378,68 @@ export default function Signup() {
             )}
 
             {proStep === 3 && (
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <p className="text-gray-700">
-                  Vérifiez vos informations puis envoyez votre candidature. Réponse sous <strong>48h</strong> par email.
-                </p>
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <h3 className="font-semibold text-lg mb-2">📋 Récapitulatif de votre candidature</h3>
+                  <p className="text-gray-700 text-sm mb-4">
+                    Vérifiez vos informations puis envoyez votre candidature. Réponse sous <strong>48h</strong> par email.
+                  </p>
+                </div>
+
+                <div className="space-y-3 p-4 border rounded-lg">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Prénom</p>
+                      <p className="font-semibold">{proFormData.firstName || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Nom</p>
+                      <p className="font-semibold">{proFormData.lastName || '-'}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Email</p>
+                      <p className="font-semibold">{proFormData.email || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Ville d'exercice</p>
+                      <p className="font-semibold">{proFormData.city || '-'}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Discipline principale</p>
+                      <p className="font-semibold">{proFormData.discipline || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Années d'expérience</p>
+                      <p className="font-semibold">{proFormData.experience || '0'} ans</p>
+                    </div>
+                  </div>
+
+                  {proFormData.ethics && (
+                    <div>
+                      <p className="text-sm text-gray-600">Charte éthique</p>
+                      <p className="text-sm">{proFormData.ethics}</p>
+                    </div>
+                  )}
+
+                  {proFormData.documents && (
+                    <div>
+                      <p className="text-sm text-gray-600">Documents</p>
+                      <p className="text-sm">{proFormData.documents}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    ⚠️ Assurez-vous que toutes les informations sont correctes. Vous pouvez revenir en arrière pour modifier.
+                  </p>
+                </div>
               </div>
             )}
 

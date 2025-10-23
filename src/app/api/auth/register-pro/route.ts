@@ -14,8 +14,8 @@ const registerProSchema = z.object({
   discipline: z.string().min(2, 'Discipline requise'),
   city: z.string().min(2, 'Ville requise'),
   experience: z.number().min(0, 'Expérience invalide'),
-  ethics: z.string().min(10, 'Charte éthique requise'),
-  documents: z.string().optional(),
+  ethics: z.string().optional().default(''),
+  documents: z.string().optional().default(''),
 });
 
 export async function POST(request: NextRequest) {
