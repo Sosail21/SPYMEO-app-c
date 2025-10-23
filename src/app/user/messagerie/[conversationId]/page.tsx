@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { getConversationById, getMessagesForConversation, Message } from "@/lib/mockdb/messages";
+import type { Message } from "@/types/messages";
 import { useParams } from "next/navigation";
 
 export default function ConversationPage(){
@@ -22,7 +22,7 @@ export default function ConversationPage(){
         const j = await r.json();
         if(!cancel) setMessages(j?.messages ?? []);
       }catch{
-        if(!cancel) setMessages(getMessagesForConversation(conversationId));
+        if(!cancel) setMessages([]);
       }finally{
         if(!cancel) setLoading(false);
       }
@@ -31,8 +31,6 @@ export default function ConversationPage(){
   },[conversationId]);
 
   useEffect(()=>{ bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
-
-  const conv = getConversationById(conversationId);
 
   function send(){
     if(!text.trim()) return;
@@ -46,14 +44,14 @@ export default function ConversationPage(){
         <nav className="text-sm text-muted">
           <Link href="/user/messagerie" className="hover:underline">Messagerie</Link>
           <span> / </span>
-          <span>{conv?.practitionerName ?? conversationId}</span>
+          <span>{conversationId}</span>
         </nav>
       </section>
 
       <section className="section">
         <div className="soft-card p-0 overflow-hidden">
           <header className="p-3 border-b">
-            <div className="font-semibold">{conv?.practitionerName ?? "Conversation"}</div>
+            <div className="font-semibold">Conversation</div>
             <div className="text-xs text-muted">Réponse sous 24h en moyenne</div>
           </header>
 

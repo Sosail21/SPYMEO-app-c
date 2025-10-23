@@ -2,10 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  MOCK_CLIENTS_COMMERCANT,
-  type Client,
-} from "@/lib/mockdb/clients-commercant";
+import type { Client } from "@/types/clients-commercant";
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -21,7 +18,7 @@ export default function ClientsPage() {
         const json = await r.json();
         if (!cancel) setClients(json?.clients ?? []);
       } catch {
-        if (!cancel) setClients(MOCK_CLIENTS_COMMERCANT);
+        if (!cancel) setClients([]);
       } finally {
         if (!cancel) setLoading(false);
       }

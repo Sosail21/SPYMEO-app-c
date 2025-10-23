@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MOCK_STATS_ARTISAN, type ArtisanStats } from "@/lib/mockdb/stats-artisan";
+import type { ArtisanStats } from "@/types/stats-artisan";
 
 export default function ArtisanStatsPage(){
   const [stats,setStats] = useState<ArtisanStats|null>(null);
@@ -17,7 +17,7 @@ export default function ArtisanStatsPage(){
         const json = await r.json();
         if(!cancel) setStats(json?.stats ?? null);
       }catch{
-        if(!cancel) setStats(MOCK_STATS_ARTISAN);
+        if(!cancel) setStats(null);
       }finally{
         if(!cancel) setLoading(false);
       }

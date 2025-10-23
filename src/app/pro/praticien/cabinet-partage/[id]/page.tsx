@@ -2,12 +2,12 @@
 
 // src/app/pro/cabinet-partage/[id]/page.tsx
 import Link from "next/link";
-import { getCabinet } from "@/components/cabinet/mock";
 
 export const metadata = { title: "Annonce — SPYMEO" };
 
 export default async function CabinetDetailPage({ params }: { params: { id: string } }) {
-  const ann = getCabinet(params.id);
+  // TODO: Implement with Prisma
+  const ann = null;
   if (!ann) return <main className="section"><div className="container-spy">Annonce introuvable.</div></main>;
 
   return (

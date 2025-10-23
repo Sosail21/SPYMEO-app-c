@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { MOCK_USER_DOCUMENTS, type UserDocument } from "@/lib/mockdb/documents";
+import type { UserDocument } from "@/types/documents";
 
 export default function UserDocumentsPage(){
   const [data, setData] = useState<UserDocument[] | null>(null);
@@ -20,7 +20,7 @@ export default function UserDocumentsPage(){
         const j = await r.json();
         if(!cancel) setData(j?.documents ?? []);
       }catch{
-        if(!cancel) setData(MOCK_USER_DOCUMENTS);
+        if(!cancel) setData([]);
       }finally{
         if(!cancel) setLoading(false);
       }

@@ -3,11 +3,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  MOCK_SERVICES_ARTISAN,
-  type ServiceItem,
-  type ServiceStatus,
-} from "@/lib/mockdb/services-artisan";
+import type {
+  ServiceItem,
+  ServiceStatus,
+} from "@/types/services-artisan";
 
 const TABS: { key: "ALL" | ServiceStatus; label: string }[] = [
   { key: "ALL", label: "Tous" },
@@ -36,7 +35,7 @@ export default function ArtisanServicesPage() {
         const json = await r.json();
         if (!cancel) setData(json?.services ?? []);
       } catch {
-        if (!cancel) setData(MOCK_SERVICES_ARTISAN);
+        if (!cancel) setData([]);
       } finally {
         if (!cancel) setLoading(false);
       }

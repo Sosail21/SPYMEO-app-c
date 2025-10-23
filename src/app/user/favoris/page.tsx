@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { MOCK_USER_FAVORITES, type UserFavorite } from "@/lib/mockdb/user-favorites";
+import type { UserFavorite } from "@/types/user-favorites";
 
 export default function UserFavoritesPage() {
   const [data, setData] = useState<UserFavorite[] | null>(null);
@@ -21,7 +21,7 @@ export default function UserFavoritesPage() {
         const json = await r.json();
         if (!cancel) setData(json?.favorites ?? []);
       } catch {
-        if (!cancel) setData(MOCK_USER_FAVORITES);
+        if (!cancel) setData([]);
       } finally {
         if (!cancel) setLoading(false);
       }

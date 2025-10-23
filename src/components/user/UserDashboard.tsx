@@ -3,8 +3,8 @@
 "use client";
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
-import { MOCK_USER_FAVORITES, type UserFavorite } from "@/lib/mockdb/user-favorites";
-import { MOCK_USER_PRACTITIONERS, type UserPractitioner } from "@/lib/mockdb/user-practitioners";
+import type { UserFavorite } from "@/types/user-favorites";
+import type { UserPractitioner } from "@/types/user-practitioners";
 
 type Plan = "free" | "pass";
 type Rdv = { id: string; with: string; title: string; date: string; place: "Cabinet"|"Visio"|"Domicile"; status: "À venir"|"Passé" };
@@ -37,14 +37,14 @@ export default function UserDashboard({ plan = "free", userName = "Vous" }: { pl
         if (!r.ok) throw new Error("fallback");
         const j = await r.json();
         if (!cancel) setFav(j?.favorites ?? []);
-      } catch { if (!cancel) setFav(MOCK_USER_FAVORITES.slice(0, 3)); }
+      } catch { if (!cancel) setFav([]); }
 
       try {
         const r = await fetch("/api/user/practitioners", { cache: "no-store" });
         if (!r.ok) throw new Error("fallback");
         const j = await r.json();
         if (!cancel) setPract(j?.practitioners ?? []);
-      } catch { if (!cancel) setPract(MOCK_USER_PRACTITIONERS.slice(0, 3)); }
+      } catch { if (!cancel) setPract([]); }
     })();
     return () => { cancel = true; };
   }, []);

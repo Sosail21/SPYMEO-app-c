@@ -2,7 +2,7 @@
 'use client';
 
 import React, {useState} from "react";
-import type { Client } from "@/lib/db/mockClients";
+import type { Client } from "@/types/clients";
 
 type Props = { client: Client };
 

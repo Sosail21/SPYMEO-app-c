@@ -4,11 +4,10 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter, notFound } from "next/navigation";
-import {
-  MOCK_PRODUCTS_COMMERCANT,
-  type Product,
-  type ProductStatus,
-} from "@/lib/mockdb/products-commercant";
+import type {
+  Product,
+  ProductStatus,
+} from "@/types/products-commercant";
 
 type Form = {
   title: string;
@@ -47,9 +46,8 @@ export default function EditProductPage() {
         }
       } catch {
         if (!cancel) {
-          const mock = MOCK_PRODUCTS_COMMERCANT.find(p => p.slug === slug) ?? null;
-          setOriginal(mock);
-          setForm(mock ? toForm(mock) : null);
+          setOriginal(null);
+          setForm(null);
         }
       } finally {
         if (!cancel) setLoading(false);

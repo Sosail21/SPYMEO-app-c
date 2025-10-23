@@ -4,7 +4,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { ServiceStatus } from "@/lib/mockdb/services-artisan";
+import type { ServiceStatus } from "@/types/services-artisan";
 
 type Form = {
   title: string;

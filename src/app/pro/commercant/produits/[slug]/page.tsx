@@ -4,10 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, notFound } from "next/navigation";
-import {
-  MOCK_PRODUCTS_COMMERCANT,
-  type Product,
-} from "@/lib/mockdb/products-commercant";
+import type { Product } from "@/types/products-commercant";
 
 type TabKey = "INFOS" | "STOCK" | "VARIANTS";
 
@@ -28,8 +25,7 @@ export default function ProductDetailPage() {
         if (!cancel) setProduct(json?.product ?? null);
       } catch {
         if (!cancel) {
-          const mock = MOCK_PRODUCTS_COMMERCANT.find(p => p.slug === slug) ?? null;
-          setProduct(mock);
+          setProduct(null);
         }
       } finally {
         if (!cancel) setLoading(false);

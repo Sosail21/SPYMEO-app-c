@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MOCK_STATS_COMMERCANT, ShopStats } from "@/lib/mockdb/stats-commercant";
+import type { ShopStats } from "@/types/stats-commercant";
 
 export default function StatsShopPage() {
   const [stats, setStats] = useState<ShopStats | null>(null);
@@ -17,7 +17,7 @@ export default function StatsShopPage() {
         const json = await r.json();
         if (!cancel) setStats(json?.stats ?? null);
       } catch {
-        if (!cancel) setStats(MOCK_STATS_COMMERCANT);
+        if (!cancel) setStats(null);
       } finally {
         if (!cancel) setLoading(false);
       }

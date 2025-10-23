@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { MOCK_PRECOMPTA_ARTISAN, type ArtisanLedgerItem } from "@/lib/mockdb/precompta-artisan";
+import type { ArtisanLedgerItem } from "@/types/precompta-artisan";
 
 export default function ArtisanPrecomptaPage(){
   const [rows,setRows] = useState<ArtisanLedgerItem[]>([]);
@@ -18,7 +18,7 @@ export default function ArtisanPrecomptaPage(){
         const json = await r.json();
         if(!cancel) setRows(json?.ledger ?? []);
       }catch{
-        if(!cancel) setRows(MOCK_PRECOMPTA_ARTISAN);
+        if(!cancel) setRows([]);
       }finally{
         if(!cancel) setLoading(false);
       }

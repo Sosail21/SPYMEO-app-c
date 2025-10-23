@@ -3,11 +3,10 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import {
-  MOCK_ORDERS_COMMERCANT,
-  type OrderDetail,
-  type OrderStatus,
-} from "@/lib/mockdb/orders-commercant";
+import type {
+  OrderDetail,
+  OrderStatus,
+} from "@/types/orders-commercant";
 
 const TABS: { key: "ALL" | OrderStatus; label: string }[] = [
   { key: "ALL", label: "Toutes" },
@@ -32,7 +31,7 @@ export default function OrdersPage() {
         const json = await r.json();
         if (!cancel) setOrders(json?.orders ?? []);
       } catch {
-        if (!cancel) setOrders(MOCK_ORDERS_COMMERCANT);
+        if (!cancel) setOrders([]);
       } finally {
         if (!cancel) setLoading(false);
       }

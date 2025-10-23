@@ -3,10 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  MOCK_CLIENTS_ARTISAN,
-  type ArtisanClient,
-} from "@/lib/mockdb/clients-artisan";
+import type { ArtisanClient } from "@/types/clients-artisan";
 
 export default function ArtisanClientsPage(){
   const [data,setData] = useState<ArtisanClient[]>([]);
@@ -22,7 +19,7 @@ export default function ArtisanClientsPage(){
         const json = await r.json();
         if(!cancel) setData(json?.clients ?? []);
       }catch{
-        if(!cancel) setData(MOCK_CLIENTS_ARTISAN);
+        if(!cancel) setData([]);
       }finally{
         if(!cancel) setLoading(false);
       }

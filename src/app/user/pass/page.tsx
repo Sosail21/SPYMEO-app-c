@@ -4,14 +4,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  type PassSnapshot,
-  type PassResource,
-  type PassDiscount,
-  type CarnetShipmentStatus,
-  withComputedCarnet,
-  MOCK_PASS_SNAPSHOT,
-} from "@/lib/mockdb/pass";
+import type {
+  PassSnapshot,
+  PassResource,
+  PassDiscount,
+  CarnetShipmentStatus,
+} from "@/types/pass";
 
 type Tab = "RESSOURCES" | "REDUCTIONS" | "CARNET" | "OFFRE";
 
@@ -29,7 +27,7 @@ export default function ManagePassPage() {
         const j = await r.json();
         if (!cancel) setSnap(j?.pass ?? null);
       } catch {
-        if (!cancel) setSnap(withComputedCarnet(MOCK_PASS_SNAPSHOT));
+        if (!cancel) setSnap(null);
       } finally {
         if (!cancel) setLoading(false);
       }

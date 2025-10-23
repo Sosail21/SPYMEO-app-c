@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getUserDocumentById, type UserDocument } from "@/lib/mockdb/documents";
+import type { UserDocument } from "@/types/documents";
 import { useParams } from "next/navigation";
 
 export default function DocumentDetailPage(){
@@ -20,7 +20,7 @@ export default function DocumentDetailPage(){
         const j = await r.json();
         if(!cancel) setData(j?.document ?? null);
       }catch{
-        if(!cancel) setData(getUserDocumentById(id));
+        if(!cancel) setData(null);
       }finally{
         if(!cancel) setLoading(false);
       }

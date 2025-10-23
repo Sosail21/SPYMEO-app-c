@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Conversation, MOCK_CONVERSATIONS } from "@/lib/mockdb/messages";
+import type { Conversation } from "@/types/messages";
 
 export default function MessagingListPage() {
   const [data, setData] = useState<Conversation[] | null>(null);
@@ -19,7 +19,7 @@ export default function MessagingListPage() {
         const j = await r.json();
         if(!cancel) setData(j?.conversations ?? []);
       }catch{
-        if(!cancel) setData(MOCK_CONVERSATIONS);
+        if(!cancel) setData([]);
       }finally{
         if(!cancel) setLoading(false);
       }

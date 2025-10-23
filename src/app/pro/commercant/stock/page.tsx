@@ -3,11 +3,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  MOCK_STOCK_COMMERCANT,
-  type StockMovement,
-  type StockMovementType,
-} from "@/lib/mockdb/stock-commercant";
+import type {
+  StockMovement,
+  StockMovementType,
+} from "@/types/stock-commercant";
 
 const TABS: { key: "ALL" | StockMovementType; label: string }[] = [
   { key: "ALL", label: "Tous" },
@@ -34,7 +33,7 @@ export default function StockPage() {
         const json = await r.json();
         if (!cancel) setData(json?.movements ?? []);
       } catch {
-        if (!cancel) setData(MOCK_STOCK_COMMERCANT);
+        if (!cancel) setData([]);
       } finally {
         if (!cancel) setLoading(false);
       }

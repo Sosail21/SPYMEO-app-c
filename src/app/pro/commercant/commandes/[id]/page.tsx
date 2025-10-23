@@ -4,11 +4,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, notFound } from "next/navigation";
-import {
-  MOCK_ORDERS_COMMERCANT,
-  type OrderDetail,
-  type OrderStatus,
-} from "@/lib/mockdb/orders-commercant";
+import type {
+  OrderDetail,
+  OrderStatus,
+} from "@/types/orders-commercant";
 
 export default function OrderDetailPage() {
   const { id } = useParams() as { id: string };
@@ -25,7 +24,7 @@ export default function OrderDetailPage() {
         const json = await r.json();
         if (!cancel) setOrder(json?.order ?? null);
       } catch {
-        if (!cancel) setOrder(MOCK_ORDERS_COMMERCANT.find((o) => o.id === id) ?? null);
+        if (!cancel) setOrder(null);
       } finally {
         if (!cancel) setLoading(false);
       }

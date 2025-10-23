@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Appointment, MOCK_APPTS_PAST } from "@/lib/mockdb/appointments";
+import type { Appointment } from "@/types/appointments";
 
 export default function PastAppointmentsPage() {
   const [data, setData] = useState<Appointment[] | null>(null);
@@ -19,7 +19,7 @@ export default function PastAppointmentsPage() {
         const j = await r.json();
         if(!cancel) setData(j?.appointments ?? []);
       }catch{
-        if(!cancel) setData(MOCK_APPTS_PAST);
+        if(!cancel) setData([]);
       }finally{
         if(!cancel) setLoading(false);
       }

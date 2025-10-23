@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { AgendaSettings, AppointmentType, DayKey } from "@/lib/mockdb/agendaSettings";
+import type { AgendaSettings, AppointmentType, DayKey } from "@/types/agenda";
 
 const DAYS: Array<{ key: DayKey; label: string }> = [
   { key: "monday", label: "Lundi" },

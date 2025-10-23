@@ -3,11 +3,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  MOCK_PRODUCTS_COMMERCANT,
-  type Product,
-  type ProductStatus,
-} from "@/lib/mockdb/products-commercant";
+import type {
+  Product,
+  ProductStatus,
+} from "@/types/products-commercant";
 import { downloadCsv, toCsv } from "@/lib/csv";
 
 const TABS: { key: "ALL" | ProductStatus; label: string }[] = [
@@ -55,7 +54,7 @@ export default function MerchantProductsPage() {
         const json = await r.json();
         if (!cancel) setData(json?.products ?? []);
       } catch {
-        if (!cancel) setData(MOCK_PRODUCTS_COMMERCANT);
+        if (!cancel) setData([]);
       } finally {
         if (!cancel) setLoading(false);
       }

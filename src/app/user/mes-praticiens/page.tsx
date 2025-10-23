@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { MOCK_USER_PRACTITIONERS, type UserPractitioner } from "@/lib/mockdb/user-practitioners";
+import type { UserPractitioner } from "@/types/user-practitioners";
 
 export default function MyPractitionersPage() {
   const [data, setData] = useState<UserPractitioner[] | null>(null);
@@ -20,7 +20,7 @@ export default function MyPractitionersPage() {
         const json = await r.json();
         if (!cancel) setData(json?.practitioners ?? []);
       } catch {
-        if (!cancel) setData(MOCK_USER_PRACTITIONERS);
+        if (!cancel) setData([]);
       } finally {
         if (!cancel) setLoading(false);
       }

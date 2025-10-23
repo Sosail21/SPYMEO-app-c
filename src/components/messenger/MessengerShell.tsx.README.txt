@@ -1,6 +1,0 @@
-Vérifie que `src/components/messenger/MessengerShell.tsx` commence bien par:
-
-"use client";
-export default function MessengerShell() { ... }
-
-Sinon, ajoute "use client" en tête et export default à la fin du fichier.

@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Appointment, getAppointmentById } from "@/lib/mockdb/appointments";
+import type { Appointment } from "@/types/appointments";
 import { useParams } from "next/navigation";
 
 export default function AppointmentDetailPage() {
@@ -20,7 +20,7 @@ export default function AppointmentDetailPage() {
         const j = await r.json();
         if(!cancel) setData(j?.appointment ?? null);
       }catch{
-        if(!cancel) setData(getAppointmentById(id));
+        if(!cancel) setData(null);
       }finally{
         if(!cancel) setLoading(false);
       }

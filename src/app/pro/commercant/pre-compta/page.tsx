@@ -2,11 +2,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  MOCK_PRECOMPTA_COMMERCANT,
+import type {
   PreComptaEntry,
   EntryType,
-} from "@/lib/mockdb/precompta-commercant";
+} from "@/types/precompta-commercant";
 
 const TABS: { key: "ALL" | EntryType; label: string }[] = [
   { key: "ALL", label: "Tous" },
@@ -29,7 +28,7 @@ export default function PreComptaShopPage() {
         const json = await r.json();
         if (!cancel) setRows(json?.entries ?? []);
       } catch {
-        if (!cancel) setRows(MOCK_PRECOMPTA_COMMERCANT);
+        if (!cancel) setRows([]);
       } finally {
         if (!cancel) setLoading(false);
       }
