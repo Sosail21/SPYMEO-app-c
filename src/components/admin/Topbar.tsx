@@ -28,6 +28,7 @@ export default function AdminTopbar() {
       { id: "go-pros",      title: "Aller • Pros",             section: "Navigation", href: "/admin/pros", icon: "🧩" },
       { id: "go-pass",      title: "Aller • PASS",             section: "Navigation", href: "/admin/pass", icon: "🔖" },
       { id: "go-blog",      title: "Aller • Blog",             section: "Navigation", href: "/admin/blog", icon: "✍️" },
+      { id: "go-database",  title: "Aller • Base de données",  section: "Navigation", href: "/admin/database", icon: "📊" },
 
       { id: "new-user", title: "Créer un nouvel utilisateur", section: "Actions", href: "/auth/signup", icon: "➕", subtitle: "Redirige vers l’inscription" },
       { id: "new-article", title: "Créer un article", section: "Actions", href: "/admin/blog/nouvel-article", icon: "📝" },
@@ -72,6 +73,7 @@ export default function AdminTopbar() {
         <Link href="/admin/pros" className="pill pill-muted">Pros</Link>
         <Link href="/admin/pass" className="pill pill-muted">PASS</Link>
         <Link href="/admin/blog" className="pill pill-muted">Blog</Link>
+        <Link href="/admin/database" className="pill pill-muted">Base de données</Link>
       </div>
 
       <CommandPalette open={open} onClose={() => setOpen(false)} commands={commands} />
