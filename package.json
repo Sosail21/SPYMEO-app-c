@@ -13,7 +13,7 @@
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:migrate:status": "prisma migrate status",
-    "db:seed:min": "tsx prisma/seeds/minimal.ts",
+    "db:seed:min": "npx tsx prisma/seeds/minimal.ts",
     "db:reset:local": "prisma migrate reset --force && npm run db:seed:min",
     "db:studio": "prisma studio"
   },
