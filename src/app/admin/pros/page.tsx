@@ -1,4 +1,4 @@
-// Cdw-Spm: Admin Pro Validation Page - Phase 2
+// Cdw-Spm: Admin Pro Validation Page - With Status Tabs
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -23,26 +23,32 @@ interface PendingUser {
   profileData?: any;
   businessData?: any;
   applicationDocuments?: Documents;
+  adminNotes?: string;
   createdAt: string;
+  updatedAt: string;
 }
 
+type TabStatus = 'PENDING_VALIDATION' | 'ACTIVE' | 'REJECTED';
+
 export default function AdminProPage() {
-  const [pending, setPending] = useState<PendingUser[]>([]);
+  const [users, setUsers] = useState<PendingUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState<TabStatus>('PENDING_VALIDATION');
 
   useEffect(() => {
-    fetchPending();
+    fetchUsers();
   }, []);
 
-  const fetchPending = async () => {
+  const fetchUsers = async () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/admin/pending-pros');
+      // Récupérer tous les utilisateurs professionnels
+      const res = await fetch('/api/admin/all-pros');
       if (!res.ok) throw new Error('Erreur réseau');
       const data = await res.json();
-      setPending(data.users || []);
+      setUsers(data.users || []);
     } catch (err) {
       setError('Erreur lors du chargement des candidatures');
       console.error(err);
@@ -69,7 +75,7 @@ export default function AdminProPage() {
 
       if (result.success) {
         alert(result.message);
-        fetchPending(); // Refresh list
+        fetchUsers(); // Refresh list
       } else {
         alert('Erreur: ' + result.error);
       }
@@ -95,11 +101,26 @@ export default function AdminProPage() {
     return user.name || user.email;
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'PENDING_VALIDATION': return { text: 'En attente', color: 'bg-amber-100 text-amber-700' };
+      case 'ACTIVE': return { text: 'Approuvé', color: 'bg-green-100 text-green-700' };
+      case 'REJECTED': return { text: 'Refusé', color: 'bg-red-100 text-red-700' };
+      default: return { text: status, color: 'bg-gray-100 text-gray-700' };
+    }
+  };
+
+  const filteredUsers = users.filter(user => user.status === activeTab);
+
+  const pendingCount = users.filter(u => u.status === 'PENDING_VALIDATION').length;
+  const activeCount = users.filter(u => u.status === 'ACTIVE').length;
+  const rejectedCount = users.filter(u => u.status === 'REJECTED').length;
+
   if (loading) {
     return (
       <section className="section">
         <div className="container-spy">
-          <h1 className="text-2xl md:text-3xl font-semibold text-[#0b1239]">Candidatures en attente</h1>
+          <h1 className="text-2xl md:text-3xl font-semibold text-[#0b1239]">Gestion des candidatures</h1>
           <div className="mt-4">
             <div className="soft-card p-8 text-center">
               <p>Chargement...</p>
@@ -114,11 +135,11 @@ export default function AdminProPage() {
     return (
       <section className="section">
         <div className="container-spy">
-          <h1 className="text-2xl md:text-3xl font-semibold text-[#0b1239]">Candidatures en attente</h1>
+          <h1 className="text-2xl md:text-3xl font-semibold text-[#0b1239]">Gestion des candidatures</h1>
           <div className="mt-4">
             <div className="soft-card p-8 text-center">
               <p className="text-red-600">{error}</p>
-              <button className="btn mt-4" onClick={fetchPending}>Réessayer</button>
+              <button className="btn mt-4" onClick={fetchUsers}>Réessayer</button>
             </div>
           </div>
         </div>
@@ -132,246 +153,317 @@ export default function AdminProPage() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
             <h1 className="text-2xl md:text-3xl font-semibold text-[#0b1239]">
-              Candidatures en attente
+              Gestion des candidatures
             </h1>
             <p className="text-slate-600">
-              Validation des candidatures professionnelles ({pending.length} en attente)
+              Validation et suivi des candidatures professionnelles
             </p>
           </div>
-          <button className="btn btn-outline" onClick={fetchPending}>
+          <button className="btn btn-outline" onClick={fetchUsers}>
             🔄 Actualiser
           </button>
         </div>
 
+        {/* Onglets */}
+        <div className="mt-6 border-b border-gray-200">
+          <nav className="flex gap-4">
+            <button
+              onClick={() => setActiveTab('PENDING_VALIDATION')}
+              className={`px-4 py-3 font-semibold border-b-2 transition-colors ${
+                activeTab === 'PENDING_VALIDATION'
+                  ? 'border-amber-500 text-amber-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              ⏳ En attente ({pendingCount})
+            </button>
+            <button
+              onClick={() => setActiveTab('ACTIVE')}
+              className={`px-4 py-3 font-semibold border-b-2 transition-colors ${
+                activeTab === 'ACTIVE'
+                  ? 'border-green-500 text-green-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              ✅ Approuvés ({activeCount})
+            </button>
+            <button
+              onClick={() => setActiveTab('REJECTED')}
+              className={`px-4 py-3 font-semibold border-b-2 transition-colors ${
+                activeTab === 'REJECTED'
+                  ? 'border-red-500 text-red-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              ❌ Refusés ({rejectedCount})
+            </button>
+          </nav>
+        </div>
+
         <div className="mt-6">
-          {pending.length === 0 ? (
+          {filteredUsers.length === 0 ? (
             <div className="soft-card p-8 text-center">
-              <h3 className="text-lg font-semibold">Aucune candidature en attente</h3>
-              <p className="text-slate-600 mt-1">Toutes les candidatures ont été traitées.</p>
+              <h3 className="text-lg font-semibold">Aucune candidature</h3>
+              <p className="text-slate-600 mt-1">
+                {activeTab === 'PENDING_VALIDATION' && 'Aucune candidature en attente de validation.'}
+                {activeTab === 'ACTIVE' && 'Aucune candidature approuvée.'}
+                {activeTab === 'REJECTED' && 'Aucune candidature refusée.'}
+              </p>
             </div>
           ) : (
             <div className="grid gap-4">
-              {pending.map((user) => (
-                <div key={user.id} className="soft-card p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-xl font-semibold">{getDisplayName(user)}</h3>
-                      <p className="text-slate-600">
-                        {getRoleName(user.role)} · {user.email}
-                      </p>
-                    </div>
-                    <span className="pill bg-amber-100 text-amber-700">
-                      En attente de validation
-                    </span>
-                  </div>
+              {filteredUsers.map((user) => {
+                const statusInfo = getStatusLabel(user.status);
 
-                  {/* Contact et infos générales */}
-                  <div className="bg-blue-50 p-4 rounded-lg mb-4">
-                    <h4 className="font-semibold mb-3 text-blue-900">📞 Contact</h4>
-                    <div className="grid md:grid-cols-3 gap-3">
+                return (
+                  <div key={user.id} className="soft-card p-6">
+                    <div className="flex justify-between items-start mb-4">
                       <div>
-                        <p className="text-sm text-slate-500">Email</p>
-                        <a href={`mailto:${user.email}`} className="font-medium text-blue-600 hover:underline">
-                          {user.email}
-                        </a>
+                        <h3 className="text-xl font-semibold">{getDisplayName(user)}</h3>
+                        <p className="text-slate-600">
+                          {getRoleName(user.role)} · {user.email}
+                        </p>
                       </div>
-                      {user.phone && (
+                      <span className={`pill ${statusInfo.color}`}>
+                        {statusInfo.text}
+                      </span>
+                    </div>
+
+                    {/* Contact et infos générales */}
+                    <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                      <h4 className="font-semibold mb-3 text-blue-900">📞 Contact</h4>
+                      <div className="grid md:grid-cols-3 gap-3">
                         <div>
-                          <p className="text-sm text-slate-500">Téléphone</p>
-                          <a href={`tel:${user.phone}`} className="font-medium text-blue-600 hover:underline">
-                            {user.phone}
+                          <p className="text-sm text-slate-500">Email</p>
+                          <a href={`mailto:${user.email}`} className="font-medium text-blue-600 hover:underline">
+                            {user.email}
                           </a>
                         </div>
-                      )}
-                      {user.siret && (
+                        {user.phone && (
+                          <div>
+                            <p className="text-sm text-slate-500">Téléphone</p>
+                            <a href={`tel:${user.phone}`} className="font-medium text-blue-600 hover:underline">
+                              {user.phone}
+                            </a>
+                          </div>
+                        )}
+                        {user.siret && (
+                          <div>
+                            <p className="text-sm text-slate-500">SIRET</p>
+                            <p className="font-medium font-mono">{user.siret}</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-3 mt-3">
                         <div>
-                          <p className="text-sm text-slate-500">SIRET</p>
-                          <p className="font-medium font-mono">{user.siret}</p>
+                          <p className="text-sm text-slate-500">Date de candidature</p>
+                          <p className="text-slate-700">
+                            {new Date(user.createdAt).toLocaleDateString('fr-FR', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </p>
                         </div>
-                      )}
-                    </div>
-                    <div className="mt-3">
-                      <p className="text-sm text-slate-500">Date de candidature</p>
-                      <p className="text-slate-700">
-                        {new Date(user.createdAt).toLocaleDateString('fr-FR', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Informations professionnelles */}
-                  {user.profileData && (
-                    <div className="bg-slate-50 p-4 rounded-lg mb-4">
-                      <h4 className="font-semibold mb-3">💼 Informations professionnelles</h4>
-                      <div className="grid md:grid-cols-2 gap-3">
-                        {user.profileData.discipline && (
+                        {user.status !== 'PENDING_VALIDATION' && (
                           <div>
-                            <p className="text-sm text-slate-500">Discipline</p>
-                            <p className="font-medium">{user.profileData.discipline}</p>
-                          </div>
-                        )}
-                        {user.profileData.city && (
-                          <div>
-                            <p className="text-sm text-slate-500">Ville</p>
-                            <p className="font-medium">{user.profileData.city}</p>
-                          </div>
-                        )}
-                        {user.profileData.experience !== undefined && (
-                          <div>
-                            <p className="text-sm text-slate-500">Expérience</p>
-                            <p className="font-medium">{user.profileData.experience} ans</p>
-                          </div>
-                        )}
-                        {user.profileData.presentation && (
-                          <div className="md:col-span-2">
-                            <p className="text-sm text-slate-500 mb-1">Présentation</p>
-                            <p className="text-sm bg-white p-3 rounded border whitespace-pre-wrap">
-                              {user.profileData.presentation}
+                            <p className="text-sm text-slate-500">Dernière mise à jour</p>
+                            <p className="text-slate-700">
+                              {new Date(user.updatedAt).toLocaleDateString('fr-FR', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
                             </p>
                           </div>
                         )}
                       </div>
                     </div>
-                  )}
 
-                  {/* Documents justificatifs */}
-                  {user.applicationDocuments && (
-                    <div className="bg-yellow-50 border-2 border-yellow-200 p-4 rounded-lg mb-4">
-                      <h4 className="font-semibold mb-3 text-yellow-900">📎 Documents justificatifs</h4>
-                      <div className="grid md:grid-cols-2 gap-3">
-                        <div className="flex items-center justify-between p-3 bg-white rounded border">
-                          <div>
-                            <p className="text-sm font-semibold">Diplôme / Certificat</p>
-                            <p className="text-xs text-slate-500">Formation et qualification</p>
-                          </div>
-                          {user.applicationDocuments.diploma ? (
-                            <a
-                              href={user.applicationDocuments.diploma}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
-                            >
-                              📄 Voir
-                            </a>
-                          ) : (
-                            <span className="px-4 py-2 bg-gray-200 text-gray-500 rounded text-sm">Non fourni</span>
+                    {/* Informations professionnelles */}
+                    {user.profileData && (
+                      <div className="bg-slate-50 p-4 rounded-lg mb-4">
+                        <h4 className="font-semibold mb-3">💼 Informations professionnelles</h4>
+                        <div className="grid md:grid-cols-2 gap-3">
+                          {user.profileData.discipline && (
+                            <div>
+                              <p className="text-sm text-slate-500">Discipline</p>
+                              <p className="font-medium">{user.profileData.discipline}</p>
+                            </div>
                           )}
-                        </div>
-
-                        <div className="flex items-center justify-between p-3 bg-white rounded border">
-                          <div>
-                            <p className="text-sm font-semibold">Assurance RC Pro</p>
-                            <p className="text-xs text-slate-500">Responsabilité civile</p>
-                          </div>
-                          {user.applicationDocuments.insurance ? (
-                            <a
-                              href={user.applicationDocuments.insurance}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
-                            >
-                              📄 Voir
-                            </a>
-                          ) : (
-                            <span className="px-4 py-2 bg-gray-200 text-gray-500 rounded text-sm">Non fourni</span>
+                          {user.profileData.city && (
+                            <div>
+                              <p className="text-sm text-slate-500">Ville</p>
+                              <p className="font-medium">{user.profileData.city}</p>
+                            </div>
                           )}
-                        </div>
-
-                        <div className="flex items-center justify-between p-3 bg-white rounded border">
-                          <div>
-                            <p className="text-sm font-semibold">Kbis</p>
-                            <p className="text-xs text-slate-500">Extrait d'immatriculation</p>
-                          </div>
-                          {user.applicationDocuments.kbis ? (
-                            <a
-                              href={user.applicationDocuments.kbis}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
-                            >
-                              📄 Voir
-                            </a>
-                          ) : (
-                            <span className="px-4 py-2 bg-gray-200 text-gray-500 rounded text-sm">Non fourni</span>
+                          {user.profileData.experience !== undefined && (
+                            <div>
+                              <p className="text-sm text-slate-500">Expérience</p>
+                              <p className="font-medium">{user.profileData.experience} ans</p>
+                            </div>
                           )}
-                        </div>
-
-                        <div className="flex items-center justify-between p-3 bg-white rounded border">
-                          <div>
-                            <p className="text-sm font-semibold">Casier judiciaire</p>
-                            <p className="text-xs text-slate-500">Volet 3 vierge</p>
-                          </div>
-                          {user.applicationDocuments.criminalRecord ? (
-                            <a
-                              href={user.applicationDocuments.criminalRecord}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
-                            >
-                              📄 Voir
-                            </a>
-                          ) : (
-                            <span className="px-4 py-2 bg-gray-200 text-gray-500 rounded text-sm">Non fourni</span>
+                          {user.profileData.presentation && (
+                            <div className="md:col-span-2">
+                              <p className="text-sm text-slate-500 mb-1">Présentation</p>
+                              <p className="text-sm bg-white p-3 rounded border whitespace-pre-wrap">
+                                {user.profileData.presentation}
+                              </p>
+                            </div>
                           )}
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Business data pour artisans/commerçants */}
-                  {user.businessData && (
-                    <div className="bg-slate-50 p-4 rounded-lg mb-4">
-                      <h4 className="font-semibold mb-2">Informations de l'entreprise</h4>
-                      <div className="grid md:grid-cols-2 gap-3">
-                        {user.businessData.businessName && (
-                          <div>
-                            <p className="text-sm text-slate-500">Raison sociale</p>
-                            <p className="font-medium">{user.businessData.businessName}</p>
+                    {/* Documents justificatifs */}
+                    {user.applicationDocuments && (
+                      <div className="bg-yellow-50 border-2 border-yellow-200 p-4 rounded-lg mb-4">
+                        <h4 className="font-semibold mb-3 text-yellow-900">📎 Documents justificatifs</h4>
+                        <div className="grid md:grid-cols-2 gap-3">
+                          <div className="flex items-center justify-between p-3 bg-white rounded border">
+                            <div>
+                              <p className="text-sm font-semibold">Diplôme / Certificat</p>
+                              <p className="text-xs text-slate-500">Formation et qualification</p>
+                            </div>
+                            {user.applicationDocuments.diploma ? (
+                              <a
+                                href={user.applicationDocuments.diploma}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+                              >
+                                📄 Voir
+                              </a>
+                            ) : (
+                              <span className="px-4 py-2 bg-gray-200 text-gray-500 rounded text-sm">Non fourni</span>
+                            )}
                           </div>
-                        )}
-                        {user.businessData.city && (
-                          <div>
-                            <p className="text-sm text-slate-500">Ville</p>
-                            <p className="font-medium">{user.businessData.city}</p>
+
+                          <div className="flex items-center justify-between p-3 bg-white rounded border">
+                            <div>
+                              <p className="text-sm font-semibold">Assurance RC Pro</p>
+                              <p className="text-xs text-slate-500">Responsabilité civile</p>
+                            </div>
+                            {user.applicationDocuments.insurance ? (
+                              <a
+                                href={user.applicationDocuments.insurance}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+                              >
+                                📄 Voir
+                              </a>
+                            ) : (
+                              <span className="px-4 py-2 bg-gray-200 text-gray-500 rounded text-sm">Non fourni</span>
+                            )}
                           </div>
-                        )}
-                        {user.businessData.categories && (
-                          <div className="md:col-span-2">
-                            <p className="text-sm text-slate-500">Catégories</p>
-                            <p className="text-sm mt-1">{user.businessData.categories}</p>
+
+                          <div className="flex items-center justify-between p-3 bg-white rounded border">
+                            <div>
+                              <p className="text-sm font-semibold">Kbis</p>
+                              <p className="text-xs text-slate-500">Extrait d'immatriculation</p>
+                            </div>
+                            {user.applicationDocuments.kbis ? (
+                              <a
+                                href={user.applicationDocuments.kbis}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+                              >
+                                📄 Voir
+                              </a>
+                            ) : (
+                              <span className="px-4 py-2 bg-gray-200 text-gray-500 rounded text-sm">Non fourni</span>
+                            )}
                           </div>
-                        )}
-                        {user.businessData.description && (
-                          <div className="md:col-span-2">
-                            <p className="text-sm text-slate-500">Description</p>
-                            <p className="text-sm mt-1">{user.businessData.description}</p>
+
+                          <div className="flex items-center justify-between p-3 bg-white rounded border">
+                            <div>
+                              <p className="text-sm font-semibold">Casier judiciaire</p>
+                              <p className="text-xs text-slate-500">Volet 3 vierge</p>
+                            </div>
+                            {user.applicationDocuments.criminalRecord ? (
+                              <a
+                                href={user.applicationDocuments.criminalRecord}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+                              >
+                                📄 Voir
+                              </a>
+                            ) : (
+                              <span className="px-4 py-2 bg-gray-200 text-gray-500 rounded text-sm">Non fourni</span>
+                            )}
                           </div>
-                        )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  <div className="flex gap-3 mt-4">
-                    <button
-                      className="btn"
-                      onClick={() => handleValidate(user.id, true)}
-                    >
-                      ✅ Approuver
-                    </button>
-                    <button
-                      className="btn btn-outline"
-                      onClick={() => handleValidate(user.id, false)}
-                    >
-                      ❌ Refuser
-                    </button>
+                    {/* Notes admin */}
+                    {user.adminNotes && (
+                      <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                        <h4 className="font-semibold mb-2 text-gray-700">📝 Notes administrateur</h4>
+                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{user.adminNotes}</p>
+                      </div>
+                    )}
+
+                    {/* Business data pour artisans/commerçants */}
+                    {user.businessData && (
+                      <div className="bg-slate-50 p-4 rounded-lg mb-4">
+                        <h4 className="font-semibold mb-2">Informations de l'entreprise</h4>
+                        <div className="grid md:grid-cols-2 gap-3">
+                          {user.businessData.businessName && (
+                            <div>
+                              <p className="text-sm text-slate-500">Raison sociale</p>
+                              <p className="font-medium">{user.businessData.businessName}</p>
+                            </div>
+                          )}
+                          {user.businessData.city && (
+                            <div>
+                              <p className="text-sm text-slate-500">Ville</p>
+                              <p className="font-medium">{user.businessData.city}</p>
+                            </div>
+                          )}
+                          {user.businessData.categories && (
+                            <div className="md:col-span-2">
+                              <p className="text-sm text-slate-500">Catégories</p>
+                              <p className="text-sm mt-1">{user.businessData.categories}</p>
+                            </div>
+                          )}
+                          {user.businessData.description && (
+                            <div className="md:col-span-2">
+                              <p className="text-sm text-slate-500">Description</p>
+                              <p className="text-sm mt-1">{user.businessData.description}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Actions - seulement pour les candidatures en attente */}
+                    {user.status === 'PENDING_VALIDATION' && (
+                      <div className="flex gap-3 mt-4">
+                        <button
+                          className="btn"
+                          onClick={() => handleValidate(user.id, true)}
+                        >
+                          ✅ Approuver
+                        </button>
+                        <button
+                          className="btn btn-outline"
+                          onClick={() => handleValidate(user.id, false)}
+                        >
+                          ❌ Refuser
+                        </button>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
