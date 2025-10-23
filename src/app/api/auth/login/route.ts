@@ -27,6 +27,28 @@ export async function POST(req: Request) {
       );
     }
 
+    // Check if user is pending validation
+    if (user.status === 'PENDING_VALIDATION') {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Votre candidature est en cours d'étude. Vous recevrez un email de confirmation sous 72h."
+        },
+        { status: 403 }
+      );
+    }
+
+    // Check if user is rejected or suspended
+    if (user.status === 'REJECTED' || user.status === 'SUSPENDED') {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Votre compte n'est pas actif. Contactez-nous pour plus d'informations."
+        },
+        { status: 403 }
+      );
+    }
+
     // Verify password with bcrypt
     const isValidPassword = await bcrypt.compare(password, user.password);
 

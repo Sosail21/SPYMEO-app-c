@@ -139,7 +139,12 @@ export default function Signup() {
       const result = await res.json();
 
       if (result.success) {
-        setSuccess(result.message);
+        setSuccess('✅ Candidature envoyée avec succès !\n\nVous recevrez une réponse par email sous 72h.\n\nEn cas d\'approbation, vous pourrez vous connecter à votre espace praticien.');
+        // Reset form after success
+        setTimeout(() => {
+          setProStep(0);
+          setProFormData({});
+        }, 5000);
       } else {
         setError(result.error || 'Erreur lors de la soumission');
       }
