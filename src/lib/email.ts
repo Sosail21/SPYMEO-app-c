@@ -1,6 +1,15 @@
 // Cdw-Spm: Email Service with Nodemailer
 import nodemailer from 'nodemailer';
 
+// Log configuration at startup (without password)
+console.log('[EMAIL] Configuration SMTP:', {
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  user: process.env.SMTP_USER,
+  hasPassword: !!process.env.SMTP_PASSWORD,
+  from: process.env.SMTP_FROM,
+});
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT),
@@ -19,15 +28,23 @@ export async function sendEmail(options: {
   const from = process.env.SMTP_FROM || 'SPYMEO <noreply@spymeo.fr>';
 
   try {
-    await transporter.sendMail({
+    console.log(`[EMAIL] Tentative d'envoi à ${options.to}: ${options.subject}`);
+    const result = await transporter.sendMail({
       from,
       to: options.to,
       subject: options.subject,
       html: options.html,
     });
-    console.log(`[EMAIL] Envoyé à ${options.to}: ${options.subject}`);
-  } catch (error) {
-    console.error('[EMAIL] Erreur envoi:', error);
+    console.log(`[EMAIL] ✅ Envoyé avec succès à ${options.to}. MessageId: ${result.messageId}`);
+    return result;
+  } catch (error: any) {
+    console.error('[EMAIL] ❌ Erreur envoi:', {
+      to: options.to,
+      subject: options.subject,
+      error: error.message,
+      code: error.code,
+      command: error.command,
+    });
     throw error;
   }
 }

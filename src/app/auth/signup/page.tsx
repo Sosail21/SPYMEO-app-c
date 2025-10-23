@@ -248,14 +248,14 @@ export default function Signup() {
                   <button
                     type="button"
                     onClick={() => setUserPlan("FREE")}
-                    className={`px-4 py-2 rounded-lg border ${userPlan === "FREE" ? "bg-blue-500 text-white" : "bg-white"}`}
+                    className={`px-4 py-2 rounded-lg border ${userPlan === "FREE" ? "bg-accent text-white" : "bg-white"}`}
                   >
                     Gratuit
                   </button>
                   <button
                     type="button"
                     onClick={() => setUserPlan("PASS")}
-                    className={`px-4 py-2 rounded-lg border ${userPlan === "PASS" ? "bg-blue-500 text-white" : "bg-white"}`}
+                    className={`px-4 py-2 rounded-lg border ${userPlan === "PASS" ? "bg-accent text-white" : "bg-white"}`}
                   >
                     PASS
                   </button>
@@ -301,7 +301,7 @@ export default function Signup() {
             </label>
 
             <div className="flex gap-2">
-              <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" type="submit" disabled={loading}>
+              <button className="btn" type="submit" disabled={loading}>
                 {loading ? 'Création...' : 'Créer mon compte'}
               </button>
               <a className="px-6 py-2 border rounded-lg hover:bg-gray-50" href="/auth/login">
@@ -315,7 +315,7 @@ export default function Signup() {
           <form className="auth-card space-y-4" onSubmit={handleProStepSubmit}>
             <div className="grid grid-cols-4 gap-2">
               {proSteps.map((s, i) => (
-                <div key={s} className={`p-2 text-center rounded ${i <= proStep ? "bg-blue-500 text-white" : "bg-gray-200"}`}>
+                <div key={s} className={`p-2 text-center rounded ${i <= proStep ? "bg-accent text-white" : "bg-gray-200"}`}>
                   {i + 1}. {s}
                 </div>
               ))}
@@ -384,7 +384,7 @@ export default function Signup() {
 
             {proStep === 3 && (
               <div className="space-y-4">
-                <div className="p-4 bg-blue-50 rounded-lg">
+                <div className="p-4 bg-[#f0fbff] rounded-lg">
                   <h3 className="font-semibold text-lg mb-2">📋 Récapitulatif de votre candidature</h3>
                   <p className="text-gray-700 text-sm mb-4">
                     Vérifiez vos informations puis envoyez votre candidature. Réponse sous <strong>48h</strong> par email.
@@ -457,7 +457,7 @@ export default function Signup() {
               >
                 Précédent
               </button>
-              <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" type="submit" disabled={loading}>
+              <button className="btn" type="submit" disabled={loading}>
                 {loading ? 'Envoi...' : proStep === 3 ? "Envoyer ma candidature" : "Suivant"}
               </button>
             </div>

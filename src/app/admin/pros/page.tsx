@@ -250,14 +250,12 @@ export default function AdminProPage() {
                   <div className="flex gap-3 mt-4">
                     <button
                       className="btn"
-                      style={{ background: '#4CAF50', color: 'white' }}
                       onClick={() => handleValidate(user.id, true)}
                     >
                       ✅ Approuver
                     </button>
                     <button
                       className="btn btn-outline"
-                      style={{ borderColor: '#f44336', color: '#f44336' }}
                       onClick={() => handleValidate(user.id, false)}
                     >
                       ❌ Refuser
