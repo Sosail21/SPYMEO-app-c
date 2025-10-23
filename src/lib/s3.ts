@@ -1,9 +1,24 @@
 // Cdw-Spm: S3 Upload Service
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
-const s3Client = new S3Client({
+// Configuration du client S3
+const s3ClientConfig: any = {
   region: process.env.AWS_REGION || 'eu-west-3',
-});
+};
+
+// Si des credentials sont fournies en variables d'environnement, les utiliser
+// Sinon, le SDK utilisera le rôle IAM ECS (recommandé en production)
+if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+  s3ClientConfig.credentials = {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  };
+  console.log('[S3] Using credentials from environment variables');
+} else {
+  console.log('[S3] Using IAM role from ECS task (recommended)');
+}
+
+const s3Client = new S3Client(s3ClientConfig);
 
 const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'spymeo-production-assets';
 
@@ -38,16 +53,24 @@ export async function uploadFileToS3(params: UploadFileParams): Promise<string> 
   });
 
   try {
+    console.log(`[S3] Uploading to bucket: ${BUCKET_NAME}, key: ${key}`);
     await s3Client.send(command);
 
     // Retourner l'URL du fichier
     const fileUrl = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION || 'eu-west-3'}.amazonaws.com/${key}`;
 
-    console.log(`[S3] Fichier uploadé : ${fileUrl}`);
+    console.log(`[S3] ✅ Fichier uploadé avec succès : ${fileUrl}`);
     return fileUrl;
-  } catch (error) {
-    console.error('[S3] Erreur upload:', error);
-    throw new Error('Erreur lors de l\'upload du fichier');
+  } catch (error: any) {
+    console.error('[S3] ❌ Erreur upload:', {
+      message: error.message,
+      code: error.code,
+      name: error.name,
+      bucket: BUCKET_NAME,
+      key: key,
+      region: process.env.AWS_REGION || 'eu-west-3',
+    });
+    throw new Error(`Erreur S3: ${error.message || 'Erreur lors de l\'upload du fichier'}`);
   }
 }
 
