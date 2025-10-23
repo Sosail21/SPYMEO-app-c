@@ -9,7 +9,7 @@ interface User {
   name: string | null;
   role: string;
   status: string;
-  plan: string | null;
+  userPlan: string | null;
   city: string | null;
   createdAt: string;
   updatedAt: string;
@@ -182,7 +182,7 @@ export default function DatabasePage() {
                       {user.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm">{user.plan || "-"}</td>
+                  <td className="px-4 py-3 text-sm">{user.userPlan || "-"}</td>
                   <td className="px-4 py-3 text-sm">
                     {new Date(user.createdAt).toLocaleDateString("fr-FR")}
                   </td>
@@ -237,7 +237,7 @@ export default function DatabasePage() {
                         {user.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm">{user.plan || "-"}</td>
+                    <td className="px-4 py-3 text-sm">{user.userPlan || "-"}</td>
                     <td className="px-4 py-3 text-sm">{user.city || "-"}</td>
                     <td className="px-4 py-3 text-sm">
                       {new Date(user.createdAt).toLocaleDateString("fr-FR")}
