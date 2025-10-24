@@ -15,9 +15,25 @@ run_migrations() {
   while [ $attempt -le $max_attempts ]; do
    echo "[entrypoint] Attempt $attempt/$max_attempts: Running Prisma migrations..."
 
-    if npx prisma migrate deploy; then
+    # Essayer d'appliquer les migrations
+    if npx prisma migrate deploy 2>&1 | tee /tmp/migrate_output.log; then
      echo "[entrypoint] Migrations applied successfully"
       return 0
+    fi
+
+    # Vérifier si c'est une erreur de migration échouée (P3009)
+    if grep -q "P3009" /tmp/migrate_output.log || grep -q "failed migrations" /tmp/migrate_output.log; then
+      echo "[entrypoint] Detected failed migration, attempting to resolve..."
+
+      # Extraire le nom de la migration échouée
+      FAILED_MIGRATION=$(grep -oP "The \`\K[^']*(?=' migration.*failed)" /tmp/migrate_output.log | head -1)
+
+      if [ -n "$FAILED_MIGRATION" ]; then
+        echo "[entrypoint] Resolving failed migration: $FAILED_MIGRATION"
+        npx prisma migrate resolve --rolled-back "$FAILED_MIGRATION" || true
+        echo "[entrypoint] Retrying migration deployment..."
+        continue
+      fi
     fi
 
     if [ $attempt -eq $max_attempts ]; then

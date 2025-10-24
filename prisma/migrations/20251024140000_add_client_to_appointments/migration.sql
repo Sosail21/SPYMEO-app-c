@@ -1,6 +1,3 @@
--- CreateIndex for appointments clientId
-CREATE INDEX IF NOT EXISTS "appointments_clientId_idx" ON "appointments"("clientId");
-
 -- AlterTable appointments add clientId if not exists
 DO $$
 BEGIN
@@ -9,6 +6,17 @@ BEGIN
         WHERE table_name = 'appointments' AND column_name = 'clientId'
     ) THEN
         ALTER TABLE "appointments" ADD COLUMN "clientId" TEXT;
+    END IF;
+END $$;
+
+-- CreateIndex for appointments clientId (only if column exists)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_indexes
+        WHERE indexname = 'appointments_clientId_idx'
+    ) THEN
+        CREATE INDEX "appointments_clientId_idx" ON "appointments"("clientId");
     END IF;
 END $$;
 
