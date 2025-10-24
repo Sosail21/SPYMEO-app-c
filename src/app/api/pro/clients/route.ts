@@ -3,6 +3,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { COOKIE_NAME } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
+import { sendEmail, emailTemplates } from "@/lib/email";
+
+// Helper function to generate a secure temporary password
+function generateSecurePassword(length = 12): string {
+  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    password += charset.charAt(Math.floor(Math.random() * charset.length));
+  }
+  return password;
+}
 
 // GET - Liste tous les clients du praticien
 export async function GET(req: NextRequest) {
@@ -104,11 +116,13 @@ export async function POST(req: NextRequest) {
     const session = JSON.parse(sessionCookie.value);
     const userId = session.id;
 
-    // Récupérer le PractitionerProfile de l'utilisateur
+    // Récupérer le PractitionerProfile et les infos du praticien
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         role: true,
+        firstName: true,
+        lastName: true,
         practitionerProfile: {
           select: { id: true },
         },
@@ -123,6 +137,7 @@ export async function POST(req: NextRequest) {
     }
 
     const practitionerId = user.practitionerProfile.id;
+    const practitionerName = `${user.firstName} ${user.lastName}`;
 
     const body = await req.json();
     const { firstName, lastName, email, phone, birthDate, address, notes, antecedents } = body;
@@ -134,10 +149,51 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Si un email est fourni, vérifier si un User existe déjà
+    let existingUser = null;
+    let userCreated = false;
+
+    if (email) {
+      existingUser = await prisma.user.findUnique({
+        where: { email },
+        select: { id: true, email: true },
+      });
+
+      // Si aucun User n'existe, en créer un
+      if (!existingUser) {
+        try {
+          const tempPassword = generateSecurePassword();
+          const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+          existingUser = await prisma.user.create({
+            data: {
+              email,
+              password: hashedPassword,
+              firstName,
+              lastName,
+              phone: phone || null,
+              role: "FREE_USER",
+              status: "ACTIVE",
+            },
+            select: { id: true, email: true },
+          });
+
+          userCreated = true;
+
+          // TODO: Optionally send a separate email with temporary credentials
+          // For now, we'll just send the welcome email
+        } catch (error) {
+          console.error("[POST /api/pro/clients] Error creating user:", error);
+          // Continue even if user creation fails
+        }
+      }
+    }
+
     // Créer le client
     const client = await prisma.client.create({
       data: {
         practitionerId,
+        userId: existingUser?.id || null,
         firstName,
         lastName,
         email: email || null,
@@ -149,9 +205,29 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Envoyer un email de bienvenue si un User a été créé
+    if (userCreated && email) {
+      try {
+        await sendEmail({
+          to: email,
+          subject: "🎉 Votre praticien a créé votre compte SPYMEO",
+          html: emailTemplates.clientCreatedByPractitioner({
+            firstName,
+            lastName,
+            practitionerName,
+            email,
+          }),
+        });
+      } catch (error) {
+        console.error("[POST /api/pro/clients] Error sending email:", error);
+        // Don't fail the request if email fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
       client,
+      userCreated,
     });
   } catch (error) {
     console.error("[POST /api/pro/clients] Error:", error);

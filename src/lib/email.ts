@@ -517,4 +517,69 @@ export const emailTemplates = {
     </body>
     </html>
   `,
+
+  clientCreatedByPractitioner: (data: { firstName: string; lastName: string; practitionerName: string; email: string }) => `
+    <!DOCTYPE html>
+    <html>
+    <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
+      <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 8px; margin: -30px -30px 30px -30px;">
+          <h2 style="margin: 0; font-size: 24px;">🎉 Bonne nouvelle !</h2>
+          <p style="margin: 10px 0 0 0; opacity: 0.95; font-size: 16px;">Votre praticien vient de créer votre compte SPYMEO</p>
+        </div>
+
+        <p style="font-size: 16px; line-height: 1.6;">Bonjour <strong>${data.firstName} ${data.lastName}</strong>,</p>
+
+        <p style="font-size: 16px; line-height: 1.6;">
+          Nous avons une excellente nouvelle à vous annoncer ! Votre praticien <strong>${data.practitionerName}</strong>
+          vient de créer votre fiche patient sur SPYMEO.
+        </p>
+
+        <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 20px; margin: 25px 0; border-radius: 4px;">
+          <h3 style="margin: 0 0 10px 0; color: #2e7d32; font-size: 18px;">✨ Pourquoi c'est génial ?</h3>
+          <ul style="margin: 10px 0 0 0; padding-left: 20px; color: #1b5e20; line-height: 1.8;">
+            <li>Prenez rendez-vous en ligne facilement, 24h/24</li>
+            <li>Consultez votre historique de consultations</li>
+            <li>Accédez à vos documents médicaux en toute sécurité</li>
+            <li>Recevez des rappels automatiques pour vos rendez-vous</li>
+            <li>Communiquez directement avec votre praticien</li>
+          </ul>
+        </div>
+
+        <div style="background: #fff3cd; border-left: 4px solid #ff9800; padding: 20px; margin: 25px 0; border-radius: 4px;">
+          <p style="margin: 0; color: #856404; font-size: 15px;">
+            <strong>📧 Première connexion :</strong><br>
+            Un email avec vos identifiants de connexion vous sera envoyé séparément.
+            Si vous ne le recevez pas d'ici quelques minutes, pensez à vérifier vos spams.
+          </p>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${process.env.NEXT_PUBLIC_URL || 'https://spymeo.fr'}/auth/login"
+             style="display: inline-block; padding: 15px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 25px; font-size: 16px; font-weight: bold; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);">
+            🚀 Découvrir mon espace patient
+          </a>
+        </div>
+
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 30px;">
+          <p style="margin: 0 0 10px 0; font-size: 14px; color: #6c757d;">
+            <strong>Besoin d'aide ?</strong>
+          </p>
+          <p style="margin: 0; font-size: 14px; color: #6c757d; line-height: 1.6;">
+            Notre équipe support est là pour vous accompagner. N'hésitez pas à nous contacter si vous avez des questions.
+          </p>
+        </div>
+
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center;">
+          <p style="margin: 0; font-size: 14px; color: #6c757d;">
+            Cet email vous a été envoyé car votre praticien <strong>${data.practitionerName}</strong> a créé votre fiche patient.
+          </p>
+          <p style="margin: 10px 0 0 0; font-size: 14px; color: #6c757d;">
+            © ${new Date().getFullYear()} SPYMEO - Plateforme de santé holistique
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `,
 };

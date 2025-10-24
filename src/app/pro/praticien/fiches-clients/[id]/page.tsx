@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import ClientTabs from "@/components/patient/ClientTabs";
 
 type Client = {
   id: string;
@@ -412,6 +413,17 @@ export default function ClientDetailsPage() {
             </section>
           )}
         </div>
+      </div>
+
+      {/* Onglets détaillés */}
+      <div className="mt-8">
+        <ClientTabs client={{
+          ...client,
+          stats: {
+            totalVisits: client.totalVisits,
+            lastVisit: client.lastVisitAt ? new Date(client.lastVisitAt).toLocaleDateString("fr-FR") : undefined,
+          },
+        }} />
       </div>
     </div>
   );
