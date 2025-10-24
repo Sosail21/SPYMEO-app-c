@@ -16,20 +16,32 @@ async function checkAdmin() {
     const sessionCookie = cookieStore.get('__spy_session');
 
     if (!sessionCookie) {
+      console.log('[ADMIN_BLOG_EDIT] Pas de cookie de session');
       return null;
     }
 
     const session = JSON.parse(sessionCookie.value);
+    console.log('[ADMIN_BLOG_EDIT] Session trouvée, user ID:', session.id);
+
     const user = await prisma.user.findUnique({
       where: { id: session.id }
     });
 
-    if (!user || user.role !== 'ADMIN') {
+    if (!user) {
+      console.log('[ADMIN_BLOG_EDIT] Utilisateur non trouvé dans la DB');
+      return null;
+    }
+
+    console.log('[ADMIN_BLOG_EDIT] Utilisateur trouvé, rôle:', user.role, 'email:', user.email);
+
+    if (user.role !== 'ADMIN') {
+      console.log('[ADMIN_BLOG_EDIT] Accès refusé: rôle', user.role, 'au lieu de ADMIN');
       return null;
     }
 
     return user;
   } catch (e) {
+    console.error('[ADMIN_BLOG_EDIT] Erreur checkAdmin:', e);
     return null;
   }
 }
