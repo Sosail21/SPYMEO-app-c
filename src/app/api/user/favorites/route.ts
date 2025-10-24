@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const user = await getUser();
     if (!user) {
       return NextResponse.json(
-        { success: false, error: 'Non authentifié' },
+        { success: false, error: 'Non authentifie' },
         { status: 401 }
       );
     }
@@ -35,7 +35,6 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' }
     });
 
-    // Fetch details for each favorite based on targetType
     const enrichedFavorites = await Promise.all(
       favorites.map(async (fav) => {
         let title = '';
@@ -61,11 +60,11 @@ export async function GET(request: NextRequest) {
           case 'PRACTITIONER': {
             const practitioner = await prisma.user.findUnique({
               where: { id: fav.targetId },
-              select: { firstName: true, lastName: true, specialties: true, city: true }
+              select: { firstName: true, lastName: true, city: true }
             });
             if (practitioner) {
               title = `${practitioner.firstName} ${practitioner.lastName}`;
-              meta = `${(practitioner.specialties as string[])?.join(', ') || 'Praticien'}  ${practitioner.city || ''}`;
+              meta = `Praticien - ${practitioner.city || ''}`;
               href = `/praticien/${fav.targetSlug || fav.targetId}`;
               kind = 'Praticien';
             }
@@ -75,11 +74,11 @@ export async function GET(request: NextRequest) {
           case 'ARTISAN': {
             const artisan = await prisma.user.findUnique({
               where: { id: fav.targetId },
-              select: { name: true, firstName: true, lastName: true, specialties: true, city: true }
+              select: { name: true, firstName: true, lastName: true, city: true }
             });
             if (artisan) {
               title = artisan.name || `${artisan.firstName} ${artisan.lastName}`;
-              meta = `${(artisan.specialties as string[])?.join(', ') || 'Artisan'}  ${artisan.city || ''}`;
+              meta = `Artisan - ${artisan.city || ''}`;
               href = `/artisan/${fav.targetSlug || fav.targetId}`;
               kind = 'Artisan';
             }
@@ -93,9 +92,9 @@ export async function GET(request: NextRequest) {
             });
             if (merchant) {
               title = merchant.name || `${merchant.firstName} ${merchant.lastName}`;
-              meta = `Commerçant  ${merchant.city || ''}`;
+              meta = `Commercant - ${merchant.city || ''}`;
               href = `/commercant/${fav.targetSlug || fav.targetId}`;
-              kind = 'Commerçant';
+              kind = 'Commercant';
             }
             break;
           }
@@ -107,7 +106,7 @@ export async function GET(request: NextRequest) {
             });
             if (center) {
               title = center.name || 'Centre de formation';
-              meta = `Centre  ${center.city || ''}`;
+              meta = `Centre - ${center.city || ''}`;
               href = `/centre-de-formation/${fav.targetSlug || fav.targetId}`;
               kind = 'Centre';
             }
@@ -115,9 +114,8 @@ export async function GET(request: NextRequest) {
           }
 
           case 'PRODUCT': {
-            // Products would need a separate Product model - for now, placeholder
             title = 'Produit';
-            meta = 'Produit enregistré';
+            meta = 'Produit enregistre';
             href = `/produit/${fav.targetSlug || fav.targetId}`;
             kind = 'Produit';
             break;
@@ -127,7 +125,7 @@ export async function GET(request: NextRequest) {
             return null;
         }
 
-        if (!title) return null; // Skip if entity not found or deleted
+        if (!title) return null;
 
         return {
           id: fav.id,
@@ -141,7 +139,6 @@ export async function GET(request: NextRequest) {
       })
     );
 
-    // Filter out null values (deleted entities)
     const validFavorites = enrichedFavorites.filter(f => f !== null);
 
     return NextResponse.json({
@@ -151,7 +148,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('[USER_FAVORITES] Error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Erreur lors de la récupération des favoris' },
+      { success: false, error: error.message || 'Erreur lors de la recuperation des favoris' },
       { status: 500 }
     );
   }
