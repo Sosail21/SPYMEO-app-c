@@ -64,7 +64,7 @@ export async function GET(req: NextRequest, context: Context) {
           take: 10,
           select: {
             id: true,
-            name: true,
+            title: true,
             type: true,
             url: true,
             createdAt: true,
@@ -75,7 +75,7 @@ export async function GET(req: NextRequest, context: Context) {
           take: 10,
           select: {
             id: true,
-            number: true,
+            invoiceNumber: true,
             amount: true,
             status: true,
             createdAt: true,

@@ -23,14 +23,14 @@ type Client = {
   }>;
   documents?: Array<{
     id: string;
-    name: string;
+    title: string;
     type: string;
     url: string;
     createdAt: string;
   }>;
   invoices?: Array<{
     id: string;
-    number: string;
+    invoiceNumber: string;
     amount: number;
     status: string;
     createdAt: string;
