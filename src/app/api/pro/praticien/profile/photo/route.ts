@@ -1,25 +1,28 @@
 // API route for practitioner profile photo upload
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { verifySession } from '@/lib/auth/session';
+import { COOKIE_NAME } from '@/lib/auth/session';
 import { prisma } from '@/lib/prisma';
 import { uploadFileToS3 } from '@/lib/s3';
 
 export async function POST(req: NextRequest) {
   try {
     const cookieStore = await cookies();
-    const session = await verifySession(cookieStore);
+    const sessionCookie = cookieStore.get(COOKIE_NAME);
 
-    if (!session?.userId) {
+    if (!sessionCookie) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
         { status: 401 }
       );
     }
 
+    const session = JSON.parse(sessionCookie.value);
+    const userId = session.id;
+
     // Verify user is a practitioner
     const user = await prisma.user.findUnique({
-      where: { id: session.userId },
+      where: { id: userId },
       select: {
         id: true,
         role: true,
@@ -66,15 +69,15 @@ export async function POST(req: NextRequest) {
     // Upload to S3
     const timestamp = Date.now();
     const ext = file.name.split('.').pop() || 'jpg';
-    const key = `practitioner/profile/${session.userId}_${timestamp}.${ext}`;
+    const key = `practitioner/profile/${userId}_${timestamp}.${ext}`;
 
     const fileUrl = await uploadFileToS3(buffer, key, file.type);
 
     // Update user profile with avatar URL
     await prisma.profile.upsert({
-      where: { userId: session.userId },
+      where: { userId: userId },
       create: {
-        userId: session.userId,
+        userId: userId,
         avatar: fileUrl,
       },
       update: {

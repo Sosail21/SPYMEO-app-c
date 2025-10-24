@@ -1,25 +1,28 @@
 // API routes for practitioner profile management
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { verifySession } from '@/lib/auth/session';
+import { COOKIE_NAME } from '@/lib/auth/session';
 import { prisma } from '@/lib/prisma';
 
 // GET - Retrieve practitioner profile
 export async function GET(req: NextRequest) {
   try {
     const cookieStore = await cookies();
-    const session = await verifySession(cookieStore);
+    const sessionCookie = cookieStore.get(COOKIE_NAME);
 
-    if (!session?.userId) {
+    if (!sessionCookie) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
         { status: 401 }
       );
     }
 
+    const session = JSON.parse(sessionCookie.value);
+    const userId = session.id;
+
     // Verify user is a practitioner
     const user = await prisma.user.findUnique({
-      where: { id: session.userId },
+      where: { id: userId },
       select: {
         id: true,
         role: true,
@@ -98,18 +101,21 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const cookieStore = await cookies();
-    const session = await verifySession(cookieStore);
+    const sessionCookie = cookieStore.get(COOKIE_NAME);
 
-    if (!session?.userId) {
+    if (!sessionCookie) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
         { status: 401 }
       );
     }
 
+    const session = JSON.parse(sessionCookie.value);
+    const userId = session.id;
+
     // Verify user is a practitioner
     const user = await prisma.user.findUnique({
-      where: { id: session.userId },
+      where: { id: userId },
       select: {
         id: true,
         role: true,
@@ -136,7 +142,7 @@ export async function PATCH(req: NextRequest) {
 
     if (Object.keys(userUpdateData).length > 0) {
       await prisma.user.update({
-        where: { id: session.userId },
+        where: { id: userId },
         data: userUpdateData,
       });
     }
@@ -144,9 +150,9 @@ export async function PATCH(req: NextRequest) {
     // Update Profile (bio)
     if (body.bio !== undefined) {
       await prisma.profile.upsert({
-        where: { userId: session.userId },
+        where: { userId: userId },
         create: {
-          userId: session.userId,
+          userId: userId,
           bio: body.bio,
         },
         update: {
@@ -191,7 +197,7 @@ export async function PATCH(req: NextRequest) {
       await prisma.practitionerProfile.create({
         data: {
           ...practitionerUpdateData,
-          userId: session.userId,
+          userId: userId,
         },
       });
     }
@@ -199,7 +205,7 @@ export async function PATCH(req: NextRequest) {
     // Update profileData (rates, hours, etc.)
     if (body.profileData !== undefined) {
       await prisma.user.update({
-        where: { id: session.userId },
+        where: { id: userId },
         data: {
           profileData: body.profileData,
         },
