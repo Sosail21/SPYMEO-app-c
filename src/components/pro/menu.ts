@@ -24,19 +24,17 @@ type RoleMenus = {
 export const MENUS: RoleMenus = {
   common: [
     { label: "Tableau de bord", href: "/pro/dashboard", icon: "🏠" },
-    { label: "Ma fiche", href: "/pro/commun/fiche", icon: "🧾" },
     { label: "SPYM'Com", href: "/pro/commun/spymcom", icon: "💬" },
     { label: "Répertoire SPYMEO", href: "/pro/commun/repertoire/spymeo", icon: "🔎" },
     { label: "Répertoire perso", href: "/pro/commun/repertoire/perso", icon: "📒" },
     { label: "Notes", href: "/pro/commun/notes", icon: "📝" },
     { label: "Messagerie", href: "/pro/commun/messages", icon: "✉️" },
-
-    // 👇 Nouveaux espaces
     { label: "Avantages", href: "/pro/commun/avantages", icon: "🎁" },
     { label: "PASS Partenaire", href: "/pro/commun/pass-partenaire", icon: "🔖" },
   ],
 
   practitioner: [
+    { label: "Ma fiche", href: "/pro/praticien/fiche", icon: "🧾" },
     { label: "Agenda / RDV", href: "/pro/praticien/agenda", icon: "📆" },
     { label: "Fiches clients", href: "/pro/praticien/fiches-clients", icon: "👤" },
     { label: "Statistiques", href: "/pro/praticien/statistiques", icon: "📈" },
@@ -50,6 +48,7 @@ export const MENUS: RoleMenus = {
   ],
 
   artisan: [
+    { label: "Ma fiche", href: "/pro/artisan/fiche", icon: "🧾" },
     { label: "Catalogue services", href: "/pro/artisan/catalogue/services", icon: "🧰" },
     { label: "Nouveau service", href: "/pro/artisan/catalogue/services/nouveau", icon: "➕" },
     { label: "Commandes", href: "/pro/artisan/ventes/commandes", icon: "🧾" },
@@ -59,6 +58,7 @@ export const MENUS: RoleMenus = {
   ],
 
   comm: [
+    { label: "Ma fiche", href: "/pro/commercant/fiche", icon: "🧾" },
     { label: "Catalogue",   href: "/pro/commercant/produits",        icon: "🛍️" },
     { label: "Nouveau",     href: "/pro/commercant/produits/nouveau", icon: "➕" },
     { label: "Commandes",   href: "/pro/commercant/commandes",       icon: "📦" },
@@ -69,6 +69,7 @@ export const MENUS: RoleMenus = {
   ],
 
   center: [
+    { label: "Ma fiche", href: "/pro/centre/fiche", icon: "🧾" },
     { label: "Formations", href: "/pro/centre/formations", icon: "🎓" },
     { label: "Nouvelle formation", href: "/pro/centre/formations/nouvelle", icon: "➕" },
     { label: "Sessions & Inscriptions", href: "/pro/centre/formations/sessions", icon: "🗓️" },
