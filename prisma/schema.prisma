@@ -90,10 +90,11 @@ model User {
   receivedMessages Message[]                 @relation("ReceivedMessages")
   conversations    ConversationParticipant[]
 
-  appointments Appointment[] @relation("UserAppointments")
-  documents    Document[]    @relation("UserDocuments")
-  notes        Note[]
-  favorites    Favorite[]
+  appointments    Appointment[]    @relation("UserAppointments")
+  agendaSettings  AgendaSettings?  @relation("UserAgendaSettings")
+  documents       Document[]       @relation("UserDocuments")
+  notes           Note[]
+  favorites       Favorite[]
 
   blogPosts BlogPost[] @relation("BlogPostAuthor")
   blogLikes BlogLike[]
@@ -600,6 +601,25 @@ model Appointment {
   @@index([startAt])
   @@index([status])
   @@map("appointments")
+}
+
+model AgendaSettings {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation("UserAgendaSettings", fields: [userId], references: [id], onDelete: Cascade)
+
+  // Settings stored as JSON for flexibility
+  availabilities    Json? // Record<DayKey, DayHours>
+  appointmentTypes  Json? // AppointmentType[]
+  bufferMin         Int   @default(0)
+  defaultView       String @default("timeGridWeek")
+  allowedLocations  Json? // string[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("agenda_settings")
 }
 
 // ═══════════════════════════════════════════════════════════════
