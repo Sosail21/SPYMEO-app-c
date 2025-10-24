@@ -16,7 +16,15 @@
 1. **Aller dans CloudFront** :
    - AWS Console → CloudFront → Create Distribution
 
-2. **Configuration Origin** :
+2. **Options de distribution** (nouvelles options AWS 2024+) :
+   - **Nom de la distribution** : `spymeo-assets` (ou `spymeo-production-assets`)
+   - **Description** (optionnel) : `CDN for SPYMEO user-uploaded assets` (ou laisser vide)
+   - **Type de distribution** : Choisir **"Site Web ou application unique"** ✅
+     - *Pas "Architecture multi-locataire"* (réservé aux SaaS avec centaines de domaines clients)
+   - **Domaine personnalisé** : **Laisser vide** pour l'instant ⭕
+     - Tu pourras ajouter `assets.spymeo.fr` plus tard si souhaité
+
+3. **Configuration Origin** :
    - **Origin domain** : Sélectionner `spymeo-production-assets.s3.eu-west-3.amazonaws.com`
    - **Origin access** : **Origin access control settings (recommended)**
    - Cliquer sur "Create new OAC" (Origin Access Control)
