@@ -118,11 +118,21 @@ body{ @apply bg-bg text-text antialiased; }
   /* Blog */
   .post-grid{ @apply grid gap-5 md:grid-cols-3; }
   .post-card{ @apply card p-0 overflow-hidden; }
-  .post-cover{ @apply block h-44 bg-[linear-gradient(135deg,#17a2b8,#5ce0ee)]; }
+  .post-cover{
+    @apply block w-full bg-[linear-gradient(135deg,#17a2b8,#5ce0ee)];
+    aspect-ratio: 16/9;
+    background-size: cover;
+    background-position: center;
+  }
   .post-body{ @apply p-4 grid gap-2; }
   .post-hero{ @apply bg-[linear-gradient(180deg,#f8fcfd_0%,#eef7f9_100%)] pt-10 pb-6; }
   .post-hero-inner{ @apply container-spy grid md:grid-cols-[1fr_1.2fr] gap-6 items-center; }
-  .post-hero-media{ @apply h-72 rounded-xl shadow-elev bg-[linear-gradient(135deg,#17a2b8,#5ce0ee)]; }
+  .post-hero-media{
+    @apply w-full rounded-xl shadow-elev bg-[linear-gradient(135deg,#17a2b8,#5ce0ee)];
+    aspect-ratio: 16/9;
+    background-size: cover;
+    background-position: center;
+  }
   .post-layout{ @apply container-spy grid md:grid-cols-[minmax(0,1fr)_320px] gap-6; }
   .prose-content{ @apply prose prose-slate max-w-none; }
 
