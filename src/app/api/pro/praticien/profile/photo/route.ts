@@ -62,16 +62,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Convert File to Buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
     // Upload to S3
-    const timestamp = Date.now();
-    const ext = file.name.split('.').pop() || 'jpg';
-    const key = `practitioner/profile/${userId}_${timestamp}.${ext}`;
-
-    const fileUrl = await uploadFileToS3(buffer, key, file.type);
+    const fileUrl = await uploadFileToS3({
+      file,
+      folder: 'practitioner/profile',
+      userId,
+    });
 
     // Update user profile with avatar URL
     await prisma.profile.upsert({
