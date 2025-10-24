@@ -1,7 +1,7 @@
-// Cdw-Spm
+// Cdw-Spm: Agenda Shell with API integration
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -15,69 +15,66 @@ type Event = {
   title: string;
   start: string;
   end?: string;
-  clientId?: string;
+  extendedProps?: {
+    description?: string;
+    location?: string;
+    status?: string;
+  };
 };
 
-const LS_KEY = "spymeo_agenda_events_v1";
-
-const INITIAL_EVENTS: Event[] = [
-  {
-    id: "1",
-    title: "Consultation - Aline Dupont",
-    start: new Date().toISOString(),
-    clientId: "1",
-  },
-];
-
-function fmt(dt: string | Date) {
-  const d = typeof dt === "string" ? new Date(dt) : dt;
-  return d.toLocaleString("fr-FR", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export default function AgendaShell() {
-  const [events, setEvents] = useState<Event[]>(INITIAL_EVENTS);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<{ open: boolean; id?: string }>({ open: false });
 
+  // Charger les événements depuis l'API
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      if (raw) setEvents(JSON.parse(raw));
-    } catch {}
+    fetchEvents();
   }, []);
-  useEffect(() => {
+
+  async function fetchEvents() {
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify(events));
-    } catch {}
-  }, [events]);
+      const res = await fetch("/api/agenda/events");
+      const data = await res.json();
 
-  const headerToolbar = useMemo(
-    () => ({
-      left: "prev,next today",
-      center: "title",
-      right: "dayGridMonth,timeGridWeek,timeGridDay",
-    }),
-    []
-  );
+      if (data.success && data.events) {
+        setEvents(data.events);
+      }
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  const handleDateSelect = (selectInfo: DateSelectArg) => {
+  const handleDateSelect = async (selectInfo: DateSelectArg) => {
     const title = prompt("Titre du rendez-vous ?");
     const calendarApi = selectInfo.view.calendar;
     calendarApi.unselect();
 
-    if (title) {
-      const newEvent: Event = {
-        id: String(Date.now()),
-        title,
-        start: selectInfo.startStr,
-        end: selectInfo.endStr || undefined,
-      };
-      setEvents((prev) => [...prev, newEvent]);
+    if (!title) return;
+
+    try {
+      const res = await fetch("/api/agenda/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          start: selectInfo.startStr,
+          end: selectInfo.endStr || undefined,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success && data.event) {
+        setEvents((prev) => [...prev, data.event]);
+      } else {
+        alert("Erreur lors de la création du rendez-vous");
+      }
+    } catch (error) {
+      console.error("Error creating event:", error);
+      alert("Erreur lors de la création du rendez-vous");
     }
   };
 
@@ -85,37 +82,71 @@ export default function AgendaShell() {
     setModal({ open: true, id: clickInfo.event.id });
   };
 
-  const handleEventDrop = (dropInfo: EventDropArg) => {
-    setEvents((prev) =>
-      prev.map((e) =>
-        e.id === dropInfo.event.id
-          ? {
-              ...e,
-              start: dropInfo.event.startStr!,
-              end: dropInfo.event.endStr || undefined,
-            }
-          : e
-      )
+  const handleEventDrop = async (dropInfo: EventDropArg) => {
+    const eventId = dropInfo.event.id;
+
+    try {
+      const res = await fetch(`/api/agenda/events/${eventId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          start: dropInfo.event.startStr,
+          end: dropInfo.event.endStr || undefined,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success && data.event) {
+        setEvents((prev) =>
+          prev.map((e) => (e.id === eventId ? data.event : e))
+        );
+      } else {
+        // Revert if failed
+        dropInfo.revert();
+        alert("Erreur lors de la modification du rendez-vous");
+      }
+    } catch (error) {
+      console.error("Error updating event:", error);
+      dropInfo.revert();
+      alert("Erreur lors de la modification du rendez-vous");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer ce rendez-vous ?")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/agenda/events/${id}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setEvents((prev) => prev.filter((e) => e.id !== id));
+        setModal({ open: false });
+      } else {
+        alert("Erreur lors de la suppression du rendez-vous");
+      }
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      alert("Erreur lors de la suppression du rendez-vous");
+    }
+  };
+
+  const selectedEvent = modal.id ? events.find((e) => e.id === modal.id) : undefined;
+
+  if (loading) {
+    return (
+      <div className="soft-card p-8 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto mb-4"></div>
+        <p className="text-muted">Chargement de l'agenda...</p>
+      </div>
     );
-  };
-
-  const dataForModal = useMemo(() => {
-    if (!modal.open || !modal.id) return undefined;
-    const e = events.find((x) => x.id === modal.id);
-    if (!e) return undefined;
-    return {
-      id: e.id,
-      title: e.title,
-      startText: fmt(e.start),
-      endText: e.end ? fmt(e.end) : undefined,
-      clientId: e.clientId,
-    };
-  }, [modal, events]);
-
-  const handleDelete = (id: string) => {
-    setEvents((prev) => prev.filter((e) => e.id !== id));
-    setModal({ open: false });
-  };
+  }
 
   return (
     <div className="soft-card p-3">
@@ -124,7 +155,11 @@ export default function AgendaShell() {
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         locales={[frLocale]}
         locale="fr"
-        headerToolbar={headerToolbar}
+        headerToolbar={{
+          left: "prev,next today",
+          center: "title",
+          right: "dayGridMonth,timeGridWeek,timeGridDay",
+        }}
         initialView="timeGridWeek"
         nowIndicator
         selectable
@@ -156,7 +191,7 @@ export default function AgendaShell() {
       <EventModal
         open={modal.open}
         onClose={() => setModal({ open: false })}
-        data={dataForModal}
+        event={selectedEvent}
         onDelete={handleDelete}
       />
     </div>
