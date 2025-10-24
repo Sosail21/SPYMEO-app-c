@@ -15,7 +15,8 @@
     "db:migrate:status": "prisma migrate status",
     "db:seed:min": "npx tsx prisma/seeds/minimal.ts",
     "db:reset:local": "prisma migrate reset --force && npm run db:seed:min",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "activate:test": "node scripts/activate-account.js cindy.chafai@gmail.com"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.911.0",
