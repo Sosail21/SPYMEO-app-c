@@ -1,5 +1,4 @@
-// Cdw-Spm
-// src/app/admin/blog/page.tsx
+// Cdw-Spm: Admin Blog List with Real Data
 "use client";
 
 import Link from "next/link";
@@ -14,11 +13,14 @@ type Article = {
   slug: string;
   status: ArticleStatus;
   tags?: string[];
-  updatedAt?: string; // ISO
+  category?: string;
+  updatedAt?: string;
+  publishedAt?: string;
   author?: string;
+  authorId?: string;
   source?: Source;
-  submittedAt?: string;  // si SUBMITTED
-  submittedById?: string;
+  views?: number;
+  likesCount?: number;
 };
 
 const TABS: { key: "ALL" | ArticleStatus; label: string }[] = [
@@ -31,9 +33,29 @@ const TABS: { key: "ALL" | ArticleStatus; label: string }[] = [
 ];
 
 export default function AdminBlogListPage() {
-  const { data, setData, loading } = useArticles();
+  const [data, setData] = useState<Article[] | null>(null);
+  const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [tab, setTab] = useState<"ALL" | ArticleStatus>("ALL");
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchArticles();
+  }, []);
+
+  async function fetchArticles() {
+    try {
+      const res = await fetch("/api/admin/blog");
+      const json = await res.json();
+      if (json.success) {
+        setData(json.articles);
+      }
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const filtered = useMemo(() => {
     const hay = q.trim().toLowerCase();
@@ -43,31 +65,55 @@ export default function AdminBlogListPage() {
         if (!hay) return true;
         const search = `${a.title} ${a.slug} ${(a.tags || []).join(" ")} ${(a.author || "")}`.toLowerCase();
         return search.includes(hay);
-      })
-      .sort((a, b) => {
-        // prioriser les SUBMITTED en haut si "Tous"
-        if (tab === "ALL") {
-          const order = (s: ArticleStatus) =>
-            s === "SUBMITTED" ? 0 :
-            s === "NEEDS_CHANGES" ? 1 :
-            s === "DRAFT" ? 2 :
-            s === "PUBLISHED" ? 3 : 4;
-          const d = order(a.status) - order(b.status);
-          if (d !== 0) return d;
-        }
-        return (b.updatedAt || "").localeCompare(a.updatedAt || "");
       });
   }, [data, q, tab]);
 
-  function mutate(id: string, patch: Partial<Article>) {
-    setData((prev) => (prev ?? []).map((x) => (x.id === id ? { ...x, ...patch } : x)));
-    // démo : refléter dans localStorage si l’item vient d’une soumission praticien
+  async function updateStatus(id: string, newStatus: ArticleStatus) {
+    if (actionLoading) return;
+    setActionLoading(id);
+
     try {
-      const key = "__spy_admin_blog_mock";
-      const cur: Article[] = JSON.parse(localStorage.getItem(key) || "[]");
-      const next = cur.map((x) => (x.id === id ? { ...x, ...patch } : x));
-      localStorage.setItem(key, JSON.stringify(next));
-    } catch {}
+      const res = await fetch(`/api/admin/blog/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (res.ok) {
+        await fetchArticles();
+      } else {
+        alert('Erreur lors de la mise à jour');
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+      alert('Erreur réseau');
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function deleteArticle(id: string, title: string) {
+    if (!confirm(`Supprimer définitivement "${title}" ?`)) return;
+    if (actionLoading) return;
+    setActionLoading(id);
+
+    try {
+      const res = await fetch(`/api/admin/blog/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        await fetchArticles();
+        alert('Article supprimé');
+      } else {
+        alert('Erreur lors de la suppression');
+      }
+    } catch (error) {
+      console.error('Error deleting article:', error);
+      alert('Erreur réseau');
+    } finally {
+      setActionLoading(null);
+    }
   }
 
   return (
@@ -109,9 +155,9 @@ export default function AdminBlogListPage() {
         {loading ? <ListSkeleton /> : filtered.length === 0 ? <EmptyState /> : (
           <ul className="grid gap-2">
             {filtered.map((a) => (
-              <li key={a.id} className="soft-card p-3 flex items-center justify-between">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
+              <li key={a.id} className="soft-card p-3 flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Link href={`/admin/blog/${a.id}`} className="font-semibold hover:underline truncate">
                       {a.title}
                     </Link>
@@ -123,50 +169,56 @@ export default function AdminBlogListPage() {
                     )}
                   </div>
                   <div className="text-sm text-slate-600 truncate">
-                    /blog/{a.slug} • {a.author || "—"} • {a.updatedAt ? fmtDate(a.updatedAt) : a.submittedAt ? fmtDate(a.submittedAt) : "—"}
+                    /blog/{a.slug} • {a.author || "—"} • {a.updatedAt ? fmtDate(a.updatedAt) : "—"}
+                    {a.views !== undefined && ` • ${a.views} vues`}
+                    {a.likesCount !== undefined && ` • ${a.likesCount} ❤️`}
                   </div>
                   {a.tags?.length ? (
                     <div className="mt-1 flex flex-wrap gap-1">
                       {a.tags.map((t) => (
-                        <span key={t} className="pill bg-slate-100 text-slate-700">{t}</span>
+                        <span key={t} className="pill bg-slate-100 text-slate-700 text-xs">{t}</span>
                       ))}
                     </div>
                   ) : null}
                 </div>
 
                 {/* Actions par statut */}
-                <div className="flex items-center gap-2">
-                  {/* Éditer toujours possible */}
-                  <Link href={`/admin/blog/${a.id}`} className="pill pill-ghost">Ouvrir</Link>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Link href={`/admin/blog/${a.id}`} className="pill pill-ghost">Éditer</Link>
 
                   {a.status === "SUBMITTED" && (
                     <>
-                      <button className="pill pill-muted" onClick={() => mutate(a.id, { status: "DRAFT" })}>
-                        Valider (→ Brouillon)
+                      <button
+                        className="pill pill-muted"
+                        onClick={() => updateStatus(a.id, "DRAFT")}
+                        disabled={actionLoading === a.id}
+                      >
+                        {actionLoading === a.id ? '...' : 'Valider (→ Brouillon)'}
                       </button>
-                      <button className="pill pill-muted" onClick={() => mutate(a.id, { status: "NEEDS_CHANGES" })}>
+                      <button
+                        className="pill pill-muted"
+                        onClick={() => updateStatus(a.id, "NEEDS_CHANGES")}
+                        disabled={actionLoading === a.id}
+                      >
                         Demander modifs
                       </button>
-                      <button className="pill pill-muted" onClick={() => mutate(a.id, { status: "REJECTED" })}>
+                      <button
+                        className="pill pill-muted"
+                        onClick={() => updateStatus(a.id, "REJECTED")}
+                        disabled={actionLoading === a.id}
+                      >
                         Refuser
                       </button>
                     </>
                   )}
 
-                  {a.status === "NEEDS_CHANGES" && (
-                    <>
-                      <button className="pill pill-muted" onClick={() => alert("Notification envoyée (mock)")}>
-                        Relancer
-                      </button>
-                      <button className="pill pill-muted" onClick={() => mutate(a.id, { status: "SUBMITTED" })}>
-                        Marquer reçu
-                      </button>
-                    </>
-                  )}
-
                   {a.status === "DRAFT" && (
-                    <button className="pill pill-muted" onClick={() => mutate(a.id, { status: "PUBLISHED" })}>
-                      Publier
+                    <button
+                      className="pill pill-muted bg-green-50 text-green-700"
+                      onClick={() => updateStatus(a.id, "PUBLISHED")}
+                      disabled={actionLoading === a.id}
+                    >
+                      {actionLoading === a.id ? '...' : 'Publier'}
                     </button>
                   )}
 
@@ -174,7 +226,13 @@ export default function AdminBlogListPage() {
                     <Link href={`/blog/${a.slug}`} target="_blank" className="pill pill-muted">Aperçu public</Link>
                   )}
 
-                  <button className="pill pill-muted" onClick={() => alert("Supprimer (mock)")}>Supprimer</button>
+                  <button
+                    className="pill pill-muted hover:bg-red-100 text-red-600"
+                    onClick={() => deleteArticle(a.id, a.title)}
+                    disabled={actionLoading === a.id}
+                  >
+                    Supprimer
+                  </button>
                 </div>
               </li>
             ))}
@@ -183,40 +241,6 @@ export default function AdminBlogListPage() {
       </div>
     </section>
   );
-}
-
-function useArticles() {
-  const [data, _setData] = useState<Article[] | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  function setData(updater: (prev: Article[] | null) => Article[]) {
-    _setData((prev) => updater(prev));
-  }
-
-  useEffect(() => {
-    let cancel = false;
-    (async () => {
-      try {
-        const r = await fetch("/api/admin/blog", { cache: "no-store" });
-        if (!r.ok) throw new Error();
-        const json = await r.json();
-        if (!cancel) _setData(json?.articles ?? []);
-      } catch {
-        if (!cancel) {
-          // Merge MOCK_ARTICLES + soumissions locales des praticiens
-          const key = "__spy_admin_blog_mock";
-          let subs: Article[] = [];
-          try { subs = JSON.parse(localStorage.getItem(key) || "[]"); } catch {}
-          _setData([...subs, ...MOCK_ARTICLES]);
-        }
-      } finally {
-        if (!cancel) setLoading(false);
-      }
-    })();
-    return () => { cancel = true; };
-  }, []);
-
-  return { data, setData, loading };
 }
 
 function StatusBadge({ status }: { status: ArticleStatus }) {
@@ -262,9 +286,3 @@ function fmtDate(iso: string) {
     return d.toLocaleDateString("fr-FR", { year: "numeric", month: "short", day: "2-digit" });
   } catch { return iso; }
 }
-
-// Contenu éditorial interne (admin)
-const MOCK_ARTICLES: Article[] = [
-  { id: "a1", title: "Réflexologie : bien démarrer", slug: "reflexologie-bien-demarrer", status: "PUBLISHED", tags: ["réflexologie","débuter"], author: "Équipe SPYMEO", source: "ADMIN", updatedAt: "2025-08-18" },
-  { id: "a2", title: "Kobido : 5 erreurs fréquentes", slug: "kobido-5-erreurs", status: "DRAFT", tags: ["kobido"], author: "Équipe SPYMEO", source: "ADMIN", updatedAt: "2025-08-12" },
-];
