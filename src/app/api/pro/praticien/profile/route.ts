@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifySession } from '@/lib/auth/session';
-import prisma from '@/lib/db/prisma';
+import { prisma } from '@/lib/prisma';
 
 // GET - Retrieve practitioner profile
 export async function GET(req: NextRequest) {
