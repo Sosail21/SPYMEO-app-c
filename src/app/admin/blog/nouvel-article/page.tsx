@@ -11,6 +11,7 @@ export default function AdminBlogNewPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
@@ -23,6 +24,47 @@ export default function AdminBlogNewPage() {
   const [readingMinutes, setReadingMinutes] = useState(5);
 
   const autoSlug = useMemo(() => slugify(title), [title]);
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Le fichier est trop volumineux (max 10MB)");
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      alert("Le fichier doit être une image");
+      return;
+    }
+
+    setUploadingImage(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', 'blog');
+    formData.append('userId', 'admin');
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      const json = await res.json();
+
+      if (json.success && json.url) {
+        setCoverImage(json.url);
+      } else {
+        alert(json.error || "Erreur lors de l'upload");
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
+      alert("Erreur lors de l'upload de l'image");
+    } finally {
+      setUploadingImage(false);
+    }
+  }
 
   function slugify(s: string) {
     return s
@@ -168,13 +210,53 @@ export default function AdminBlogNewPage() {
         </div>
 
         <div className="grid gap-2">
-          <label className="text-sm font-semibold text-slate-700">Image de couverture (URL)</label>
-          <input
-            value={coverImage}
-            onChange={(e) => setCoverImage(e.target.value)}
-            className="rounded-xl border border-slate-200 px-3 py-2 text-sm"
-            placeholder="https://..."
-          />
+          <label className="text-sm font-semibold text-slate-700">Image de couverture</label>
+
+          {coverImage && (
+            <div className="relative w-full h-48 rounded-xl overflow-hidden bg-slate-100">
+              <img
+                src={coverImage}
+                alt="Aperçu de l'image de couverture"
+                className="w-full h-full object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => setCoverImage("")}
+                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploadingImage}
+                className="hidden"
+                id="cover-upload"
+              />
+              <label
+                htmlFor="cover-upload"
+                className={`btn btn-outline w-full cursor-pointer ${uploadingImage ? 'opacity-50' : ''}`}
+              >
+                {uploadingImage ? 'Upload en cours...' : 'Uploader une image'}
+              </label>
+            </div>
+            <div className="flex-1">
+              <input
+                type="text"
+                value={coverImage}
+                onChange={(e) => setCoverImage(e.target.value)}
+                className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full"
+                placeholder="ou entrer une URL..."
+              />
+            </div>
+          </div>
+          <p className="text-xs text-slate-500">Format recommandé: 16:9, max 10MB (JPG, PNG, WebP)</p>
         </div>
 
         <div className="grid gap-2">
