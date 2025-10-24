@@ -186,6 +186,263 @@ export const emailTemplates = {
     </html>
   `,
 
+  adminNotificationArtisan: (data: any) => `
+    <!DOCTYPE html>
+    <html>
+    <body style="font-family: Arial, sans-serif; padding: 20px;">
+      <div style="background: #fd7e14; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h2 style="margin: 0;">🎨 Nouvelle candidature Artisan</h2>
+        <p style="margin: 5px 0 0 0; opacity: 0.9;">Demande d'inscription reçue le ${new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+      </div>
+
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #333;">📋 Informations personnelles</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0;"><strong>Nom complet:</strong></td>
+            <td style="padding: 8px 0;">${data.firstName} ${data.lastName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Email:</strong></td>
+            <td style="padding: 8px 0;"><a href="mailto:${data.email}">${data.email}</a></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Téléphone:</strong></td>
+            <td style="padding: 8px 0;"><a href="tel:${data.phone}">${data.phone}</a></td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #333;">💼 Activité artisanale</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0;"><strong>Catégorie:</strong></td>
+            <td style="padding: 8px 0;">${data.category}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Nature des produits:</strong></td>
+            <td style="padding: 8px 0;">${data.productNature}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Adresse:</strong></td>
+            <td style="padding: 8px 0;">${data.address}, ${data.postalCode} ${data.city}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>SIRET:</strong></td>
+            <td style="padding: 8px 0;">${data.siret}</td>
+          </tr>
+        </table>
+      </div>
+
+      ${data.presentation ? `
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #333;">📝 Présentation</h3>
+        <p style="margin: 0; white-space: pre-wrap;">${data.presentation}</p>
+      </div>
+      ` : ''}
+
+      <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #856404;">📎 Documents justificatifs</h3>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          ${data.documents.kbis ? `
+          <li style="padding: 8px 0;">
+            <strong>Kbis:</strong>
+            <a href="${data.documents.kbis}" target="_blank" style="color: #007bff; text-decoration: none; margin-left: 10px;">
+              📄 Télécharger
+            </a>
+          </li>
+          ` : '<li style="padding: 8px 0; color: #dc3545;">❌ Kbis non fourni</li>'}
+        </ul>
+      </div>
+
+      <div style="margin-top: 30px; text-align: center;">
+        <a href="${process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_URL || 'https://spymeo.fr'}/admin/pros"
+           style="display: inline-block; padding: 15px 30px; background: #28a745; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px;">
+          📋 Gérer dans le panneau admin
+        </a>
+      </div>
+
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #6c757d; font-size: 12px;">
+        <p>Cet email a été envoyé automatiquement depuis SPYMEO.</p>
+      </div>
+    </body>
+    </html>
+  `,
+
+  adminNotificationCommercant: (data: any) => `
+    <!DOCTYPE html>
+    <html>
+    <body style="font-family: Arial, sans-serif; padding: 20px;">
+      <div style="background: #6f42c1; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h2 style="margin: 0;">🏪 Nouvelle candidature Commerçant</h2>
+        <p style="margin: 5px 0 0 0; opacity: 0.9;">Demande d'inscription reçue le ${new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+      </div>
+
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #333;">📋 Informations personnelles</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0;"><strong>Nom complet:</strong></td>
+            <td style="padding: 8px 0;">${data.firstName} ${data.lastName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Email:</strong></td>
+            <td style="padding: 8px 0;"><a href="mailto:${data.email}">${data.email}</a></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Téléphone:</strong></td>
+            <td style="padding: 8px 0;"><a href="tel:${data.phone}">${data.phone}</a></td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #333;">💼 Activité commerciale</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0;"><strong>Catégorie:</strong></td>
+            <td style="padding: 8px 0;">${data.category}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Nature des produits:</strong></td>
+            <td style="padding: 8px 0;">${data.productNature}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Adresse:</strong></td>
+            <td style="padding: 8px 0;">${data.address}, ${data.postalCode} ${data.city}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>SIRET:</strong></td>
+            <td style="padding: 8px 0;">${data.siret}</td>
+          </tr>
+        </table>
+      </div>
+
+      ${data.presentation ? `
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #333;">📝 Présentation</h3>
+        <p style="margin: 0; white-space: pre-wrap;">${data.presentation}</p>
+      </div>
+      ` : ''}
+
+      <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #856404;">📎 Documents justificatifs</h3>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          ${data.documents.kbis ? `
+          <li style="padding: 8px 0;">
+            <strong>Kbis:</strong>
+            <a href="${data.documents.kbis}" target="_blank" style="color: #007bff; text-decoration: none; margin-left: 10px;">
+              📄 Télécharger
+            </a>
+          </li>
+          ` : '<li style="padding: 8px 0; color: #dc3545;">❌ Kbis non fourni</li>'}
+        </ul>
+      </div>
+
+      <div style="margin-top: 30px; text-align: center;">
+        <a href="${process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_URL || 'https://spymeo.fr'}/admin/pros"
+           style="display: inline-block; padding: 15px 30px; background: #28a745; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px;">
+          📋 Gérer dans le panneau admin
+        </a>
+      </div>
+
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #6c757d; font-size: 12px;">
+        <p>Cet email a été envoyé automatiquement depuis SPYMEO.</p>
+      </div>
+    </body>
+    </html>
+  `,
+
+  adminNotificationCenter: (data: any) => `
+    <!DOCTYPE html>
+    <html>
+    <body style="font-family: Arial, sans-serif; padding: 20px;">
+      <div style="background: #20c997; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h2 style="margin: 0;">🎓 Nouvelle candidature Centre de Formation</h2>
+        <p style="margin: 5px 0 0 0; opacity: 0.9;">Demande d'inscription reçue le ${new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+      </div>
+
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #333;">📋 Informations du responsable</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0;"><strong>Nom complet:</strong></td>
+            <td style="padding: 8px 0;">${data.firstName} ${data.lastName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Email:</strong></td>
+            <td style="padding: 8px 0;"><a href="mailto:${data.email}">${data.email}</a></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Téléphone:</strong></td>
+            <td style="padding: 8px 0;"><a href="tel:${data.phone}">${data.phone}</a></td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #333;">💼 Informations sur le centre</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; vertical-align: top;"><strong>Types de formations:</strong></td>
+            <td style="padding: 8px 0;">${data.formationTypes}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>Adresse du centre:</strong></td>
+            <td style="padding: 8px 0;">${data.address}, ${data.postalCode} ${data.city}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0;"><strong>SIRET:</strong></td>
+            <td style="padding: 8px 0;">${data.siret}</td>
+          </tr>
+        </table>
+      </div>
+
+      ${data.presentation ? `
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #333;">📝 Présentation</h3>
+        <p style="margin: 0; white-space: pre-wrap;">${data.presentation}</p>
+      </div>
+      ` : ''}
+
+      <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0; color: #856404;">📎 Documents justificatifs</h3>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          ${data.documents.kbis ? `
+          <li style="padding: 8px 0; border-bottom: 1px solid #ffc107;">
+            <strong>Kbis:</strong>
+            <a href="${data.documents.kbis}" target="_blank" style="color: #007bff; text-decoration: none; margin-left: 10px;">
+              📄 Télécharger
+            </a>
+          </li>
+          ` : '<li style="padding: 8px 0; color: #dc3545;">❌ Kbis non fourni</li>'}
+
+          ${data.documents.certifications ? `
+          <li style="padding: 8px 0;">
+            <strong>Certifications / Agréments:</strong>
+            <a href="${data.documents.certifications}" target="_blank" style="color: #007bff; text-decoration: none; margin-left: 10px;">
+              📄 Télécharger
+            </a>
+          </li>
+          ` : '<li style="padding: 8px 0; color: #dc3545;">❌ Certifications non fournies</li>'}
+        </ul>
+      </div>
+
+      <div style="margin-top: 30px; text-align: center;">
+        <a href="${process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_URL || 'https://spymeo.fr'}/admin/pros"
+           style="display: inline-block; padding: 15px 30px; background: #28a745; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px;">
+          📋 Gérer dans le panneau admin
+        </a>
+      </div>
+
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #6c757d; font-size: 12px;">
+        <p>Cet email a été envoyé automatiquement depuis SPYMEO.</p>
+      </div>
+    </body>
+    </html>
+  `,
+
   candidatureReceived: (data: any) => `
     <!DOCTYPE html>
     <html>
