@@ -31,19 +31,23 @@ export async function POST(request: NextRequest) {
     // Hasher le mot de passe
     const passwordHash = await bcrypt.hash(data.password, 12);
 
+    // Déterminer le rôle et le statut selon le plan
+    const role = data.userPlan === 'PASS' ? 'PASS_USER' : 'FREE_USER';
+    const status = data.userPlan === 'PASS' ? 'PENDING_PAYMENT' : 'ACTIVE';
+
     // Créer l'utilisateur
     const user = await prisma.user.create({
       data: {
         email: data.email.toLowerCase(),
         password: passwordHash,
         name: data.name,
-        role: 'PASS_USER',
-        status: 'ACTIVE',
+        role: role,
+        status: status,
         userPlan: data.userPlan,
       },
     });
 
-    console.log(`[REGISTER] Nouveau compte ${data.userPlan}: ${user.email}`);
+    console.log(`[REGISTER] Nouveau compte ${data.userPlan} (${role}): ${user.email}`);
 
     // Si PASS, rediriger vers paiement
     if (data.userPlan === 'PASS') {
