@@ -3,9 +3,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-09-30.clover',
-});
+function getStripeInstance() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) {
+    throw new Error('STRIPE_SECRET_KEY non configurée');
+  }
+  return new Stripe(secretKey, {
+    apiVersion: '2025-09-30.clover',
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,6 +24,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const stripe = getStripeInstance();
 
     // Récupérer la session Stripe
     const session = await stripe.checkout.sessions.retrieve(sessionId);
