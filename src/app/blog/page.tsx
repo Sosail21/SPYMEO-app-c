@@ -68,48 +68,45 @@ export default function BlogIndex() {
     <main>
       {/* HERO Blog */}
       <section className="post-hero">
-        <div className="post-hero-inner">
-          <div className="post-hero-media" />
-          <div>
-            <span className="badge">SPYM'Blog</span>
-            <h1 className="section-title" style={{ marginTop: 8 }}>
-              Inspirations & repères pour une santé globale
-            </h1>
-            <p className="muted">
-              Des guides pratico-pratiques, des éclairages sans blabla, et des retours d'expérience.
-            </p>
+        <div className="container-spy max-w-4xl mx-auto text-center py-8">
+          <span className="badge">SPYM'Blog</span>
+          <h1 className="section-title" style={{ marginTop: 8 }}>
+            Inspirations & repères pour une santé globale
+          </h1>
+          <p className="muted">
+            Des guides pratico-pratiques, des éclairages sans blabla, et des retours d'expérience.
+          </p>
 
-            <form className="search mt-3" onSubmit={(e) => e.preventDefault()}>
-              <input
-                name="q"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Rechercher un article (ex : sommeil, praticien, local...)"
-              />
-              <button className="btn rounded-full" type="submit">
-                Rechercher
-              </button>
-            </form>
+          <form className="search mt-3 max-w-2xl mx-auto" onSubmit={(e) => e.preventDefault()}>
+            <input
+              name="q"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Rechercher un article (ex : sommeil, praticien, local...)"
+            />
+            <button className="btn rounded-full" type="submit">
+              Rechercher
+            </button>
+          </form>
 
-            <div className="chips-row">
+          <div className="chips-row justify-center">
+            <button
+              type="button"
+              className={`chip ${cat === null ? "is-active" : ""}`}
+              onClick={() => setCat(null)}
+            >
+              Tous
+            </button>
+            {data?.meta.categories.map((c) => (
               <button
+                key={c.name}
                 type="button"
-                className={`chip ${cat === null ? "is-active" : ""}`}
-                onClick={() => setCat(null)}
+                className={`chip ${cat === c.name ? "is-active" : ""}`}
+                onClick={() => setCat(c.name)}
               >
-                Tous
+                {c.name} ({c.count})
               </button>
-              {data?.meta.categories.map((c) => (
-                <button
-                  key={c.name}
-                  type="button"
-                  className={`chip ${cat === c.name ? "is-active" : ""}`}
-                  onClick={() => setCat(c.name)}
-                >
-                  {c.name} ({c.count})
-                </button>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
       </section>
