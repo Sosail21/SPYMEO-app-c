@@ -6,12 +6,23 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 type Role = "FREE_USER" | "PASS_USER" | "PRACTITIONER" | "COMMERCANT" | "ARTISAN" | "CENTER" | "ADMIN";
-type User = { id: string; name: string; email: string; role: Role; passActive?: boolean };
+type UserStatus = "ACTIVE" | "PENDING_VALIDATION" | "PENDING_PAYMENT" | "REJECTED" | "SUSPENDED";
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  status: UserStatus;
+  passActive?: boolean;
+  createdAt?: string;
+  lastLoginAt?: string;
+};
 
 export default function AdminUsersPage() {
-  const { data, loading } = useAdminUsers();
+  const { data, loading, refetch } = useAdminUsers();
   const [q, setQ] = useState("");
   const [role, setRole] = useState<Role | "ALL">("ALL");
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const hay = (q || "").toLowerCase();
@@ -21,12 +32,97 @@ export default function AdminUsersPage() {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [data, q, role]);
 
+  const handleChangeRole = async (userId: string, currentRole: Role) => {
+    const roles: Role[] = ["FREE_USER", "PASS_USER", "PRACTITIONER", "ARTISAN", "COMMERCANT", "CENTER", "ADMIN"];
+    const currentIndex = roles.indexOf(currentRole);
+    const newRole = roles[(currentIndex + 1) % roles.length];
+
+    const confirmed = confirm(`Changer le rôle vers "${labelRole(newRole)}" ?`);
+    if (!confirmed) return;
+
+    setActionLoading(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'changeRole', value: newRole }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        alert('Rôle modifié avec succès !');
+        refetch();
+      } else {
+        alert(`Erreur: ${data.error}`);
+      }
+    } catch (error) {
+      alert('Erreur réseau');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleToggleStatus = async (userId: string, userName: string, currentStatus: UserStatus) => {
+    const newStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+    const confirmed = confirm(
+      `${newStatus === 'SUSPENDED' ? 'Suspendre' : 'Activer'} le compte de "${userName}" ?`
+    );
+    if (!confirmed) return;
+
+    setActionLoading(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggleStatus' }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        alert('Statut modifié avec succès !');
+        refetch();
+      } else {
+        alert(`Erreur: ${data.error}`);
+      }
+    } catch (error) {
+      alert('Erreur réseau');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    const confirmed = confirm(
+      `⚠️ ATTENTION: Supprimer définitivement l'utilisateur "${userName}" ?\n\nCette action est irréversible !`
+    );
+    if (!confirmed) return;
+
+    setActionLoading(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        alert('Utilisateur supprimé avec succès !');
+        refetch();
+      } else {
+        alert(`Erreur: ${data.error}`);
+      }
+    } catch (error) {
+      alert('Erreur réseau');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   return (
     <section className="section">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-semibold text-[#0b1239]">Utilisateurs</h1>
-          <p className="text-slate-600">Listing en lecture, avec actions simples (mock).</p>
+          <p className="text-slate-600">Gérez les utilisateurs : changez les rôles, suspendez ou supprimez des comptes.</p>
         </div>
         <div className="flex gap-2">
           <Link href="/auth/signup" className="btn">+ Nouvel utilisateur</Link>
@@ -62,20 +158,48 @@ export default function AdminUsersPage() {
         {loading ? <ListSkeleton /> : filtered.length === 0 ? <EmptyState /> : (
           <ul className="grid gap-2">
             {filtered.map((u) => (
-              <li key={u.id} className="soft-card p-3 flex items-center justify-between">
-                <div className="min-w-0">
+              <li key={u.id} className="soft-card p-3 flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
                   <div className="font-medium truncate">{u.name}</div>
                   <div className="text-sm text-slate-600 truncate">{u.email}</div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="pill bg-slate-100 text-slate-700">{labelRole(u.role)}</span>
+                  <span className={`pill ${
+                    u.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' :
+                    u.status === 'SUSPENDED' ? 'bg-red-100 text-red-700' :
+                    u.status === 'PENDING_PAYMENT' ? 'bg-amber-100 text-amber-700' :
+                    u.status === 'PENDING_VALIDATION' ? 'bg-blue-100 text-blue-700' :
+                    'bg-gray-100 text-gray-700'
+                  }`}>
+                    {labelStatus(u.status)}
+                  </span>
                   {u.role === "PASS_USER" && (
                     <span className={`pill ${u.passActive ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
                       PASS {u.passActive ? "actif" : "inactif"}
                     </span>
                   )}
-                  <button className="pill pill-muted" onClick={() => alert("Toggle rôle (mock)")}>Changer rôle</button>
-                  <button className="pill pill-muted" onClick={() => alert("Désactiver (mock)")}>Désactiver</button>
+                  <button
+                    className="pill pill-muted hover:bg-slate-200"
+                    onClick={() => handleChangeRole(u.id, u.role)}
+                    disabled={actionLoading === u.id}
+                  >
+                    {actionLoading === u.id ? '...' : 'Changer rôle'}
+                  </button>
+                  <button
+                    className={`pill ${u.status === 'ACTIVE' ? 'pill-muted hover:bg-red-100' : 'pill-muted hover:bg-green-100'}`}
+                    onClick={() => handleToggleStatus(u.id, u.name, u.status)}
+                    disabled={actionLoading === u.id}
+                  >
+                    {actionLoading === u.id ? '...' : u.status === 'ACTIVE' ? 'Suspendre' : 'Activer'}
+                  </button>
+                  <button
+                    className="pill pill-muted hover:bg-red-100 text-red-600"
+                    onClick={() => handleDeleteUser(u.id, u.name)}
+                    disabled={actionLoading === u.id}
+                  >
+                    {actionLoading === u.id ? '...' : 'Supprimer'}
+                  </button>
                 </div>
               </li>
             ))}
@@ -95,6 +219,16 @@ function labelRole(r: Role) {
     case "ARTISAN": return "Artisan";
     case "CENTER": return "Centre";
     case "ADMIN": return "Admin";
+  }
+}
+
+function labelStatus(s: UserStatus) {
+  switch (s) {
+    case "ACTIVE": return "Actif";
+    case "SUSPENDED": return "Suspendu";
+    case "PENDING_VALIDATION": return "En attente validation";
+    case "PENDING_PAYMENT": return "En attente paiement";
+    case "REJECTED": return "Rejeté";
   }
 }
 
@@ -126,30 +260,28 @@ function EmptyState() {
 function useAdminUsers() {
   const [data, setData] = useState<User[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refetch = () => setRefreshKey(prev => prev + 1);
+
   useEffect(() => {
     let cancel = false;
+    setLoading(true);
     (async () => {
       try {
         const r = await fetch("/api/admin/users", { cache: "no-store" });
         if (!r.ok) throw new Error();
         const json = await r.json();
         if (!cancel) setData(json?.users ?? []);
-      } catch {
-        if (!cancel) setData(MOCK_USERS);
+      } catch (error) {
+        console.error('[ADMIN_USERS] Error fetching users:', error);
+        if (!cancel) setData([]);
       } finally {
         if (!cancel) setLoading(false);
       }
     })();
     return () => { cancel = true; };
-  }, []);
-  return { data, loading };
-}
+  }, [refreshKey]);
 
-const MOCK_USERS: User[] = [
-  { id: "u1", name: "Alice Martin", email: "alice@ex.com", role: "PASS_USER", passActive: true },
-  { id: "u2", name: "Bob Durand", email: "bob@ex.com", role: "FREE_USER" },
-  { id: "u3", name: "Dr. Léa Roche", email: "lea@ex.com", role: "PRACTITIONER" },
-  { id: "u4", name: "ÉcoBoutique", email: "shop@ex.com", role: "COMMERCANT" },
-  { id: "u5", name: "Atelier Bois", email: "atelier@ex.com", role: "ARTISAN" },
-  { id: "u6", name: "FormaZen", email: "center@ex.com", role: "CENTER" },
-];
+  return { data, loading, refetch };
+}
