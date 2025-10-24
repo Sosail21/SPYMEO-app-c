@@ -32,9 +32,9 @@ function PaymentSuccessContent() {
 
         if (data.success) {
           setLoading(false);
-          // Rediriger vers le dashboard après 3 secondes
+          // Rediriger vers le tableau de bord PASS après 3 secondes
           setTimeout(() => {
-            router.push('/dashboard');
+            router.push('/pass/tableau-de-bord');
           }, 3000);
         } else {
           setError(data.error || 'Erreur lors de la vérification du paiement');
