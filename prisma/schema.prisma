@@ -516,6 +516,7 @@ model Client {
   consultations Consultation[]
   documents     Document[]     @relation("ClientDocuments")
   invoices      Invoice[]
+  appointments  Appointment[]  @relation("ClientAppointments")
 
   totalVisits Int       @default(0)
   lastVisitAt DateTime?
@@ -580,6 +581,8 @@ model Appointment {
   user   User   @relation("UserAppointments", fields: [userId], references: [id], onDelete: Cascade)
 
   practitionerId String?
+  clientId       String?
+  client         Client? @relation("ClientAppointments", fields: [clientId], references: [id], onDelete: SetNull)
 
   title       String
   description String?
@@ -587,12 +590,13 @@ model Appointment {
   endAt       DateTime?
   location    String?
 
-  status String @default("SCHEDULED") // SCHEDULED, CONFIRMED, CANCELLED, COMPLETED
+  status String @default("SCHEDULED") // SCHEDULED, CONFIRMED, CANCELLED, COMPLETED, NO_SHOW
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([clientId])
   @@index([startAt])
   @@index([status])
   @@map("appointments")

@@ -8,7 +8,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import type { EventDropArg, DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import frLocale from "@fullcalendar/core/locales/fr";
-import EventModal from "./EventModal";
+import AppointmentModal from "./AppointmentModal";
 
 type Event = {
   id: string;
@@ -19,6 +19,8 @@ type Event = {
     description?: string;
     location?: string;
     status?: string;
+    clientId?: string;
+    clientName?: string;
   };
 };
 
@@ -113,11 +115,28 @@ export default function AgendaShell() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce rendez-vous ?")) {
-      return;
-    }
+  const handleUpdate = async (id: string, updateData: any) => {
+    try {
+      const res = await fetch(`/api/agenda/events/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updateData),
+      });
 
+      const data = await res.json();
+
+      if (data.success && data.event) {
+        setEvents((prev) => prev.map((e) => (e.id === id ? data.event : e)));
+      } else {
+        throw new Error(data.error || "Erreur lors de la mise à jour");
+      }
+    } catch (error) {
+      console.error("Error updating event:", error);
+      throw error;
+    }
+  };
+
+  const handleDelete = async (id: string) => {
     try {
       const res = await fetch(`/api/agenda/events/${id}`, {
         method: "DELETE",
@@ -127,13 +146,12 @@ export default function AgendaShell() {
 
       if (data.success) {
         setEvents((prev) => prev.filter((e) => e.id !== id));
-        setModal({ open: false });
       } else {
-        alert("Erreur lors de la suppression du rendez-vous");
+        throw new Error(data.error || "Erreur lors de la suppression");
       }
     } catch (error) {
       console.error("Error deleting event:", error);
-      alert("Erreur lors de la suppression du rendez-vous");
+      throw error;
     }
   };
 
@@ -188,10 +206,11 @@ export default function AgendaShell() {
         eventTimeFormat={{ hour: "2-digit", minute: "2-digit", hour12: false }}
       />
 
-      <EventModal
+      <AppointmentModal
         open={modal.open}
         onClose={() => setModal({ open: false })}
-        event={selectedEvent}
+        appointment={selectedEvent}
+        onUpdate={handleUpdate}
         onDelete={handleDelete}
       />
     </div>

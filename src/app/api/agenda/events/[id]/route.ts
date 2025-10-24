@@ -45,7 +45,7 @@ export async function PATCH(req: NextRequest, context: Ctx) {
     }
 
     const body = await req.json();
-    const { title, description, start, end, location, status } = body;
+    const { title, description, start, end, location, status, clientId } = body;
 
     // Construire les données de mise à jour
     const updateData: any = {};
@@ -55,11 +55,21 @@ export async function PATCH(req: NextRequest, context: Ctx) {
     if (end !== undefined) updateData.endAt = end ? new Date(end) : null;
     if (location !== undefined) updateData.location = location;
     if (status !== undefined) updateData.status = status;
+    if (clientId !== undefined) updateData.clientId = clientId || null;
 
     // Mettre à jour l'appointment
     const appointment = await prisma.appointment.update({
       where: { id },
       data: updateData,
+      include: {
+        client: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json({
@@ -73,6 +83,8 @@ export async function PATCH(req: NextRequest, context: Ctx) {
           description: appointment.description,
           location: appointment.location,
           status: appointment.status,
+          clientId: appointment.clientId,
+          clientName: appointment.client ? `${appointment.client.firstName} ${appointment.client.lastName}` : undefined,
         },
       },
     });

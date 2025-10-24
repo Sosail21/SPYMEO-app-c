@@ -24,15 +24,14 @@ export async function GET(req: NextRequest) {
     const appointments = await prisma.appointment.findMany({
       where: { userId },
       orderBy: { startAt: "asc" },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        startAt: true,
-        endAt: true,
-        location: true,
-        status: true,
-        practitionerId: true,
+      include: {
+        client: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
       },
     });
 
@@ -47,6 +46,8 @@ export async function GET(req: NextRequest) {
         location: apt.location,
         status: apt.status,
         practitionerId: apt.practitionerId,
+        clientId: apt.clientId,
+        clientName: apt.client ? `${apt.client.firstName} ${apt.client.lastName}` : undefined,
       },
     }));
 
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest) {
     const userId = session.id;
 
     const body = await req.json();
-    const { title, description, start, end, location, status } = body;
+    const { title, description, start, end, location, status, clientId } = body;
 
     if (!title || !start) {
       return NextResponse.json(
@@ -96,6 +97,16 @@ export async function POST(req: NextRequest) {
         endAt: end ? new Date(end) : null,
         location: location || null,
         status: status || "SCHEDULED",
+        clientId: clientId || null,
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
       },
     });
 
@@ -110,6 +121,8 @@ export async function POST(req: NextRequest) {
           description: appointment.description,
           location: appointment.location,
           status: appointment.status,
+          clientId: appointment.clientId,
+          clientName: appointment.client ? `${appointment.client.firstName} ${appointment.client.lastName}` : undefined,
         },
       },
     });
