@@ -193,17 +193,27 @@ export default function BlogIndex() {
               <section className="soft-card p-4">
                 <h3 className="m-0 mb-2">Les plus populaires</h3>
                 <ul className="grid gap-3">
-                  {data.meta.popular.map((p) => (
-                    <li key={p.slug} className="grid grid-cols-[56px_1fr] gap-3 items-center">
-                      <span className="block w-14 h-14 rounded-md bg-[linear-gradient(135deg,#17a2b8,#5ce0ee)]" />
-                      <div className="grid">
-                        <Link className="font-semibold leading-tight hover:underline" href={`/blog/${p.slug}`}>
-                          {p.title}
-                        </Link>
-                        <span className="text-sm text-muted">{abbrViews(p.views)} vues · {p.readingMinutes} min</span>
-                      </div>
-                    </li>
-                  ))}
+                  {data.meta.popular.map((p) => {
+                    const fullPost = data.posts.find(post => post.slug === p.slug);
+                    return (
+                      <li key={p.slug} className="grid grid-cols-[56px_1fr] gap-3 items-center">
+                        <div
+                          className="block w-14 h-14 rounded-md bg-[linear-gradient(135deg,#17a2b8,#5ce0ee)] overflow-hidden"
+                          style={fullPost?.coverImage ? {
+                            backgroundImage: `url(${fullPost.coverImage})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center'
+                          } : {}}
+                        />
+                        <div className="grid">
+                          <Link className="font-semibold leading-tight hover:underline" href={`/blog/${p.slug}`}>
+                            {p.title}
+                          </Link>
+                          <span className="text-sm text-muted">{abbrViews(p.views)} vues · {p.readingMinutes} min</span>
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
             )}
