@@ -50,6 +50,7 @@ export async function uploadFileToS3(params: UploadFileParams): Promise<string> 
     Key: key,
     Body: buffer,
     ContentType: file.type,
+    ACL: 'public-read', // Rendre le fichier accessible publiquement
   });
 
   try {
