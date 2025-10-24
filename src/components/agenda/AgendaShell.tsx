@@ -9,6 +9,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import type { EventDropArg, DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import frLocale from "@fullcalendar/core/locales/fr";
 import AppointmentModal from "./AppointmentModal";
+import CreateAppointmentModal, { type AppointmentData } from "./CreateAppointmentModal";
 
 type Event = {
   id: string;
@@ -28,6 +29,10 @@ export default function AgendaShell() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<{ open: boolean; id?: string }>({ open: false });
+  const [createModal, setCreateModal] = useState<{
+    open: boolean;
+    initialData?: { start: string; end?: string };
+  }>({ open: false });
 
   // Charger les événements depuis l'API
   useEffect(() => {
@@ -49,34 +54,37 @@ export default function AgendaShell() {
     }
   }
 
-  const handleDateSelect = async (selectInfo: DateSelectArg) => {
-    const title = prompt("Titre du rendez-vous ?");
+  const handleDateSelect = (selectInfo: DateSelectArg) => {
     const calendarApi = selectInfo.view.calendar;
     calendarApi.unselect();
 
-    if (!title) return;
+    setCreateModal({
+      open: true,
+      initialData: {
+        start: selectInfo.startStr,
+        end: selectInfo.endStr || undefined,
+      },
+    });
+  };
 
+  const handleCreateAppointment = async (data: AppointmentData) => {
     try {
       const res = await fetch("/api/agenda/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          start: selectInfo.startStr,
-          end: selectInfo.endStr || undefined,
-        }),
+        body: JSON.stringify(data),
       });
 
-      const data = await res.json();
+      const result = await res.json();
 
-      if (data.success && data.event) {
-        setEvents((prev) => [...prev, data.event]);
+      if (result.success && result.event) {
+        setEvents((prev) => [...prev, result.event]);
       } else {
-        alert("Erreur lors de la création du rendez-vous");
+        throw new Error(result.error || "Erreur lors de la création");
       }
     } catch (error) {
-      console.error("Error creating event:", error);
-      alert("Erreur lors de la création du rendez-vous");
+      console.error("Error creating appointment:", error);
+      throw error;
     }
   };
 
@@ -212,6 +220,13 @@ export default function AgendaShell() {
         appointment={selectedEvent}
         onUpdate={handleUpdate}
         onDelete={handleDelete}
+      />
+
+      <CreateAppointmentModal
+        open={createModal.open}
+        onClose={() => setCreateModal({ open: false })}
+        onSubmit={handleCreateAppointment}
+        initialData={createModal.initialData}
       />
     </div>
   );
