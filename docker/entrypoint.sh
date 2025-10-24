@@ -25,14 +25,20 @@ run_migrations() {
     if grep -q "P3009" /tmp/migrate_output.log || grep -q "failed migrations" /tmp/migrate_output.log; then
       echo "[entrypoint] Detected failed migration, attempting to resolve..."
 
-      # Extraire le nom de la migration échouée
-      FAILED_MIGRATION=$(grep -oP "The \`\K[^']*(?=' migration.*failed)" /tmp/migrate_output.log | head -1)
+      # Extraire le nom de la migration échouée (entre backticks)
+      FAILED_MIGRATION=$(grep "migration started at" /tmp/migrate_output.log | awk -F'`' '{print $2}' | head -1)
 
       if [ -n "$FAILED_MIGRATION" ]; then
         echo "[entrypoint] Resolving failed migration: $FAILED_MIGRATION"
-        npx prisma migrate resolve --rolled-back "$FAILED_MIGRATION" || true
-        echo "[entrypoint] Retrying migration deployment..."
-        continue
+        if npx prisma migrate resolve --rolled-back "$FAILED_MIGRATION"; then
+          echo "[entrypoint] Migration marked as rolled back, retrying deployment..."
+          sleep 2
+          continue
+        else
+          echo "[entrypoint] Failed to resolve migration"
+        fi
+      else
+        echo "[entrypoint] Could not extract migration name from error"
       fi
     fi
 
