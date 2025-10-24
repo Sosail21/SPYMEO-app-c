@@ -95,6 +95,9 @@ model User {
   notes        Note[]
   favorites    Favorite[]
 
+  blogPosts BlogPost[] @relation("BlogPostAuthor")
+  blogLikes BlogLike[]
+
   @@index([email])
   @@index([role])
   @@map("users")
@@ -793,7 +796,7 @@ model Favorite {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  targetType String // PRACTITIONER, ARTISAN, MERCHANT, CENTER, PRODUCT
+  targetType String // PRACTITIONER, ARTISAN, MERCHANT, CENTER, PRODUCT, BLOG_POST
   targetId   String
   targetSlug String?
 
@@ -803,6 +806,72 @@ model Favorite {
   @@index([userId])
   @@index([targetType, targetId])
   @@map("favorites")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BLOG
+// ═══════════════════════════════════════════════════════════════
+
+enum BlogPostStatus {
+  DRAFT
+  SUBMITTED
+  NEEDS_CHANGES
+  REJECTED
+  PUBLISHED
+}
+
+model BlogPost {
+  id     String @id @default(cuid())
+  slug   String @unique
+  title  String
+  excerpt String?
+  content String? // Contenu markdown/html
+  coverImage String? // URL de l'image de couverture
+
+  status BlogPostStatus @default(DRAFT)
+
+  // Auteur
+  authorId String
+  author   User   @relation("BlogPostAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  authorName String? // "Équipe SPYMEO" ou "Prénom Nom" du praticien
+
+  // Catégorie et tags
+  category String?
+  tags     String[] // tableau de strings
+
+  // Métriques
+  views Int @default(0)
+  readingMinutes Int @default(5)
+
+  // Dates
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  likes BlogLike[]
+
+  @@index([authorId])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([category])
+  @@map("blog_posts")
+}
+
+model BlogLike {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  postId String
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+  @@map("blog_likes")
 }
 
 // ═══════════════════════════════════════════════════════════════
