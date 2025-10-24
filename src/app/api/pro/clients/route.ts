@@ -193,7 +193,6 @@ export async function POST(req: NextRequest) {
     const client = await prisma.client.create({
       data: {
         practitionerId,
-        userId: existingUser?.id || null,
         firstName,
         lastName,
         email: email || null,

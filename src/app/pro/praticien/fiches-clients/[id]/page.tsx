@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ClientTabs from "@/components/patient/ClientTabs";
 
-type Client = {
+type ApiClient = {
   id: string;
   firstName: string;
   lastName: string;
@@ -15,6 +15,7 @@ type Client = {
   antecedents: string[];
   totalVisits: number;
   lastVisitAt: string | null;
+  createdAt: string;
   consultations?: Array<{
     id: string;
     date: string;
@@ -43,7 +44,7 @@ export default function ClientDetailsPage() {
   const router = useRouter();
   const clientId = params.id as string;
 
-  const [client, setClient] = useState<Client | null>(null);
+  const [client, setClient] = useState<ApiClient | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -418,7 +419,36 @@ export default function ClientDetailsPage() {
       {/* Onglets détaillés */}
       <div className="mt-8">
         <ClientTabs client={{
-          ...client,
+          id: client.id,
+          firstName: client.firstName,
+          lastName: client.lastName,
+          email: client.email || undefined,
+          phone: client.phone || undefined,
+          address: client.address || undefined,
+          birthDate: client.birthDate || undefined,
+          createdAt: client.createdAt,
+          antecedents: client.antecedents || [],
+          consultations: client.consultations?.map(c => ({
+            id: c.id,
+            clientId: client.id,
+            date: c.date,
+            motif: c.motif || undefined,
+            notes: c.notes || undefined,
+          })),
+          documents: client.documents?.map(d => ({
+            id: d.id,
+            title: d.title,
+            url: d.url,
+            type: d.type,
+            createdAt: d.createdAt,
+          })),
+          invoices: client.invoices?.map(inv => ({
+            id: inv.id,
+            clientId: client.id,
+            amount: inv.amount,
+            status: inv.status as "pending" | "paid" | "cancelled",
+            date: inv.createdAt,
+          })),
           stats: {
             totalVisits: client.totalVisits,
             lastVisit: client.lastVisitAt ? new Date(client.lastVisitAt).toLocaleDateString("fr-FR") : undefined,
