@@ -3,8 +3,40 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+
+type BlogPost = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  coverImage?: string;
+  publishedAt: string;
+  readingMinutes: number;
+  likesCount: number;
+};
 
 export default function Home() {
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [blogLoading, setBlogLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchBlogPosts() {
+      try {
+        const res = await fetch('/api/blog/posts?limit=3');
+        const json = await res.json();
+        if (json.success && json.posts) {
+          setBlogPosts(json.posts.slice(0, 3));
+        }
+      } catch (error) {
+        console.error('Error fetching blog posts:', error);
+      } finally {
+        setBlogLoading(false);
+      }
+    }
+
+    fetchBlogPosts();
+  }, []);
   return (
     <main>
       {/* ===== HERO / MEGA SEARCH ===== */}
@@ -151,30 +183,58 @@ export default function Home() {
             <h2 className="section-title m-0">Derniers articles</h2>
             <Link href="/blog" className="pill pill-ghost">Voir le blog</Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {POSTS.map((p, idx) => (
-              <Link
-                key={p.href}
-                href={p.href}
-                className="post-card transition duration-200 ease-out hover:-translate-y-0.5 hover:scale-[1.01] hover:shadow-[0_14px_36px_rgba(11,18,57,0.12)]"
-              >
-                <div className="relative aspect-[16/9] w-full">
-                  <Image
-                    src={p.img}
-                    alt={p.alt}
-                    fill
-                    sizes="(min-width: 768px) 33vw, 100vw"
-                    className="object-cover"
-                    priority={idx === 0}
-                  />
+          {blogLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="post-card animate-pulse">
+                  <div className="aspect-[16/9] w-full bg-slate-200 rounded" />
+                  <div className="post-body">
+                    <div className="h-4 bg-slate-200 rounded w-3/4 mb-2" />
+                    <div className="h-3 bg-slate-100 rounded w-full" />
+                  </div>
                 </div>
-                <div className="post-body">
-                  <h3 className="font-semibold">{p.t}</h3>
-                  <p className="text-muted">{p.d}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : blogPosts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {blogPosts.map((post, idx) => (
+                <Link
+                  key={post.id}
+                  href={`/blog/${post.slug}`}
+                  className="post-card transition duration-200 ease-out hover:-translate-y-0.5 hover:scale-[1.01] hover:shadow-[0_14px_36px_rgba(11,18,57,0.12)]"
+                >
+                  {post.coverImage ? (
+                    <div className="relative aspect-[16/9] w-full">
+                      <Image
+                        src={post.coverImage}
+                        alt={post.title}
+                        fill
+                        sizes="(min-width: 768px) 33vw, 100vw"
+                        className="object-cover"
+                        priority={idx === 0}
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-[16/9] w-full bg-gradient-to-br from-accent to-blue-400" />
+                  )}
+                  <div className="post-body">
+                    <div className="flex items-center gap-2 text-xs text-muted mb-1">
+                      <span>{post.readingMinutes} min</span>
+                      <span>•</span>
+                      <span>❤️ {post.likesCount}</span>
+                    </div>
+                    <h3 className="font-semibold">{post.title}</h3>
+                    <p className="text-muted">{post.excerpt}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="soft-card p-8 text-center">
+              <p className="text-muted">Aucun article publié pour le moment.</p>
+              <Link href="/blog" className="btn mt-4">Voir le blog</Link>
+            </div>
+          )}
         </div>
       </section>
 
