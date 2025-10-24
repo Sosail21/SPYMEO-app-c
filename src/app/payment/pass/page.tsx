@@ -73,11 +73,11 @@ function PassPaymentContent() {
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <div
             onClick={() => setSelectedPlan('monthly')}
-            className={\`cursor-pointer p-6 rounded-lg border-2 transition-all \${
+            className={`cursor-pointer p-6 rounded-lg border-2 transition-all ${
               selectedPlan === 'monthly'
                 ? 'border-accent bg-accent/5 shadow-lg'
                 : 'border-gray-200 hover:border-gray-300'
-            }\`}
+            }`}
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold">PASS Mensuel</h3>
@@ -98,11 +98,11 @@ function PassPaymentContent() {
 
           <div
             onClick={() => setSelectedPlan('annual')}
-            className={\`cursor-pointer p-6 rounded-lg border-2 transition-all relative \${
+            className={`cursor-pointer p-6 rounded-lg border-2 transition-all relative ${
               selectedPlan === 'annual'
                 ? 'border-accent bg-accent/5 shadow-lg'
                 : 'border-gray-200 hover:border-gray-300'
-            }\`}
+            }`}
           >
             <div className="absolute -top-3 right-4 px-3 py-1 bg-green-500 text-white text-xs rounded-full font-semibold">
               Économisez {monthlySavings} €
@@ -176,7 +176,7 @@ function PassPaymentContent() {
               'Redirection vers le paiement...'
             ) : (
               <>
-                🔒 Payer {selectedPlan === 'monthly' ? \`\${monthlyPrice} €/mois\` : \`\${annualPrice} €/an\`}
+                🔒 Payer {selectedPlan === 'monthly' ? `${monthlyPrice} €/mois` : `${annualPrice} €/an`}
               </>
             )}
           </button>
