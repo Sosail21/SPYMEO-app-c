@@ -2,12 +2,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
+import { COOKIE_NAME } from '@/lib/auth/session';
 
 // Helper pour vérifier si l'utilisateur est admin
 async function checkAdmin() {
   try {
     const cookieStore = cookies();
-    const sessionCookie = cookieStore.get('__spy_session');
+    const sessionCookie = cookieStore.get(COOKIE_NAME);
 
     if (!sessionCookie) {
       console.log('[ADMIN_BLOG] Pas de cookie de session');

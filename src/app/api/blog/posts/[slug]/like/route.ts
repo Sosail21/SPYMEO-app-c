@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
+import { COOKIE_NAME } from '@/lib/auth/session';
 
 type RouteContext = {
   params: {
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     // Get user session from cookies
     const cookieStore = cookies();
-    const sessionCookie = cookieStore.get('__spy_session');
+    const sessionCookie = cookieStore.get(COOKIE_NAME);
 
     if (!sessionCookie) {
       return NextResponse.json(

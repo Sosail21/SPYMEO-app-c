@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
+import { COOKIE_NAME } from '@/lib/auth/session';
 
 type RouteContext = {
   params: {
@@ -13,7 +14,7 @@ type RouteContext = {
 async function checkAdmin() {
   try {
     const cookieStore = cookies();
-    const sessionCookie = cookieStore.get('__spy_session');
+    const sessionCookie = cookieStore.get(COOKIE_NAME);
 
     if (!sessionCookie) {
       console.log('[ADMIN_BLOG_EDIT] Pas de cookie de session');

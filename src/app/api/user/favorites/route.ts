@@ -2,11 +2,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
+import { COOKIE_NAME } from '@/lib/auth/session';
 
 async function getUser() {
   try {
     const cookieStore = cookies();
-    const sessionCookie = cookieStore.get('__spy_session');
+    const sessionCookie = cookieStore.get(COOKIE_NAME);
     if (!sessionCookie) return null;
 
     const session = JSON.parse(sessionCookie.value);
