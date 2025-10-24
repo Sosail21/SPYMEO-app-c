@@ -45,12 +45,13 @@ export async function uploadFileToS3(params: UploadFileParams): Promise<string> 
   const buffer = Buffer.from(arrayBuffer);
 
   // Upload vers S3
+  // Note: ACL non utilisé car le bucket a "Object Ownership: Bucket owner enforced"
+  // Les permissions publiques sont gérées via la Bucket Policy
   const command = new PutObjectCommand({
     Bucket: BUCKET_NAME,
     Key: key,
     Body: buffer,
     ContentType: file.type,
-    ACL: 'public-read', // Rendre le fichier accessible publiquement
   });
 
   try {
