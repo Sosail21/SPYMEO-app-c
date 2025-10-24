@@ -59,9 +59,15 @@ export async function uploadFileToS3(params: UploadFileParams): Promise<string> 
     await s3Client.send(command);
 
     // Retourner l'URL du fichier
-    const fileUrl = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION || 'eu-west-3'}.amazonaws.com/${key}`;
+    // Si CloudFront est configuré, utiliser le domaine CloudFront
+    // Sinon, utiliser l'URL S3 directe
+    const cloudFrontDomain = process.env.CLOUDFRONT_DOMAIN;
+    const fileUrl = cloudFrontDomain
+      ? `https://${cloudFrontDomain}/${key}`
+      : `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION || 'eu-west-3'}.amazonaws.com/${key}`;
 
     console.log(`[S3] ✅ Fichier uploadé avec succès : ${fileUrl}`);
+    console.log(`[S3] Using ${cloudFrontDomain ? 'CloudFront' : 'S3 direct'} URL`);
     return fileUrl;
   } catch (error: any) {
     console.error('[S3] ❌ Erreur upload:', {
@@ -81,7 +87,10 @@ export async function uploadFileToS3(params: UploadFileParams): Promise<string> 
  * (À implémenter si besoin de fichiers privés)
  */
 export async function getSignedUrl(key: string): Promise<string> {
-  // À implémenter avec GetObjectCommand + getSignedUrl
+  // À implémenter avec GetObjectCommand + getSignedUrl si nécessaire
   // Pour l'instant, on retourne l'URL publique
-  return `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION || 'eu-west-3'}.amazonaws.com/${key}`;
+  const cloudFrontDomain = process.env.CLOUDFRONT_DOMAIN;
+  return cloudFrontDomain
+    ? `https://${cloudFrontDomain}/${key}`
+    : `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION || 'eu-west-3'}.amazonaws.com/${key}`;
 }
