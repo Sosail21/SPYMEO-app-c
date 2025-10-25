@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { COOKIE_NAME } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { notifyAppointmentCancelled } from "@/lib/notifications";
+import { sendAppointmentCancellationEmail } from "@/lib/email";
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -194,16 +195,37 @@ export async function PATCH(req: NextRequest, context: Context) {
 
     const clientIds = clients.map((c) => c.id);
 
-    // Get appointment
+    // Get appointment with practitioner and client details
     const appointment = await prisma.appointment.findUnique({
       where: { id },
       select: {
         id: true,
         title: true,
         startAt: true,
+        endAt: true,
         status: true,
         clientId: true,
         userId: true,
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            practitionerProfile: {
+              select: {
+                publicName: true,
+              },
+            },
+          },
+        },
+        client: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
       },
     });
 
@@ -267,6 +289,31 @@ export async function PATCH(req: NextRequest, context: Context) {
       appointment.title,
       "client"
     );
+
+    // Send email to practitioner
+    if (appointment.user.email) {
+      const practitionerName =
+        appointment.user.practitionerProfile?.publicName ||
+        `${appointment.user.firstName || ""} ${appointment.user.lastName || ""}`.trim() ||
+        "Praticien";
+      const clientName = appointment.client
+        ? `${appointment.client.firstName} ${appointment.client.lastName}`
+        : "Client";
+
+      try {
+        await sendAppointmentCancellationEmail({
+          to: appointment.user.email,
+          practitionerName,
+          clientName,
+          appointmentTitle: appointment.title,
+          appointmentDate: appointment.startAt,
+          cancelledBy: "client",
+        });
+      } catch (emailError) {
+        console.error("[PATCH /api/user/appointments/[id]] Email error:", emailError);
+        // Continue even if email fails
+      }
+    }
 
     return NextResponse.json({
       success: true,

@@ -525,6 +525,15 @@ export default function ClientDetailsPage() {
                 notes: a.description || undefined,
               })) || []),
           ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+          appointments: client.appointments?.map(a => ({
+            id: a.id,
+            title: a.title,
+            startAt: a.startAt,
+            endAt: a.endAt,
+            status: a.status,
+            description: a.description,
+            location: a.location,
+          })),
           documents: client.documents?.map(d => ({
             id: d.id,
             title: d.title,

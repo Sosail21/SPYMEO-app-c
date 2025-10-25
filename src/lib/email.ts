@@ -582,4 +582,105 @@ export const emailTemplates = {
     </body>
     </html>
   `,
+
+  appointmentCancellation: (data: {
+    practitionerName: string;
+    clientName: string;
+    appointmentTitle: string;
+    appointmentDate: Date;
+    cancelledBy: 'client' | 'practitioner';
+  }) => `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9;">
+      <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 30px 20px; text-align: center;">
+          <div style="font-size: 48px; margin-bottom: 10px;">🚫</div>
+          <h1 style="margin: 0; font-size: 28px; font-weight: 600;">Rendez-vous annulé</h1>
+        </div>
+
+        <!-- Content -->
+        <div style="padding: 30px 20px;">
+          <p style="font-size: 16px; color: #333; line-height: 1.6; margin: 0 0 20px 0;">
+            Bonjour <strong>${data.practitionerName}</strong>,
+          </p>
+
+          <p style="font-size: 16px; color: #333; line-height: 1.6; margin: 0 0 20px 0;">
+            Un rendez-vous a été annulé par ${data.cancelledBy === 'client' ? 'votre client' : 'vous'}.
+          </p>
+
+          <!-- Appointment Details Box -->
+          <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h2 style="margin: 0 0 15px 0; font-size: 18px; color: #333;">Détails du rendez-vous annulé</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; color: #6c757d; font-weight: 500;">Client :</td>
+                <td style="padding: 8px 0; color: #333; font-weight: 600;">${data.clientName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #6c757d; font-weight: 500;">Consultation :</td>
+                <td style="padding: 8px 0; color: #333; font-weight: 600;">${data.appointmentTitle}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #6c757d; font-weight: 500;">Date et heure :</td>
+                <td style="padding: 8px 0; color: #333; font-weight: 600;">${new Date(data.appointmentDate).toLocaleString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #6c757d; font-weight: 500;">Annulé par :</td>
+                <td style="padding: 8px 0; color: #333; font-weight: 600;">${data.cancelledBy === 'client' ? 'Client' : 'Praticien'}</td>
+              </tr>
+            </table>
+          </div>
+
+          <p style="font-size: 14px; color: #6c757d; line-height: 1.6; margin: 20px 0;">
+            ${data.cancelledBy === 'client'
+              ? 'Le créneau horaire est maintenant disponible pour d\'autres réservations. Vous pouvez le libérer définitivement depuis votre agenda en supprimant le rendez-vous annulé.'
+              : 'Le client a été informé de l\'annulation.'}
+          </p>
+
+          <!-- CTA Button -->
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.NEXT_PUBLIC_URL || 'https://spymeo.fr'}/pro/praticien/agenda"
+               style="display: inline-block; padding: 14px 32px; background: #ef4444; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+              📅 Voir mon agenda
+            </a>
+          </div>
+
+          <!-- Footer -->
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0; font-size: 14px; color: #6c757d; line-height: 1.6;">
+              Cet email vous a été envoyé par <strong>SPYMEO</strong> suite à l'annulation d'un rendez-vous.
+            </p>
+            <p style="margin: 10px 0 0 0; font-size: 14px; color: #6c757d;">
+              © ${new Date().getFullYear()} SPYMEO - Plateforme de santé holistique
+            </p>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `,
 };
+
+/**
+ * Send appointment cancellation email to practitioner
+ */
+export async function sendAppointmentCancellationEmail(data: {
+  to: string;
+  practitionerName: string;
+  clientName: string;
+  appointmentTitle: string;
+  appointmentDate: Date;
+  cancelledBy: 'client' | 'practitioner';
+}) {
+  return sendEmail({
+    to: data.to,
+    subject: `🚫 Rendez-vous annulé - ${data.clientName}`,
+    html: emailTemplates.appointmentCancellation(data),
+  });
+}
