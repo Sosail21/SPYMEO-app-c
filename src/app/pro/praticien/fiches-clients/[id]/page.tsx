@@ -23,6 +23,15 @@ type ApiClient = {
     notes: string | null;
     duration: number | null;
   }>;
+  appointments?: Array<{
+    id: string;
+    title: string;
+    startAt: string;
+    endAt: string | null;
+    status: string;
+    description: string | null;
+    location: string | null;
+  }>;
   documents?: Array<{
     id: string;
     title: string;
@@ -428,13 +437,26 @@ export default function ClientDetailsPage() {
           birthDate: client.birthDate || undefined,
           createdAt: client.createdAt,
           antecedents: client.antecedents || [],
-          consultations: client.consultations?.map(c => ({
-            id: c.id,
-            clientId: client.id,
-            date: c.date,
-            motif: c.motif || undefined,
-            notes: c.notes || undefined,
-          })),
+          consultations: [
+            // Consultations existantes
+            ...(client.consultations?.map(c => ({
+              id: c.id,
+              clientId: client.id,
+              date: c.date,
+              motif: c.motif || undefined,
+              notes: c.notes || undefined,
+            })) || []),
+            // Appointments complétés comme consultations
+            ...(client.appointments
+              ?.filter(a => a.status === "COMPLETED")
+              .map(a => ({
+                id: a.id,
+                clientId: client.id,
+                date: a.startAt,
+                motif: a.title,
+                notes: a.description || undefined,
+              })) || []),
+          ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
           documents: client.documents?.map(d => ({
             id: d.id,
             title: d.title,

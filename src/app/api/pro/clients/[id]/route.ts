@@ -59,6 +59,18 @@ export async function GET(req: NextRequest, context: Context) {
             duration: true,
           },
         },
+        appointments: {
+          orderBy: { startAt: "desc" },
+          select: {
+            id: true,
+            title: true,
+            startAt: true,
+            endAt: true,
+            status: true,
+            description: true,
+            location: true,
+          },
+        },
         documents: {
           orderBy: { createdAt: "desc" },
           take: 10,
@@ -99,9 +111,34 @@ export async function GET(req: NextRequest, context: Context) {
       );
     }
 
+    // Calculer les stats basées sur les appointments complétés
+    const completedAppointments = client.appointments.filter(
+      (apt) => apt.status === "COMPLETED"
+    );
+    const totalVisits = client.consultations.length + completedAppointments.length;
+
+    // Trouver la dernière visite (consultation ou appointment complété)
+    const lastConsultation = client.consultations[0];
+    const lastCompletedAppointment = completedAppointments[0];
+
+    let lastVisitAt = client.lastVisitAt;
+    if (lastConsultation && lastCompletedAppointment) {
+      lastVisitAt = new Date(lastConsultation.date) > new Date(lastCompletedAppointment.startAt)
+        ? lastConsultation.date.toISOString()
+        : lastCompletedAppointment.startAt.toISOString();
+    } else if (lastConsultation) {
+      lastVisitAt = lastConsultation.date.toISOString();
+    } else if (lastCompletedAppointment) {
+      lastVisitAt = lastCompletedAppointment.startAt.toISOString();
+    }
+
     return NextResponse.json({
       success: true,
-      client,
+      client: {
+        ...client,
+        totalVisits,
+        lastVisitAt,
+      },
     });
   } catch (error) {
     console.error("[GET /api/pro/clients/[id]] Error:", error);

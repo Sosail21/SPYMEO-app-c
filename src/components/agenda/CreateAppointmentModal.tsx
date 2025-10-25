@@ -146,9 +146,15 @@ export default function CreateAppointmentModal({ open, onClose, onSubmit, initia
       return;
     }
 
-    // Construct ISO datetime strings
-    const startISO = `${startDate}T${startTime}:00`;
-    const endISO = endDate && endTime ? `${endDate}T${endTime}:00` : undefined;
+    // Construct Date objects with local timezone, then convert to ISO
+    const startDateTime = new Date(`${startDate}T${startTime}`);
+    const startISO = startDateTime.toISOString();
+
+    let endISO: string | undefined;
+    if (endDate && endTime) {
+      const endDateTime = new Date(`${endDate}T${endTime}`);
+      endISO = endDateTime.toISOString();
+    }
 
     setSubmitting(true);
     try {
