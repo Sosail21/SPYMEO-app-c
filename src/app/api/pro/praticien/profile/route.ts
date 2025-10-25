@@ -209,7 +209,7 @@ export async function PATCH(req: NextRequest) {
         data: {
           ...practitionerUpdateData,
           userId: userId,
-          verified: false, // Don't auto-verify - require admin approval
+          verified: true, // Auto-verify for launch - TODO: implement admin approval workflow later
           featured: false,
         },
       });
