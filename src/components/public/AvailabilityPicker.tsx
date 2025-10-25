@@ -65,11 +65,9 @@ export default function AvailabilityPicker({
   const endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + 14);
 
-  // Charger les disponibilités
+  // Charger les disponibilités (TOUJOURS, pas conditionnellement)
   const { data, error, isLoading } = useSWR(
-    selectedConsultationType
-      ? `/api/public/practitioners/${practitionerSlug}/availabilities?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
-      : null,
+    `/api/public/practitioners/${practitionerSlug}/availabilities?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`,
     fetcher
   );
 
