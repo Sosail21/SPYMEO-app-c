@@ -114,6 +114,24 @@ export async function GET(req: NextRequest, context: Ctx) {
       select: {
         startAt: true,
         endAt: true,
+        duration: true,
+      },
+    });
+
+    // Récupérer les blocages manuels du praticien
+    const blocks = await prisma.agendaBlock.findMany({
+      where: {
+        userId: practitioner.userId,
+        startAt: {
+          lte: endDate,
+        },
+        endAt: {
+          gte: startDate,
+        },
+      },
+      select: {
+        startAt: true,
+        endAt: true,
       },
     });
 
@@ -166,61 +184,93 @@ export async function GET(req: NextRequest, context: Ctx) {
         const startTime = dayAvailability.start || "09:00";
         const endTime = dayAvailability.end || "18:00";
 
-        // Pour chaque type de consultation, générer les créneaux
-        for (const type of appointmentTypes) {
-          const duration = type.durationMin || 60;
+        // Trouver la durée minimale pour l'incrément des slots
+        const minDuration = Math.min(...appointmentTypes.map(t => t.durationMin || 60));
+        const slotIncrement = minDuration; // Incrément basé sur la consultation la plus courte
 
-          // Générer les créneaux pour cette journée
-          const [startHour, startMin] = startTime.split(":").map(Number);
-          const [endHour, endMin] = endTime.split(":").map(Number);
+        // Générer les créneaux de base
+        const [startHour, startMin] = startTime.split(":").map(Number);
+        const [endHour, endMin] = endTime.split(":").map(Number);
 
-          let currentSlot = new Date(currentDate);
-          currentSlot.setHours(startHour, startMin, 0, 0);
+        let currentSlot = new Date(currentDate);
+        currentSlot.setHours(startHour, startMin, 0, 0);
 
-          const dayEnd = new Date(currentDate);
-          dayEnd.setHours(endHour, endMin, 0, 0);
+        const dayEnd = new Date(currentDate);
+        dayEnd.setHours(endHour, endMin, 0, 0);
 
-          while (currentSlot < dayEnd) {
+        // Générer tous les créneaux possibles avec incrément minimum
+        while (currentSlot < dayEnd) {
+          // Pour chaque créneau, vérifier quels types de consultation peuvent s'y insérer
+          for (const type of appointmentTypes) {
+            const duration = type.durationMin || 60;
             const slotEnd = new Date(currentSlot.getTime() + duration * 60000);
 
-            if (slotEnd <= dayEnd) {
-              // Vérifier si le créneau est libre
-              const isBooked = appointments.some((appt) => {
-                const apptStart = new Date(appt.startAt);
-                const apptEnd = appt.endAt ? new Date(appt.endAt) : new Date(apptStart.getTime() + 60 * 60000);
+            // Vérifier que le slot + durée ne dépasse pas la fin de journée
+            if (slotEnd > dayEnd) continue;
 
-                // Vérifier le chevauchement
-                return (
-                  (currentSlot >= apptStart && currentSlot < apptEnd) ||
-                  (slotEnd > apptStart && slotEnd <= apptEnd) ||
-                  (currentSlot <= apptStart && slotEnd >= apptEnd)
-                );
+            // Vérifier le chevauchement avec les RDV existants
+            const hasOverlap = appointments.some((appt) => {
+              const apptStart = new Date(appt.startAt);
+              const apptEnd = appt.endAt ? new Date(appt.endAt) : new Date(apptStart.getTime() + (appt.duration || 60) * 60000);
+
+              // Chevauchement si :
+              // - Le slot commence pendant un RDV OU
+              // - Le slot finit pendant un RDV OU
+              // - Le slot englobe complètement un RDV
+              return (
+                (currentSlot >= apptStart && currentSlot < apptEnd) ||
+                (slotEnd > apptStart && slotEnd <= apptEnd) ||
+                (currentSlot < apptStart && slotEnd > apptEnd)
+              );
+            });
+
+            // Vérifier le chevauchement avec les blocages manuels
+            const isBlocked = blocks.some((block) => {
+              const blockStart = new Date(block.startAt);
+              const blockEnd = new Date(block.endAt);
+
+              return (
+                (currentSlot >= blockStart && currentSlot < blockEnd) ||
+                (slotEnd > blockStart && slotEnd <= blockEnd) ||
+                (currentSlot < blockStart && slotEnd > blockEnd)
+              );
+            });
+
+            // Vérifier qu'il y a assez d'espace avant le prochain RDV
+            const hasEnoughSpace = !appointments.some((appt) => {
+              const apptStart = new Date(appt.startAt);
+              const timeUntilNext = apptStart.getTime() - currentSlot.getTime();
+              const requiredTime = (duration + bufferMin) * 60000;
+
+              // Si un RDV commence dans moins de (duration + buffer), pas assez d'espace
+              return timeUntilNext > 0 && timeUntilNext < requiredTime;
+            });
+
+            const isPast = currentSlot <= now;
+
+            if (!hasOverlap && !isBlocked && hasEnoughSpace && !isPast) {
+              slots.push({
+                start: currentSlot.toISOString(),
+                end: slotEnd.toISOString(),
+                consultationType: type.label,
+                duration,
+                price: type.price,
               });
-
-              const isPast = currentSlot <= now;
-
-              if (!isBooked && !isPast) {
-                // Ne pas afficher les créneaux passés
-                slots.push({
-                  start: currentSlot.toISOString(),
-                  end: slotEnd.toISOString(),
-                  consultationType: type.label,
-                  duration,
-                  price: type.price,
-                });
-              } else {
-                console.log('[AVAILABILITY DEBUG] Slot filtered:', {
-                  time: currentSlot.toISOString(),
-                  isBooked,
-                  isPast,
-                  now: now.toISOString(),
-                });
-              }
+            } else {
+              console.log('[AVAILABILITY DEBUG] Slot filtered:', {
+                time: currentSlot.toISOString(),
+                type: type.label,
+                duration,
+                hasOverlap,
+                isBlocked,
+                hasEnoughSpace,
+                isPast,
+              });
             }
-
-            // Passer au créneau suivant (avec buffer)
-            currentSlot = new Date(currentSlot.getTime() + (duration + bufferMin) * 60000);
           }
+
+          // Passer au créneau suivant avec l'incrément minimum
+          currentSlot = new Date(currentSlot.getTime() + slotIncrement * 60000);
         }
       }
 

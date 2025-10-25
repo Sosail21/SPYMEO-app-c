@@ -92,6 +92,7 @@ model User {
 
   appointments    Appointment[]    @relation("UserAppointments")
   agendaSettings  AgendaSettings?  @relation("UserAgendaSettings")
+  agendaBlocks    AgendaBlock[]    @relation("UserAgendaBlocks")
   documents       Document[]       @relation("UserDocuments")
   notes           Note[]
   favorites       Favorite[]
@@ -633,6 +634,24 @@ model AgendaSettings {
 
   @@index([userId])
   @@map("agenda_settings")
+}
+
+model AgendaBlock {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation("UserAgendaBlocks", fields: [userId], references: [id], onDelete: Cascade)
+
+  startAt DateTime
+  endAt   DateTime
+  reason  String? // Optional reason for blocking
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([startAt])
+  @@index([endAt])
+  @@map("agenda_blocks")
 }
 
 // ═══════════════════════════════════════════════════════════════
