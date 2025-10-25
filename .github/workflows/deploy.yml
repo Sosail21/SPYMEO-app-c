@@ -121,3 +121,8 @@ jobs:
             --cluster ${{ env.ECS_CLUSTER }} \
             --services ${{ env.ECS_SERVICE }} \
             --region ${{ env.AWS_REGION }}
+
+      - name: Deployment complete
+        run: |
+          echo "✅ Deployment completed successfully!"
+          echo "ℹ️  Database migrations will run automatically via Docker entrypoint"
