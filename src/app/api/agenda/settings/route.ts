@@ -10,6 +10,7 @@ const DEFAULT_SETTINGS: Partial<AgendaSettings> = {
   bufferMin: 0,
   defaultView: "timeGridWeek",
   allowedLocations: ["cabinet", "visio"],
+  acceptNewClients: true,
   availabilities: {
     monday: { enabled: true, start: "09:00", end: "18:00" },
     tuesday: { enabled: true, start: "09:00", end: "18:00" },
@@ -69,6 +70,7 @@ export async function GET(req: NextRequest) {
           bufferMin: DEFAULT_SETTINGS.bufferMin!,
           defaultView: DEFAULT_SETTINGS.defaultView!,
           allowedLocations: DEFAULT_SETTINGS.allowedLocations as any,
+          acceptNewClients: DEFAULT_SETTINGS.acceptNewClients!,
           availabilities: DEFAULT_SETTINGS.availabilities as any,
           appointmentTypes: DEFAULT_SETTINGS.appointmentTypes as any,
         },
@@ -81,6 +83,7 @@ export async function GET(req: NextRequest) {
       bufferMin: settings.bufferMin,
       defaultView: settings.defaultView,
       allowedLocations: settings.allowedLocations as string[],
+      acceptNewClients: settings.acceptNewClients,
       availabilities: settings.availabilities as any,
       appointmentTypes: settings.appointmentTypes as any,
     };
@@ -115,6 +118,7 @@ export async function PUT(req: NextRequest) {
       bufferMin,
       defaultView,
       allowedLocations,
+      acceptNewClients,
       availabilities,
       appointmentTypes,
     } = body as AgendaSettings;
@@ -127,6 +131,7 @@ export async function PUT(req: NextRequest) {
         bufferMin: bufferMin ?? 0,
         defaultView: defaultView ?? "timeGridWeek",
         allowedLocations: (allowedLocations ?? ["cabinet"]) as any,
+        acceptNewClients: acceptNewClients ?? true,
         availabilities: (availabilities ?? {}) as any,
         appointmentTypes: (appointmentTypes ?? []) as any,
       },
@@ -134,6 +139,7 @@ export async function PUT(req: NextRequest) {
         bufferMin,
         defaultView,
         allowedLocations: allowedLocations as any,
+        acceptNewClients,
         availabilities: availabilities as any,
         appointmentTypes: appointmentTypes as any,
       },

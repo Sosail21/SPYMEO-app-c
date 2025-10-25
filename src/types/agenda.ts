@@ -28,4 +28,5 @@ export interface AgendaSettings {
   bufferMin?: number;
   defaultView?: string;
   allowedLocations?: string[];
+  acceptNewClients?: boolean;
 }
