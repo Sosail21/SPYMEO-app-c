@@ -71,78 +71,96 @@ export async function POST(req: NextRequest, context: Ctx) {
     const startDate = new Date(start);
     const endDate = new Date(startDate.getTime() + (duration || 60) * 60000);
 
-    // Vérifier si le créneau est toujours disponible
-    const existingAppointment = await prisma.appointment.findFirst({
-      where: {
-        userId: practitioner.userId,
-        status: {
-          not: "CANCELLED",
-        },
-        OR: [
-          {
-            AND: [
-              { startAt: { lte: startDate } },
-              { endAt: { gt: startDate } },
+    // Use transaction to prevent race condition (double booking)
+    let appointment;
+    let client;
+
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        // Vérifier si le créneau est toujours disponible (within transaction)
+        const existingAppointment = await tx.appointment.findFirst({
+          where: {
+            userId: practitioner.userId,
+            status: {
+              not: "CANCELLED",
+            },
+            OR: [
+              {
+                AND: [
+                  { startAt: { lte: startDate } },
+                  { endAt: { gt: startDate } },
+                ],
+              },
+              {
+                AND: [
+                  { startAt: { lt: endDate } },
+                  { endAt: { gte: endDate } },
+                ],
+              },
+              {
+                AND: [
+                  { startAt: { gte: startDate } },
+                  { endAt: { lte: endDate } },
+                ],
+              },
             ],
           },
-          {
-            AND: [
-              { startAt: { lt: endDate } },
-              { endAt: { gte: endDate } },
-            ],
+        });
+
+        if (existingAppointment) {
+          throw new Error("SLOT_TAKEN");
+        }
+
+        // Créer ou récupérer le client dans la base du praticien
+        let txClient = await tx.client.findFirst({
+          where: {
+            practitionerId: practitioner.id,
+            email: clientEmail,
           },
-          {
-            AND: [
-              { startAt: { gte: startDate } },
-              { endAt: { lte: endDate } },
-            ],
+        });
+
+        if (!txClient) {
+          txClient = await tx.client.create({
+            data: {
+              practitionerId: practitioner.id,
+              firstName: clientFirstName,
+              lastName: clientLastName,
+              email: clientEmail,
+              phone: clientPhone || null,
+            },
+          });
+        }
+
+        // Créer le rendez-vous (within same transaction)
+        const txAppointment = await tx.appointment.create({
+          data: {
+            userId: practitioner.userId,
+            clientId: txClient.id,
+            title: `Consultation ${consultationType} - ${clientFirstName} ${clientLastName}`,
+            description: description || null,
+            startAt: startDate,
+            endAt: endDate,
+            consultationType,
+            duration,
+            price,
+            status: "SCHEDULED",
           },
-        ],
-      },
-    });
+        });
 
-    if (existingAppointment) {
-      return NextResponse.json(
-        { success: false, error: "Ce créneau n'est plus disponible" },
-        { status: 409 }
-      );
-    }
-
-    // Créer ou récupérer le client dans la base du praticien
-    let client = await prisma.client.findFirst({
-      where: {
-        practitionerId: practitioner.id,
-        email: clientEmail,
-      },
-    });
-
-    if (!client) {
-      client = await prisma.client.create({
-        data: {
-          practitionerId: practitioner.id,
-          firstName: clientFirstName,
-          lastName: clientLastName,
-          email: clientEmail,
-          phone: clientPhone || null,
-        },
+        return { appointment: txAppointment, client: txClient };
       });
-    }
 
-    // Créer le rendez-vous
-    const appointment = await prisma.appointment.create({
-      data: {
-        userId: practitioner.userId,
-        clientId: client.id,
-        title: `Consultation ${consultationType} - ${clientFirstName} ${clientLastName}`,
-        description: description || null,
-        startAt: startDate,
-        endAt: endDate,
-        consultationType,
-        duration,
-        price,
-        status: "SCHEDULED",
-      },
-    });
+      appointment = result.appointment;
+      client = result.client;
+    } catch (error: any) {
+      if (error.message === "SLOT_TAKEN") {
+        return NextResponse.json(
+          { success: false, error: "Ce créneau n'est plus disponible" },
+          { status: 409 }
+        );
+      }
+      throw error; // Re-throw other errors
+    }
 
     // Créer une notification pour le praticien
     await notifyAppointmentConfirmed(

@@ -110,8 +110,8 @@ export default function AvailabilityPicker({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          slotStart: selectedSlot.start,
-          slotEnd: selectedSlot.end,
+          start: selectedSlot.start,
+          end: selectedSlot.end,
           consultationType: selectedSlot.consultationType,
           duration: selectedSlot.duration,
           price: selectedSlot.price,

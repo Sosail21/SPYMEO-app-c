@@ -161,24 +161,30 @@ export async function PATCH(req: NextRequest) {
       });
     }
 
+    // Helper function to generate slug
+    function generateSlug(name: string): string {
+      return name
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
+        .replace(/\s+/g, '-')          // Spaces to dashes
+        .replace(/-+/g, '-')           // Multiple dashes to single
+        .replace(/^-|-$/g, '');        // Remove leading/trailing dashes
+    }
+
     // Update or create PractitionerProfile
     const practitionerUpdateData: any = {};
-    if (body.publicName !== undefined) practitionerUpdateData.publicName = body.publicName;
+    if (body.publicName !== undefined) {
+      practitionerUpdateData.publicName = body.publicName;
+      // Always regenerate slug when publicName changes
+      practitionerUpdateData.slug = generateSlug(body.publicName);
+    }
     if (body.specialties !== undefined) practitionerUpdateData.specialties = body.specialties;
     if (body.description !== undefined) practitionerUpdateData.description = body.description;
     if (body.address !== undefined) practitionerUpdateData.address = body.address;
     if (body.city !== undefined) practitionerUpdateData.city = body.city;
     if (body.postalCode !== undefined) practitionerUpdateData.postalCode = body.postalCode;
     if (body.siret !== undefined) practitionerUpdateData.siret = body.siret;
-
-    // Generate slug from publicName if creating new profile
-    if (!user.practitionerProfile && body.publicName) {
-      const slug = body.publicName
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
-      practitionerUpdateData.slug = `${slug}-${Date.now()}`;
-    }
 
     if (user.practitionerProfile) {
       // Update existing profile
@@ -194,11 +200,16 @@ export async function PATCH(req: NextRequest) {
           { status: 400 }
         );
       }
+      // Ensure slug exists for new profiles
+      if (!practitionerUpdateData.slug) {
+        practitionerUpdateData.slug = generateSlug(practitionerUpdateData.publicName);
+      }
+
       await prisma.practitionerProfile.create({
         data: {
           ...practitionerUpdateData,
           userId: userId,
-          verified: true, // Auto-verify new profiles
+          verified: false, // Don't auto-verify - require admin approval
           featured: false,
         },
       });
