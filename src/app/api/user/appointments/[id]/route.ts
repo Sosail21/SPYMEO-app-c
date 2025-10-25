@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { COOKIE_NAME } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
+import { notifyAppointmentCancelled } from "@/lib/notifications";
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -198,9 +199,11 @@ export async function PATCH(req: NextRequest, context: Context) {
       where: { id },
       select: {
         id: true,
+        title: true,
         startAt: true,
         status: true,
         clientId: true,
+        userId: true,
       },
     });
 
@@ -251,8 +254,19 @@ export async function PATCH(req: NextRequest, context: Context) {
     // Update appointment status
     await prisma.appointment.update({
       where: { id },
-      data: { status: "CANCELLED" },
+      data: {
+        status: "CANCELLED",
+        cancelledBy: "client",
+      },
     });
+
+    // Notify the practitioner
+    await notifyAppointmentCancelled(
+      appointment.userId,
+      appointment.id,
+      appointment.title,
+      "client"
+    );
 
     return NextResponse.json({
       success: true,

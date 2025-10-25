@@ -36,15 +36,6 @@ export async function GET(req: NextRequest) {
       where,
       orderBy: { createdAt: "desc" },
       take: limit,
-      include: {
-        appointment: {
-          select: {
-            id: true,
-            title: true,
-            startAt: true,
-          },
-        },
-      },
     });
 
     // Compter les non-lues
