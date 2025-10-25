@@ -143,10 +143,24 @@ export async function GET(req: NextRequest, context: Ctx) {
     const currentDate = new Date(startDate);
     const now = new Date(); // Calculate current time once, outside loops
 
+    console.log('[AVAILABILITY DEBUG] Starting slot generation:', {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      now: now.toISOString(),
+      appointmentTypesCount: appointmentTypes.length,
+      availabilitiesKeys: Object.keys(availabilities),
+    });
+
     while (currentDate <= endDate) {
       const dayOfWeek = currentDate.getDay();
       const dayKey = DAY_MAP[dayOfWeek];
       const dayAvailability = availabilities[dayKey];
+
+      console.log(`[AVAILABILITY DEBUG] Checking ${dayKey}:`, {
+        enabled: dayAvailability?.enabled,
+        start: dayAvailability?.start,
+        end: dayAvailability?.end,
+      });
 
       if (dayAvailability && dayAvailability.enabled) {
         const startTime = dayAvailability.start || "09:00";
@@ -183,7 +197,9 @@ export async function GET(req: NextRequest, context: Ctx) {
                 );
               });
 
-              if (!isBooked && currentSlot > now) {
+              const isPast = currentSlot <= now;
+
+              if (!isBooked && !isPast) {
                 // Ne pas afficher les créneaux passés
                 slots.push({
                   start: currentSlot.toISOString(),
@@ -191,6 +207,13 @@ export async function GET(req: NextRequest, context: Ctx) {
                   consultationType: type.label,
                   duration,
                   price: type.price,
+                });
+              } else {
+                console.log('[AVAILABILITY DEBUG] Slot filtered:', {
+                  time: currentSlot.toISOString(),
+                  isBooked,
+                  isPast,
+                  now: now.toISOString(),
                 });
               }
             }
@@ -205,6 +228,12 @@ export async function GET(req: NextRequest, context: Ctx) {
       currentDate.setDate(currentDate.getDate() + 1);
       currentDate.setHours(0, 0, 0, 0);
     }
+
+    console.log('[AVAILABILITY DEBUG] Slot generation complete:', {
+      totalSlots: slots.length,
+      firstSlot: slots[0],
+      lastSlot: slots[slots.length - 1],
+    });
 
     return NextResponse.json({
       success: true,

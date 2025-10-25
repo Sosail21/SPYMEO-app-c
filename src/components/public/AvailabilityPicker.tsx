@@ -75,10 +75,22 @@ export default function AvailabilityPicker({
 
   const availabilities = data?.availabilities || [];
 
+  console.log('[AVAILABILITY PICKER DEBUG] Data received:', {
+    totalAvailabilities: availabilities.length,
+    selectedConsultationType,
+    error,
+    isLoading,
+  });
+
   // Filtrer les créneaux par type de consultation sélectionné
   const filteredSlots = availabilities.filter(
     (slot: Slot) => slot.consultationType === selectedConsultationType
   );
+
+  console.log('[AVAILABILITY PICKER DEBUG] Filtered slots:', {
+    filteredCount: filteredSlots.length,
+    selectedType: selectedConsultationType,
+  });
 
   // Grouper les créneaux par date
   const slotsByDate: Record<string, Slot[]> = {};
