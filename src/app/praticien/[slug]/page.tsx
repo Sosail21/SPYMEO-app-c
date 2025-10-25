@@ -10,16 +10,24 @@ type Props = {
 export default async function PraticienPage({ params }: Props) {
   const { slug } = await params;
 
-  // Récupérer le praticien
+  // Récupérer le praticien avec toutes les infos
   const practitioner = await prisma.practitionerProfile.findUnique({
     where: { slug },
     include: {
       user: {
         select: {
           id: true,
+          firstName: true,
+          lastName: true,
           phone: true,
           email: true,
           agendaSettings: true,
+          profile: {
+            select: {
+              avatar: true,
+              bio: true,
+            },
+          },
         },
       },
     },

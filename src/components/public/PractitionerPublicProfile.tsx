@@ -15,11 +15,18 @@ type Props = {
     city: string | null;
     postalCode: string | null;
     address: string | null;
+    featured?: boolean;
     user: {
       id: string;
+      firstName?: string | null;
+      lastName?: string | null;
       phone: string | null;
       email: string | null;
       agendaSettings: any;
+      profile?: {
+        avatar?: string | null;
+        bio?: string | null;
+      } | null;
     };
   };
 };
@@ -30,15 +37,28 @@ export default function PractitionerPublicProfile({ practitioner }: Props) {
   const agendaSettings = practitioner.user.agendaSettings;
   const appointmentTypes = (agendaSettings?.appointmentTypes || []) as any[];
 
+  const avatarUrl = practitioner.user.profile?.avatar;
+  const bio = practitioner.user.profile?.bio;
+
   return (
     <main>
       {/* HERO */}
       <section className="fiche-hero">
         <div className="container-spy fiche-hero-inner">
-          <div className="fiche-avatar" aria-hidden />
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={practitioner.publicName}
+              className="fiche-avatar"
+              style={{ objectFit: 'cover' }}
+            />
+          ) : (
+            <div className="fiche-avatar" aria-hidden />
+          )}
           <div>
             <h1 className="fiche-name flex items-center gap-3">
               <span>{practitioner.publicName}</span>
+              {practitioner.featured && <span className="badge">⭐ Vérifié</span>}
             </h1>
             <p className="fiche-sub">
               {practitioner.specialties.join(", ")} — {practitioner.city || "France"}
@@ -72,7 +92,14 @@ export default function PractitionerPublicProfile({ practitioner }: Props) {
             {/* Présentation */}
             <article className="card">
               <h2 className="section-title m-0 mb-2">Présentation</h2>
-              <p className="lead">{practitioner.description || "Praticien vérifié sur SPYMEO"}</p>
+              <p className="lead">
+                {practitioner.description || bio || "Praticien vérifié sur SPYMEO"}
+              </p>
+              {bio && practitioner.description && bio !== practitioner.description && (
+                <div className="mt-3 p-3 bg-slate-50 rounded-lg">
+                  <p className="text-sm">{bio}</p>
+                </div>
+              )}
               <div className="badges mt-2">
                 <span className="badge">Éthique vérifiée</span>
                 {appointmentTypes.some((t: any) => t.location === "visio") && (
@@ -80,6 +107,9 @@ export default function PractitionerPublicProfile({ practitioner }: Props) {
                 )}
                 {appointmentTypes.some((t: any) => t.location === "domicile") && (
                   <span className="badge">À domicile</span>
+                )}
+                {appointmentTypes.some((t: any) => t.location === "cabinet") && (
+                  <span className="badge">Cabinet</span>
                 )}
               </div>
             </article>
