@@ -32,10 +32,9 @@ type Props = {
 };
 
 export default function PractitionerPublicProfile({ practitioner }: Props) {
-  const [showAvailabilities, setShowAvailabilities] = useState(false);
-
   const agendaSettings = practitioner.user.agendaSettings;
   const appointmentTypes = (agendaSettings?.appointmentTypes || []) as any[];
+  const acceptNewClients = agendaSettings?.acceptNewClients !== false; // Default true
 
   const avatarUrl = practitioner.user.profile?.avatar;
   const bio = practitioner.user.profile?.bio;
@@ -64,12 +63,6 @@ export default function PractitionerPublicProfile({ practitioner }: Props) {
               {practitioner.specialties.join(", ")} — {practitioner.city || "France"}
             </p>
             <div className="fiche-ctas">
-              <button
-                onClick={() => setShowAvailabilities(!showAvailabilities)}
-                className="btn"
-              >
-                {showAvailabilities ? "Masquer" : "Prendre RDV"}
-              </button>
               <Link
                 href={`/auth/login?next=/praticien/${practitioner.slug}#message`}
                 className="btn btn-outline"
@@ -151,17 +144,13 @@ export default function PractitionerPublicProfile({ practitioner }: Props) {
               </article>
             )}
 
-            {/* Disponibilités / RDV */}
-            {showAvailabilities && (
-              <AvailabilityPicker
-                practitionerSlug={practitioner.slug}
-                practitionerName={practitioner.publicName}
-                onBookingComplete={() => {
-                  // Optionnel: rafraîchir ou afficher un message
-                  setShowAvailabilities(false);
-                }}
-              />
-            )}
+            {/* Disponibilités / RDV - Toujours affiché */}
+            <AvailabilityPicker
+              practitionerSlug={practitioner.slug}
+              practitionerName={practitioner.publicName}
+              practitionerId={practitioner.user.id}
+              acceptNewClients={acceptNewClients}
+            />
           </div>
 
           {/* SIDE */}

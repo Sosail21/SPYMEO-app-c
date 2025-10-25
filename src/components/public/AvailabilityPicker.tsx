@@ -1,8 +1,9 @@
-// Cdw-Spm: Composant de sélection de créneaux disponibles
+// Cdw-Spm: Composant de sélection de créneaux disponibles (Version améliorée)
 "use client";
 
 import { useEffect, useState } from "react";
 import useSWR from "swr";
+import Link from "next/link";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import { useConfirm } from "@/hooks/useConfirm";
 
@@ -17,393 +18,464 @@ type Slot = {
 type Props = {
   practitionerSlug: string;
   practitionerName: string;
-  onBookingComplete?: () => void;
+  practitionerId: string;
+  acceptNewClients: boolean;
 };
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
-export default function AvailabilityPicker({ practitionerSlug, practitionerName, onBookingComplete }: Props) {
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-    return tomorrow.toISOString().split("T")[0];
-  });
-
+export default function AvailabilityPicker({
+  practitionerSlug,
+  practitionerName,
+  practitionerId,
+  acceptNewClients,
+}: Props) {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [hasConsultedBefore, setHasConsultedBefore] = useState<boolean | null>(null);
+  const [selectedConsultationType, setSelectedConsultationType] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [booking, setBooking] = useState(false);
   const confirmDialog = useConfirm();
 
-  // Calculer la plage de dates (7 jours à partir d'aujourd'hui)
+  // Vérifier si l'utilisateur est connecté
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const res = await fetch("/api/user/me");
+        if (res.ok) {
+          const data = await res.json();
+          setIsLoggedIn(true);
+          setUserInfo(data.user);
+        } else {
+          setIsLoggedIn(false);
+        }
+      } catch (error) {
+        setIsLoggedIn(false);
+      }
+    }
+    checkAuth();
+  }, []);
+
+  // Calculer la plage de dates (2 semaines à partir d'aujourd'hui)
   const startDate = new Date();
   startDate.setHours(0, 0, 0, 0);
   const endDate = new Date(startDate);
-  endDate.setDate(endDate.getDate() + 14); // 2 semaines
+  endDate.setDate(endDate.getDate() + 14);
 
   // Charger les disponibilités
   const { data, error, isLoading } = useSWR(
-    `/api/public/practitioners/${practitionerSlug}/availabilities?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`,
+    selectedConsultationType
+      ? `/api/public/practitioners/${practitionerSlug}/availabilities?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
+      : null,
     fetcher
   );
 
   const availabilities = data?.availabilities || [];
 
-  // Grouper par date
+  // Filtrer les créneaux par type de consultation sélectionné
+  const filteredSlots = availabilities.filter(
+    (slot: Slot) => slot.consultationType === selectedConsultationType
+  );
+
+  // Grouper les créneaux par date
   const slotsByDate: Record<string, Slot[]> = {};
-  availabilities.forEach((slot: Slot) => {
+  filteredSlots.forEach((slot: Slot) => {
     const date = new Date(slot.start).toISOString().split("T")[0];
-    if (!slotsByDate[date]) {
-      slotsByDate[date] = [];
-    }
+    if (!slotsByDate[date]) slotsByDate[date] = [];
     slotsByDate[date].push(slot);
   });
 
-  // Générer les 7 prochains jours pour l'affichage
-  const dates = [];
-  const current = new Date(startDate);
-  for (let i = 0; i < 7; i++) {
-    dates.push(new Date(current));
-    current.setDate(current.getDate() + 1);
-  }
+  // Récupérer les types de consultation uniques
+  const consultationTypes = Array.from(
+    new Set(availabilities.map((slot: Slot) => slot.consultationType))
+  ).map((type) => {
+    const slot = availabilities.find((s: Slot) => s.consultationType === type);
+    return {
+      label: type,
+      duration: slot?.duration || 60,
+      price: slot?.price,
+    };
+  });
 
-  function formatDate(date: Date) {
-    return date.toLocaleDateString("fr-FR", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-    });
-  }
+  async function handleBooking() {
+    if (!selectedSlot || !userInfo) return;
 
-  function formatTime(isoDate: string) {
-    return new Date(isoDate).toLocaleTimeString("fr-FR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-
-  function handleSlotClick(slot: Slot) {
-    setSelectedSlot(slot);
-    setShowBookingModal(true);
-  }
-
-  if (isLoading) {
-    return (
-      <div className="card">
-        <div className="text-center py-8 text-muted">
-          Chargement des disponibilités...
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="card">
-        <div className="text-center py-8 text-red-600">
-          Erreur lors du chargement des disponibilités
-        </div>
-      </div>
-    );
-  }
-
-  const slotsForSelectedDate = slotsByDate[selectedDate] || [];
-
-  return (
-    <div className="card">
-      <h2 className="text-xl font-semibold mb-4">Disponibilités</h2>
-
-      {/* Sélecteur de date */}
-      <div className="mb-6">
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {dates.map((date) => {
-            const dateStr = date.toISOString().split("T")[0];
-            const hasSlots = (slotsByDate[dateStr] || []).length > 0;
-            const isSelected = dateStr === selectedDate;
-
-            return (
-              <button
-                key={dateStr}
-                onClick={() => setSelectedDate(dateStr)}
-                className={`
-                  flex-shrink-0 px-4 py-3 rounded-lg border-2 transition-all
-                  ${isSelected ? "border-accent bg-accent/10 font-semibold" : "border-border hover:border-accent/50"}
-                  ${!hasSlots ? "opacity-50 cursor-not-allowed" : ""}
-                `}
-                disabled={!hasSlots}
-              >
-                <div className="text-sm">{formatDate(date)}</div>
-                <div className="text-xs text-muted mt-1">
-                  {hasSlots ? `${slotsByDate[dateStr].length} créneaux` : "Indisponible"}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Liste des créneaux pour la date sélectionnée */}
-      {slotsForSelectedDate.length === 0 ? (
-        <div className="text-center py-8">
-          <div className="text-5xl mb-3">📅</div>
-          <p className="text-muted">Aucun créneau disponible pour cette date</p>
-          <p className="text-sm text-muted mt-2">
-            Sélectionnez une autre date ou contactez directement le praticien
-          </p>
-        </div>
-      ) : (
-        <div>
-          <h3 className="font-medium mb-3">
-            Créneaux disponibles le {new Date(selectedDate).toLocaleDateString("fr-FR", { dateStyle: "full" })}
-          </h3>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {slotsForSelectedDate.map((slot, index) => (
-              <button
-                key={index}
-                onClick={() => handleSlotClick(slot)}
-                className="p-4 border-2 border-border rounded-lg hover:border-accent hover:bg-accent/5 transition-all text-left"
-              >
-                <div className="font-semibold text-lg">{formatTime(slot.start)}</div>
-                <div className="text-sm text-muted mt-1">{slot.consultationType}</div>
-                <div className="text-xs text-muted mt-1">
-                  {slot.duration} min {slot.price ? `• ${slot.price}€` : ""}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Modal de réservation */}
-      {showBookingModal && selectedSlot && (
-        <BookingModal
-          slot={selectedSlot}
-          practitionerSlug={practitionerSlug}
-          practitionerName={practitionerName}
-          onClose={() => {
-            setShowBookingModal(false);
-            setSelectedSlot(null);
-          }}
-          onSuccess={() => {
-            setShowBookingModal(false);
-            setSelectedSlot(null);
-            onBookingComplete?.();
-          }}
-        />
-      )}
-
-      <ConfirmModal
-        open={confirmDialog.isOpen}
-        onClose={confirmDialog.handleClose}
-        onConfirm={confirmDialog.handleConfirm}
-        title={confirmDialog.options.title}
-        message={confirmDialog.options.message}
-        confirmText={confirmDialog.options.confirmText}
-        cancelText={confirmDialog.options.cancelText}
-        variant={confirmDialog.options.variant}
-      />
-    </div>
-  );
-}
-
-// Modal de réservation
-function BookingModal({
-  slot,
-  practitionerSlug,
-  practitionerName,
-  onClose,
-  onSuccess,
-}: {
-  slot: Slot;
-  practitionerSlug: string;
-  practitionerName: string;
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [description, setDescription] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const confirmDialog = useConfirm();
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
-      await confirmDialog.confirm({
-        title: "Attention",
-        message: "Veuillez remplir tous les champs obligatoires",
-        confirmText: "OK",
-        cancelText: "",
-        variant: "warning",
-      });
-      return;
-    }
-
-    setSubmitting(true);
+    setBooking(true);
 
     try {
-      const response = await fetch(`/api/public/practitioners/${practitionerSlug}/book`, {
+      const res = await fetch(`/api/public/practitioners/${practitionerSlug}/book`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          start: slot.start,
-          consultationType: slot.consultationType,
-          duration: slot.duration,
-          price: slot.price,
-          clientFirstName: firstName.trim(),
-          clientLastName: lastName.trim(),
-          clientEmail: email.trim(),
-          clientPhone: phone.trim() || undefined,
-          description: description.trim() || undefined,
+          slotStart: selectedSlot.start,
+          slotEnd: selectedSlot.end,
+          consultationType: selectedSlot.consultationType,
+          duration: selectedSlot.duration,
+          price: selectedSlot.price,
+          clientFirstName: userInfo.firstName || "",
+          clientLastName: userInfo.lastName || "",
+          clientEmail: userInfo.email,
+          clientPhone: userInfo.phone || "",
         }),
       });
 
-      const data = await response.json();
+      const result = await res.json();
 
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Erreur lors de la réservation");
+      if (result.success) {
+        await confirmDialog.confirm({
+          title: "✅ Rendez-vous confirmé !",
+          message: result.message || "Vous recevrez un email de confirmation.",
+          confirmText: "OK",
+          cancelText: "",
+          variant: "default",
+        });
+
+        // Reset
+        setSelectedConsultationType(null);
+        setSelectedDate(null);
+        setSelectedSlot(null);
+        setShowBookingModal(false);
+      } else {
+        await confirmDialog.confirm({
+          title: "Erreur",
+          message: result.error || "Impossible de réserver ce créneau.",
+          confirmText: "OK",
+          cancelText: "",
+          variant: "danger",
+        });
       }
-
-      await confirmDialog.confirm({
-        title: "✅ Rendez-vous confirmé !",
-        message: data.message || "Vous recevrez un email de confirmation.",
-        confirmText: "OK",
-        cancelText: "",
-        variant: "default",
-      });
-
-      onSuccess();
-    } catch (error: any) {
-      console.error("Error booking appointment:", error);
+    } catch (error) {
+      console.error("Booking error:", error);
       await confirmDialog.confirm({
         title: "Erreur",
-        message: error.message || "Une erreur est survenue lors de la réservation",
+        message: "Une erreur est survenue lors de la réservation.",
         confirmText: "OK",
         cancelText: "",
         variant: "danger",
       });
     } finally {
-      setSubmitting(false);
+      setBooking(false);
     }
   }
 
-  const startDate = new Date(slot.start);
-  const formattedDateTime = startDate.toLocaleString("fr-FR", {
-    dateStyle: "full",
-    timeStyle: "short",
-  });
+  // Loading state
+  if (isLoggedIn === null) {
+    return (
+      <article className="card">
+        <h2 className="section-title m-0 mb-3">Prendre rendez-vous</h2>
+        <div className="text-center py-6">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto mb-2"></div>
+          <p className="text-muted text-sm">Chargement...</p>
+        </div>
+      </article>
+    );
+  }
+
+  // Non connecté
+  if (!isLoggedIn) {
+    return (
+      <article className="card">
+        <h2 className="section-title m-0 mb-3">Prendre rendez-vous</h2>
+        <div className="text-center py-6 px-4">
+          <div className="text-4xl mb-3">🔒</div>
+          <p className="text-lg font-medium mb-2">Connexion requise</p>
+          <p className="text-muted mb-4">
+            Vous devez être connecté pour prendre rendez-vous.
+          </p>
+          <Link
+            href={`/auth/login?next=/praticien/${practitionerSlug}`}
+            className="btn"
+          >
+            Se connecter
+          </Link>
+        </div>
+      </article>
+    );
+  }
+
+  // Étape 1 : Demander si l'utilisateur a déjà consulté ce praticien
+  if (hasConsultedBefore === null) {
+    return (
+      <article className="card">
+        <h2 className="section-title m-0 mb-3">Prendre rendez-vous</h2>
+        <div className="py-4">
+          <p className="text-lg font-medium mb-4">
+            Avez-vous déjà consulté {practitionerName} ?
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setHasConsultedBefore(true)}
+              className="btn flex-1"
+            >
+              Oui, déjà consulté
+            </button>
+            <button
+              onClick={() => {
+                if (!acceptNewClients) {
+                  confirmDialog.confirm({
+                    title: "Nouveaux clients non acceptés",
+                    message: `${practitionerName} n'accepte pas de nouveaux clients pour le moment.`,
+                    confirmText: "OK",
+                    cancelText: "",
+                    variant: "warning",
+                  });
+                } else {
+                  setHasConsultedBefore(false);
+                }
+              }}
+              className="btn btn-outline flex-1"
+            >
+              Non, première fois
+            </button>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  // Message si praticien n'accepte pas de nouveaux clients (ne devrait pas arriver)
+  if (!hasConsultedBefore && !acceptNewClients) {
+    return (
+      <article className="card bg-orange-50 border-orange-200">
+        <div className="flex items-start gap-3">
+          <div className="text-2xl">⚠️</div>
+          <div>
+            <h3 className="font-semibold text-orange-900 mb-1">
+              Nouveaux clients non acceptés
+            </h3>
+            <p className="text-sm text-orange-800">
+              {practitionerName} n'accepte pas de nouveaux clients pour le moment.
+            </p>
+            <button
+              onClick={() => setHasConsultedBefore(null)}
+              className="text-sm text-orange-700 hover:underline mt-2"
+            >
+              ← Retour
+            </button>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  // Étape 2 : Choisir le type de consultation
+  if (!selectedConsultationType) {
+    return (
+      <article className="card">
+        <h2 className="section-title m-0 mb-3">Choisir le type de consultation</h2>
+        {isLoading ? (
+          <div className="text-center py-6">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto mb-2"></div>
+            <p className="text-muted text-sm">Chargement des consultations...</p>
+          </div>
+        ) : consultationTypes.length === 0 ? (
+          <div className="text-center py-6">
+            <p className="text-muted">Aucune consultation disponible</p>
+          </div>
+        ) : (
+          <div className="grid gap-3">
+            {consultationTypes.map((type) => (
+              <button
+                key={type.label}
+                onClick={() => setSelectedConsultationType(type.label)}
+                className="text-left p-4 border border-border rounded-lg hover:border-accent hover:bg-accent/5 transition-colors"
+              >
+                <div className="font-medium text-lg">{type.label}</div>
+                <div className="text-sm text-muted mt-1">
+                  {type.duration} min {type.price && `• ${type.price}€`}
+                </div>
+              </button>
+            ))}
+            <button
+              onClick={() => setHasConsultedBefore(null)}
+              className="text-sm text-muted hover:underline mt-2"
+            >
+              ← Retour
+            </button>
+          </div>
+        )}
+      </article>
+    );
+  }
+
+  // Étape 3 : Choisir le jour
+  if (!selectedDate) {
+    const availableDates = Object.keys(slotsByDate).sort();
+
+    return (
+      <article className="card">
+        <h2 className="section-title m-0 mb-3">
+          Choisir un jour - {selectedConsultationType}
+        </h2>
+        {availableDates.length === 0 ? (
+          <div className="text-center py-6">
+            <p className="text-muted">Aucune disponibilité pour ce type de consultation</p>
+            <button
+              onClick={() => setSelectedConsultationType(null)}
+              className="text-sm text-accent hover:underline mt-2"
+            >
+              ← Choisir un autre type
+            </button>
+          </div>
+        ) : (
+          <div className="grid gap-3">
+            {availableDates.map((date) => {
+              const dateObj = new Date(date);
+              const slotsCount = slotsByDate[date].length;
+
+              return (
+                <button
+                  key={date}
+                  onClick={() => setSelectedDate(date)}
+                  className="text-left p-4 border border-border rounded-lg hover:border-accent hover:bg-accent/5 transition-colors"
+                >
+                  <div className="font-medium">
+                    {dateObj.toLocaleDateString("fr-FR", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                    })}
+                  </div>
+                  <div className="text-sm text-muted mt-1">
+                    {slotsCount} créneau{slotsCount > 1 ? "x" : ""} disponible{slotsCount > 1 ? "s" : ""}
+                  </div>
+                </button>
+              );
+            })}
+            <button
+              onClick={() => setSelectedConsultationType(null)}
+              className="text-sm text-muted hover:underline mt-2"
+            >
+              ← Choisir un autre type
+            </button>
+          </div>
+        )}
+      </article>
+    );
+  }
+
+  // Étape 4 : Choisir l'horaire
+  const slotsForSelectedDate = slotsByDate[selectedDate] || [];
 
   return (
     <>
-      <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[1px] grid place-items-center p-4">
-        <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
-          <div className="flex items-start justify-between gap-3 mb-4">
-            <div>
-              <h3 className="text-xl font-semibold">Réserver un rendez-vous</h3>
-              <p className="text-sm text-muted mt-1">avec {practitionerName}</p>
-            </div>
-            <button className="btn btn-ghost px-2 py-1" onClick={onClose} aria-label="Fermer">
-              ✕
+      <article className="card">
+        <h2 className="section-title m-0 mb-3">
+          Choisir un horaire - {new Date(selectedDate).toLocaleDateString("fr-FR", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+          })}
+        </h2>
+        {slotsForSelectedDate.length === 0 ? (
+          <div className="text-center py-6">
+            <p className="text-muted">Aucun créneau disponible</p>
+            <button
+              onClick={() => setSelectedDate(null)}
+              className="text-sm text-accent hover:underline mt-2"
+            >
+              ← Choisir un autre jour
             </button>
           </div>
+        ) : (
+          <div>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4">
+              {slotsForSelectedDate.map((slot, index) => {
+                const time = new Date(slot.start).toLocaleTimeString("fr-FR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
 
-          {/* Récapitulatif */}
-          <div className="bg-accent/10 rounded-lg p-4 mb-6">
-            <div className="font-medium">{slot.consultationType}</div>
-            <div className="text-sm text-muted mt-1">{formattedDateTime}</div>
-            <div className="text-sm text-muted">
-              Durée : {slot.duration} min {slot.price ? `• Tarif : ${slot.price}€` : ""}
+                return (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      setSelectedSlot(slot);
+                      setShowBookingModal(true);
+                    }}
+                    className="p-3 text-center border border-border rounded-lg hover:border-accent hover:bg-accent/5 transition-colors font-medium"
+                  >
+                    {time}
+                  </button>
+                );
+              })}
             </div>
+            <button
+              onClick={() => setSelectedDate(null)}
+              className="text-sm text-muted hover:underline"
+            >
+              ← Choisir un autre jour
+            </button>
           </div>
+        )}
+      </article>
 
-          <form onSubmit={handleSubmit} className="grid gap-4">
-            {/* Informations personnelles */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Prénom *
-                </label>
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 border border-border rounded-lg"
-                />
+      {/* Modal de confirmation */}
+      {showBookingModal && selectedSlot && (
+        <ConfirmModal
+          open={showBookingModal}
+          onClose={() => {
+            setShowBookingModal(false);
+            setSelectedSlot(null);
+          }}
+          onConfirm={handleBooking}
+          title="Confirmer le rendez-vous"
+          message={
+            <div className="text-left space-y-3">
+              <p>Vous êtes sur le point de réserver :</p>
+              <div className="bg-slate-50 p-4 rounded-lg space-y-2 text-sm">
+                <div>
+                  <span className="text-muted">Praticien :</span>{" "}
+                  <strong>{practitionerName}</strong>
+                </div>
+                <div>
+                  <span className="text-muted">Type :</span>{" "}
+                  <strong>{selectedSlot.consultationType}</strong>
+                </div>
+                <div>
+                  <span className="text-muted">Date :</span>{" "}
+                  <strong>
+                    {new Date(selectedSlot.start).toLocaleDateString("fr-FR", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-muted">Heure :</span>{" "}
+                  <strong>
+                    {new Date(selectedSlot.start).toLocaleTimeString("fr-FR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-muted">Durée :</span>{" "}
+                  <strong>{selectedSlot.duration} min</strong>
+                </div>
+                {selectedSlot.price && (
+                  <div>
+                    <span className="text-muted">Tarif :</span>{" "}
+                    <strong>{selectedSlot.price}€</strong>
+                  </div>
+                )}
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Nom *
-                </label>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 border border-border rounded-lg"
-                />
+              <div className="text-sm text-muted">
+                Vous recevrez un email de confirmation à <strong>{userInfo?.email}</strong>
               </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Email *
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-3 py-2 border border-border rounded-lg"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Téléphone
-              </label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="06 12 34 56 78"
-                className="w-full px-3 py-2 border border-border rounded-lg"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Motif de consultation (optionnel)
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                placeholder="Décrivez brièvement le motif de votre consultation..."
-                className="w-full px-3 py-2 border border-border rounded-lg"
-              />
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-2 pt-2 border-t">
-              <button
-                type="button"
-                onClick={onClose}
-                className="btn btn-ghost"
-                disabled={submitting}
-              >
-                Annuler
-              </button>
-              <button type="submit" className="btn" disabled={submitting}>
-                {submitting ? "Réservation..." : "Confirmer le rendez-vous"}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+          }
+          confirmText={booking ? "Réservation..." : "Confirmer"}
+          cancelText="Annuler"
+          variant="default"
+        />
+      )}
 
       <ConfirmModal
         open={confirmDialog.isOpen}
