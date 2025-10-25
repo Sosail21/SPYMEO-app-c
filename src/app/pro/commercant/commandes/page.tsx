@@ -3,6 +3,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import ConfirmModal, { useConfirm } from "@/components/common/ConfirmModal";
 import type {
   OrderDetail,
   OrderStatus,
@@ -17,6 +18,7 @@ const TABS: { key: "ALL" | OrderStatus; label: string }[] = [
 ];
 
 export default function OrdersPage() {
+  const confirmDialog = useConfirm();
   const [orders, setOrders] = useState<OrderDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"ALL" | OrderStatus>("ALL");
@@ -117,7 +119,7 @@ export default function OrdersPage() {
                     <Td>
                       <div className="flex gap-2">
                         <Link href={`/pro/commercants/commandes/${o.id}`} className="pill pill-ghost">Voir</Link>
-                        <button className="pill pill-muted" onClick={() => alert("Mettre à jour (à implémenter)")}>
+                        <button className="pill pill-muted" onClick={() => confirmDialog.warning("Mettre à jour (à implémenter)")}>
                           Modifier
                         </button>
                       </div>
@@ -129,6 +131,7 @@ export default function OrdersPage() {
           </div>
         )}
       </section>
+      <ConfirmModal {...confirmDialog} />
     </main>
   );
 }

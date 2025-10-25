@@ -3,9 +3,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import ConfirmModal, { useConfirm } from "@/components/common/ConfirmModal";
 import type { Appointment } from "@/types/appointments";
 
 export default function PastAppointmentsPage() {
+  const confirmDialog = useConfirm();
   const [data, setData] = useState<Appointment[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
@@ -46,7 +48,7 @@ export default function PastAppointmentsPage() {
           </div>
           <div className="flex gap-2">
             <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder="Rechercher un RDV…" className="rounded-xl border border-slate-200 px-3 py-2 text-sm w-64"/>
-            <button className="pill pill-muted" onClick={()=>alert("Export PDF (à implémenter)")}>Exporter PDF</button>
+            <button className="pill pill-muted" onClick={()=>confirmDialog.warning("Export PDF (à implémenter)")}>Exporter PDF</button>
           </div>
         </div>
       </section>
@@ -68,7 +70,7 @@ export default function PastAppointmentsPage() {
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <Link href={`/user/rendez-vous/${a.id}`} className="pill pill-ghost">Détails</Link>
-                    <button className="pill pill-muted" onClick={()=>alert("Reprendre RDV (à implémenter)")}>Reprendre RDV</button>
+                    <button className="pill pill-muted" onClick={()=>confirmDialog.warning("Reprendre RDV (à implémenter)")}>Reprendre RDV</button>
                   </div>
                 </div>
               </li>
@@ -76,6 +78,7 @@ export default function PastAppointmentsPage() {
           </ul>
         )}
       </section>
+      <ConfirmModal {...confirmDialog} />
     </main>
   );
 }

@@ -4,9 +4,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import ConfirmModal, { useConfirm } from "@/components/common/ConfirmModal";
 
 export default function PractitionerBlogSubmitPage() {
   const router = useRouter();
+  const confirmDialog = useConfirm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -60,7 +62,7 @@ export default function PractitionerBlogSubmitPage() {
       const json = await res.json();
 
       if (json.success) {
-        alert(json.message || "Article soumis avec succès !");
+        await confirmDialog.success(json.message || "Article soumis avec succès !");
         router.push("/pro/dashboard");
       } else {
         setError(json.error || "Erreur lors de la soumission");
@@ -198,6 +200,7 @@ export default function PractitionerBlogSubmitPage() {
           </div>
         </form>
       </div>
+      <ConfirmModal {...confirmDialog} />
     </main>
   );
 }

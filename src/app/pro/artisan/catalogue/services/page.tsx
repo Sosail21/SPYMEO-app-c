@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import ConfirmModal, { useConfirm } from "@/components/common/ConfirmModal";
 import type {
   ServiceItem,
   ServiceStatus,
@@ -16,6 +17,7 @@ const TABS: { key: "ALL" | ServiceStatus; label: string }[] = [
 ];
 
 export default function ArtisanServicesPage() {
+  const confirmDialog = useConfirm();
   const [data, setData] = useState<ServiceItem[] | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -135,9 +137,9 @@ export default function ArtisanServicesPage() {
                     <Link href={`/pro/artisan/catalogue/services/${s.slug}/edit`} className="pill pill-ghost">Éditer</Link>
                     <Link href={`/services/${s.slug}`} className="pill pill-muted" target="_blank">Aperçu public</Link>
                     {s.status !== "ARCHIVED" ? (
-                      <button className="pill pill-muted" onClick={()=>alert("Archiver (à implémenter)")}>Archiver</button>
+                      <button className="pill pill-muted" onClick={()=>confirmDialog.warning("Archiver (à implémenter)")}>Archiver</button>
                     ) : (
-                      <button className="pill pill-muted" onClick={()=>alert("Restaurer (à implémenter)")}>Restaurer</button>
+                      <button className="pill pill-muted" onClick={()=>confirmDialog.warning("Restaurer (à implémenter)")}>Restaurer</button>
                     )}
                   </div>
                 </div>
@@ -156,6 +158,7 @@ export default function ArtisanServicesPage() {
           </div>
         </div>
       </section>
+      <ConfirmModal {...confirmDialog} />
     </main>
   );
 }

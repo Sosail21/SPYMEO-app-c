@@ -4,9 +4,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import ConfirmModal, { useConfirm } from "@/components/common/ConfirmModal";
 import type { UserFavorite } from "@/types/user-favorites";
 
 export default function UserFavoritesPage() {
+  const confirmDialog = useConfirm();
   const [data, setData] = useState<UserFavorite[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
@@ -72,7 +74,7 @@ export default function UserFavoritesPage() {
                   </div>
                   <div className="flex gap-2">
                     <Link href={f.href} className="pill pill-ghost">Ouvrir</Link>
-                    <button className="pill pill-muted" onClick={()=>alert("Retirer des favoris (à implémenter)")}>Retirer</button>
+                    <button className="pill pill-muted" onClick={()=>confirmDialog.warning("Retirer des favoris (à implémenter)")}>Retirer</button>
                   </div>
                 </div>
               </li>
@@ -80,6 +82,7 @@ export default function UserFavoritesPage() {
           </ul>
         )}
       </section>
+      <ConfirmModal {...confirmDialog} />
     </main>
   );
 }

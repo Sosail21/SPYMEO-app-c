@@ -3,11 +3,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import ConfirmModal, { useConfirm } from "@/components/common/ConfirmModal";
 import type { Message } from "@/types/messages";
 import { useParams } from "next/navigation";
 
 export default function ConversationPage(){
   const { conversationId } = useParams() as { conversationId: string };
+  const confirmDialog = useConfirm();
   const [messages, setMessages] = useState<Message[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState("");
@@ -32,9 +34,9 @@ export default function ConversationPage(){
 
   useEffect(()=>{ bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-  function send(){
+  async function send(){
     if(!text.trim()) return;
-    alert("Envoi message (à implémenter)");
+    await confirmDialog.warning("Envoi message (à implémenter)");
     setText("");
   }
 
@@ -73,6 +75,7 @@ export default function ConversationPage(){
           </form>
         </div>
       </section>
+      <ConfirmModal {...confirmDialog} />
     </main>
   );
 }

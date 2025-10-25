@@ -1,7 +1,7 @@
 // Cdw-Spm: Reusable Confirmation Modal Component
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export interface ConfirmModalProps {
   open: boolean;
@@ -11,7 +11,7 @@ export interface ConfirmModalProps {
   message: string;
   confirmText?: string;
   cancelText?: string;
-  variant?: "default" | "danger" | "warning";
+  variant?: "default" | "danger" | "warning" | "success" | "error";
 }
 
 export default function ConfirmModal({
@@ -61,6 +61,7 @@ export default function ConfirmModal({
   const getVariantStyles = () => {
     switch (variant) {
       case "danger":
+      case "error":
         return {
           iconBg: "bg-red-100",
           icon: "⚠️",
@@ -71,6 +72,12 @@ export default function ConfirmModal({
           iconBg: "bg-yellow-100",
           icon: "⚠️",
           confirmBtn: "bg-yellow-500 text-white hover:bg-yellow-600",
+        };
+      case "success":
+        return {
+          iconBg: "bg-emerald-100",
+          icon: "✓",
+          confirmBtn: "bg-emerald-500 text-white hover:bg-emerald-600",
         };
       default:
         return {
@@ -117,4 +124,73 @@ export default function ConfirmModal({
       </div>
     </div>
   );
+}
+
+// Hook for easier usage
+export function useConfirm() {
+  const [state, setState] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    variant: "default" | "danger" | "warning" | "success" | "error";
+    confirmText?: string;
+    cancelText?: string;
+    onConfirm?: () => void;
+  }>({
+    open: false,
+    title: "",
+    message: "",
+    variant: "default",
+  });
+
+  const showDialog = (
+    message: string,
+    title: string = "Confirmation",
+    variant: "default" | "danger" | "warning" | "success" | "error" = "default",
+    onConfirm?: () => void
+  ) => {
+    return new Promise<boolean>((resolve) => {
+      setState({
+        open: true,
+        title,
+        message,
+        variant,
+        onConfirm: () => {
+          onConfirm?.();
+          resolve(true);
+        },
+      });
+    });
+  };
+
+  const success = (message: string, title: string = "Succès") =>
+    showDialog(message, title, "success");
+
+  const error = (message: string, title: string = "Erreur") =>
+    showDialog(message, title, "danger");
+
+  const warning = (message: string, title: string = "Attention") =>
+    showDialog(message, title, "warning");
+
+  const confirm = (message: string, title: string = "Confirmation", onConfirm?: () => void) =>
+    showDialog(message, title, "default", onConfirm);
+
+  const onClose = () => {
+    setState((prev) => ({ ...prev, open: false }));
+  };
+
+  const onConfirmInternal = () => {
+    state.onConfirm?.();
+    onClose();
+  };
+
+  return {
+    ...state,
+    success,
+    error,
+    warning,
+    confirm,
+    onClose,
+    onConfirm: onConfirmInternal,
+  };
 }

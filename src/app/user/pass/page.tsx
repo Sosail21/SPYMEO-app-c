@@ -4,6 +4,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import ConfirmModal, { useConfirm } from "@/components/common/ConfirmModal";
 import type {
   PassSnapshot,
   PassResource,
@@ -14,6 +15,7 @@ import type {
 type Tab = "RESSOURCES" | "REDUCTIONS" | "CARNET" | "OFFRE";
 
 export default function ManagePassPage() {
+  const confirmDialog = useConfirm();
   const [snap, setSnap] = useState<PassSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("RESSOURCES");
@@ -49,7 +51,7 @@ export default function ManagePassPage() {
       const j = await r.json();
       setSnap(j?.pass ?? null);
     } catch {
-      alert("Impossible de changer la formule (à implémenter côté back).");
+      await confirmDialog.error("Impossible de changer la formule (à implémenter côté back).");
     }
   }
   async function incrementMonth() {
@@ -59,7 +61,7 @@ export default function ManagePassPage() {
       const j = await r.json();
       setSnap(j?.pass ?? null);
     } catch {
-      alert("Impossible d'incrémenter le mois (à implémenter côté back).");
+      await confirmDialog.error("Impossible d'incrémenter le mois (à implémenter côté back).");
     }
   }
 
@@ -167,7 +169,7 @@ export default function ManagePassPage() {
             </div>
           </div>
         ) : tab === "RESSOURCES" ? (
-          <ResourcesPanel resources={sortedResources} active={isActive} />
+          <ResourcesPanel resources={sortedResources} active={isActive} confirmDialog={confirmDialog} />
         ) : tab === "REDUCTIONS" ? (
           <DiscountsPanel discounts={recentDiscounts} />
         ) : tab === "CARNET" ? (
@@ -177,15 +179,18 @@ export default function ManagePassPage() {
             eta={snap.carnet.eta}
             plan={snap.plan}
             monthsPaid={snap.monthsPaid}
+            confirmDialog={confirmDialog}
           />
         ) : (
           <OfferPanel
             snapshot={snap}
             onTogglePlan={togglePlan}
             onIncrementMonth={incrementMonth}
+            confirmDialog={confirmDialog}
           />
         )}
       </section>
+      <ConfirmModal {...confirmDialog} />
     </main>
   );
 }
@@ -195,9 +200,11 @@ export default function ManagePassPage() {
 function ResourcesPanel({
   resources,
   active,
+  confirmDialog,
 }: {
   resources: PassResource[];
   active: boolean;
+  confirmDialog: ReturnType<typeof useConfirm>;
 }) {
   if (!resources.length) {
     return (
@@ -231,10 +238,10 @@ function ResourcesPanel({
             <Link
               href={active && r.url ? r.url : "#"}
               className="pill pill-ghost"
-              onClick={(e) => {
+              onClick={async (e) => {
                 if (!active || !r.url) {
                   e.preventDefault();
-                  alert(active ? "Lien indisponible (à implémenter)" : "PASS inactif");
+                  await confirmDialog.warning(active ? "Lien indisponible (à implémenter)" : "PASS inactif");
                 }
               }}
             >
@@ -294,12 +301,14 @@ function CarnetPanel({
   eta,
   plan,
   monthsPaid,
+  confirmDialog,
 }: {
   status?: CarnetShipmentStatus;
   note?: string;
   eta?: string;
   plan: "ANNUAL" | "MONTHLY";
   monthsPaid: number;
+  confirmDialog: ReturnType<typeof useConfirm>;
 }) {
   const map: Record<CarnetShipmentStatus, { label: string; cls: string }> = {
     NOT_ELIGIBLE: { label: "Non éligible", cls: "bg-slate-100 text-slate-700" },
@@ -339,15 +348,15 @@ function CarnetPanel({
       <div className="mt-2 flex gap-2">
         <button
           className="pill pill-ghost"
-          onClick={() => alert("Changer d’adresse postale (à implémenter)")}
+          onClick={() => confirmDialog.warning("Changer d'adresse postale (à implémenter)")}
         >
-          Mettre à jour mon adresse d’envoi
+          Mettre à jour mon adresse d'envoi
         </button>
         <button
           className="pill pill-muted"
-          onClick={() => alert("Contacter le support (à implémenter)")}
+          onClick={() => confirmDialog.warning("Contacter le support (à implémenter)")}
         >
-          Besoin d’aide ?
+          Besoin d'aide ?
         </button>
       </div>
     </div>
@@ -358,10 +367,12 @@ function OfferPanel({
   snapshot,
   onTogglePlan,
   onIncrementMonth,
+  confirmDialog,
 }: {
   snapshot: PassSnapshot;
   onTogglePlan: (target?: "ANNUAL" | "MONTHLY") => void;
   onIncrementMonth: () => void;
+  confirmDialog: ReturnType<typeof useConfirm>;
 }) {
   const isAnnual = snapshot.plan === "ANNUAL";
   return (
@@ -402,7 +413,7 @@ function OfferPanel({
             <button
               className="pill pill-muted"
               onClick={() =>
-                alert("Mettre à jour le moyen de paiement (à implémenter)")
+                confirmDialog.warning("Mettre à jour le moyen de paiement (à implémenter)")
               }
             >
               Paiement

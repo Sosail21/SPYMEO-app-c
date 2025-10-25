@@ -5,8 +5,10 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import CommandPalette, { type Command } from "./CommandPalette";
+import ConfirmModal, { useConfirm } from "@/components/common/ConfirmModal";
 
 export default function AdminTopbar() {
+  const confirmDialog = useConfirm();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -30,13 +32,13 @@ export default function AdminTopbar() {
       { id: "go-blog",      title: "Aller • Blog",             section: "Navigation", href: "/admin/blog", icon: "✍️" },
       { id: "go-database",  title: "Aller • Base de données",  section: "Navigation", href: "/admin/database", icon: "📊" },
 
-      { id: "new-user", title: "Créer un nouvel utilisateur", section: "Actions", href: "/auth/signup", icon: "➕", subtitle: "Redirige vers l’inscription" },
+      { id: "new-user", title: "Créer un nouvel utilisateur", section: "Actions", href: "/auth/signup", icon: "➕", subtitle: "Redirige vers l'inscription" },
       { id: "new-article", title: "Créer un article", section: "Actions", href: "/admin/blog/nouvel-article", icon: "📝" },
-      { id: "add-pass-resource", title: "Ajouter ressource PASS (mock)", section: "Actions", icon: "🗂️", onRun: () => alert("Créer ressource PASS — à brancher API") },
-      { id: "advance-carnet", title: "Avancer un envoi carnet (mock)", section: "Actions", icon: "🚚", onRun: () => alert("Avancement carnet — à brancher API") },
-      { id: "recompute-stats", title: "Recalculer les statistiques (mock)", section: "Actions", icon: "📊", onRun: () => alert("Recalcul stats — à brancher backend/cron") },
+      { id: "add-pass-resource", title: "Ajouter ressource PASS (mock)", section: "Actions", icon: "🗂️", onRun: () => confirmDialog.warning("Créer ressource PASS — à brancher API") },
+      { id: "advance-carnet", title: "Avancer un envoi carnet (mock)", section: "Actions", icon: "🚚", onRun: () => confirmDialog.warning("Avancement carnet — à brancher API") },
+      { id: "recompute-stats", title: "Recalculer les statistiques (mock)", section: "Actions", icon: "📊", onRun: () => confirmDialog.warning("Recalcul stats — à brancher backend/cron") },
     ],
-    []
+    [confirmDialog]
   );
 
   return (
@@ -77,6 +79,7 @@ export default function AdminTopbar() {
       </div>
 
       <CommandPalette open={open} onClose={() => setOpen(false)} commands={commands} />
+      <ConfirmModal {...confirmDialog} />
     </>
   );
 }

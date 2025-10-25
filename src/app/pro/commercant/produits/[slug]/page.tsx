@@ -4,12 +4,14 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, notFound } from "next/navigation";
+import ConfirmModal, { useConfirm } from "@/components/common/ConfirmModal";
 import type { Product } from "@/types/products-commercant";
 
 type TabKey = "INFOS" | "STOCK" | "VARIANTS";
 
 export default function ProductDetailPage() {
   const { slug } = useParams() as { slug: string };
+  const confirmDialog = useConfirm();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -111,9 +113,10 @@ export default function ProductDetailPage() {
         ) : tab === "STOCK" ? (
           <Stock product={product} />
         ) : (
-          <Variants product={product} />
+          <Variants product={product} confirmDialog={confirmDialog} />
         )}
       </section>
+      <ConfirmModal {...confirmDialog} />
     </main>
   );
 }
@@ -195,7 +198,7 @@ function Stock({ product }: { product: Product }) {
   );
 }
 
-function Variants({ product }: { product: Product }) {
+function Variants({ product, confirmDialog }: { product: Product; confirmDialog: ReturnType<typeof useConfirm> }) {
   // Placeholder variantes — à remplacer par de vraies données
   const base = product.sku?.replace(/-S| -S| -M| -L/g,"") ?? product.slug;
   const variants = [
@@ -225,8 +228,8 @@ function Variants({ product }: { product: Product }) {
               <Td>{v.stock}</Td>
               <Td>
                 <div className="flex gap-2">
-                  <button className="pill pill-ghost" onClick={()=>alert("Éditer variante (à implémenter)")}>Éditer</button>
-                  <button className="pill pill-muted" onClick={()=>alert("Réassort (à implémenter)")}>Réassort</button>
+                  <button className="pill pill-ghost" onClick={()=>confirmDialog.warning("Éditer variante (à implémenter)")}>Éditer</button>
+                  <button className="pill pill-muted" onClick={()=>confirmDialog.warning("Réassort (à implémenter)")}>Réassort</button>
                 </div>
               </Td>
             </tr>

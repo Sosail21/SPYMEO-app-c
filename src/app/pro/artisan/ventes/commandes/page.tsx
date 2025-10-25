@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import ConfirmModal, { useConfirm } from "@/components/common/ConfirmModal";
 import type {
   ArtisanOrder,
   OrderStatus,
@@ -17,6 +18,7 @@ const TABS: { key: "ALL" | OrderStatus; label: string }[] = [
 ];
 
 export default function ArtisanOrdersPage(){
+  const confirmDialog = useConfirm();
   const [data,setData] = useState<ArtisanOrder[]>([]);
   const [loading,setLoading] = useState(true);
 
@@ -106,8 +108,8 @@ export default function ArtisanOrdersPage(){
                     <Td><Status status={o.status}/></Td>
                     <Td>
                       <div className="flex gap-2 flex-wrap">
-                        <button className="pill pill-ghost" onClick={()=>alert("Confirmer (à implémenter)")}>Confirmer</button>
-                        <button className="pill pill-muted" onClick={()=>alert("Annuler (à implémenter)")}>Annuler</button>
+                        <button className="pill pill-ghost" onClick={()=>confirmDialog.warning("Confirmer (à implémenter)")}>Confirmer</button>
+                        <button className="pill pill-muted" onClick={()=>confirmDialog.warning("Annuler (à implémenter)")}>Annuler</button>
                       </div>
                     </Td>
                   </tr>
@@ -117,6 +119,7 @@ export default function ArtisanOrdersPage(){
           </div>
         )}
       </section>
+      <ConfirmModal {...confirmDialog} />
     </main>
   );
 }

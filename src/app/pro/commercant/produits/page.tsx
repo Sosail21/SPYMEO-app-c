@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import ConfirmModal, { useConfirm } from "@/components/common/ConfirmModal";
 import type {
   Product,
   ProductStatus,
@@ -23,6 +24,7 @@ type SortKey =
   | "UPDATED_DESC";
 
 export default function MerchantProductsPage() {
+  const confirmDialog = useConfirm();
   const [data, setData] = useState<Product[] | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -125,21 +127,21 @@ export default function MerchantProductsPage() {
   function clearSelection() { setSelected({}); }
 
   // Actions groupées (optimiste + mock)
-  function bulkPublish() {
+  async function bulkPublish() {
     if (!data) return;
     const updated = data.map((p) => selectedIds.includes(p.id) ? { ...p, status: "PUBLISHED" as ProductStatus } : p);
     setData(updated);
     clearSelection();
-    alert(`Publié ${selectedIds.length} produit(s). (mock)`);
+    await confirmDialog.success(`Publié ${selectedIds.length} produit(s). (mock)`);
   }
-  function bulkArchive() {
+  async function bulkArchive() {
     if (!data) return;
     const updated = data.map((p) => selectedIds.includes(p.id) ? { ...p, status: "ARCHIVED" as ProductStatus } : p);
     setData(updated);
     clearSelection();
-    alert(`Archivé ${selectedIds.length} produit(s). (mock)`);
+    await confirmDialog.success(`Archivé ${selectedIds.length} produit(s). (mock)`);
   }
-  function bulkDuplicate() {
+  async function bulkDuplicate() {
     if (!data) return;
     const clones: Product[] = [];
     for (const id of selectedIds) {
@@ -157,7 +159,7 @@ export default function MerchantProductsPage() {
     }
     setData([...(data ?? []), ...clones]);
     clearSelection();
-    alert(`Dupliqué ${clones.length} produit(s). (mock)`);
+    await confirmDialog.success(`Dupliqué ${clones.length} produit(s). (mock)`);
   }
   function bulkExport() {
     const rows = (data ?? []).filter((p) => selectedIds.includes(p.id));
@@ -399,7 +401,7 @@ export default function MerchantProductsPage() {
                           <Link href={`/pro/commercants/stock?sku=${encodeURIComponent(p.sku ?? "")}`} className="pill pill-ghost">
                             Gérer stock
                           </Link>
-                          <button className="pill pill-muted" onClick={() => alert("Dupliquer (à implémenter)")}>
+                          <button className="pill pill-muted" onClick={() => confirmDialog.warning("Dupliquer (à implémenter)")}>
                             Dupliquer
                           </button>
                           <Link href={`/produits/${p.slug}`} className="pill pill-muted" target="_blank">
@@ -409,7 +411,7 @@ export default function MerchantProductsPage() {
                             className="pill pill-ghost"
                             onClick={async () => {
                               await navigator.clipboard.writeText(`${location.origin}/produits/${p.slug}`);
-                              alert("Lien copié !");
+                              await confirmDialog.success("Lien copié !");
                             }}
                           >
                             Copier lien
@@ -441,6 +443,7 @@ export default function MerchantProductsPage() {
           </div>
         </div>
       </section>
+      <ConfirmModal {...confirmDialog} />
     </main>
   );
 }

@@ -3,9 +3,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import ConfirmModal, { useConfirm } from "@/components/common/ConfirmModal";
 import type { UserDocument } from "@/types/documents";
 
 export default function UserDocumentsPage(){
+  const confirmDialog = useConfirm();
   const [data, setData] = useState<UserDocument[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
@@ -78,13 +80,14 @@ export default function UserDocumentsPage(){
                 </div>
                 <div className="flex gap-2">
                   <Link href={`/user/documents/${d.id}`} className="pill pill-ghost">Ouvrir</Link>
-                  <button className="pill pill-muted" onClick={()=>alert("Télécharger (à implémenter)")}>Télécharger</button>
+                  <button className="pill pill-muted" onClick={()=>confirmDialog.warning("Télécharger (à implémenter)")}>Télécharger</button>
                 </div>
               </li>
             ))}
           </ul>
         )}
       </section>
+      <ConfirmModal {...confirmDialog} />
     </main>
   );
 }

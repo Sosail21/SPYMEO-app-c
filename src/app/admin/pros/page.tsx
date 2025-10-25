@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import ConfirmModal, { useConfirm } from "@/components/common/ConfirmModal";
 
 interface Documents {
   diploma?: string;
@@ -31,6 +32,7 @@ interface PendingUser {
 type TabStatus = 'PENDING_VALIDATION' | 'ACTIVE' | 'REJECTED';
 
 export default function AdminProPage() {
+  const confirmDialog = useConfirm();
   const [users, setUsers] = useState<PendingUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -74,13 +76,13 @@ export default function AdminProPage() {
       const result = await res.json();
 
       if (result.success) {
-        alert(result.message);
+        await confirmDialog.success(result.message);
         fetchUsers(); // Refresh list
       } else {
-        alert('Erreur: ' + result.error);
+        await confirmDialog.error('Erreur: ' + result.error);
       }
     } catch (err) {
-      alert('Erreur réseau');
+      await confirmDialog.error('Erreur réseau');
     }
   };
 
@@ -468,6 +470,7 @@ export default function AdminProPage() {
           )}
         </div>
       </div>
+      <ConfirmModal {...confirmDialog} />
     </section>
   );
 }

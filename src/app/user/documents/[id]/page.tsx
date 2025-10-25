@@ -3,11 +3,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import ConfirmModal, { useConfirm } from "@/components/common/ConfirmModal";
 import type { UserDocument } from "@/types/documents";
 import { useParams } from "next/navigation";
 
 export default function DocumentDetailPage(){
   const { id } = useParams() as { id: string };
+  const confirmDialog = useConfirm();
   const [data, setData] = useState<UserDocument | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -56,7 +58,7 @@ export default function DocumentDetailPage(){
             </div>
 
             <div className="flex gap-2">
-              <button className="btn" onClick={()=>alert("Télécharger (à implémenter)")}>Télécharger</button>
+              <button className="btn" onClick={()=>confirmDialog.warning("Télécharger (à implémenter)")}>Télécharger</button>
               {data.relatedAppointmentId && (
                 <Link href={`/user/rendez-vous/${data.relatedAppointmentId}`} className="pill pill-ghost">Voir le RDV lié</Link>
               )}
@@ -64,6 +66,7 @@ export default function DocumentDetailPage(){
           </div>
         )}
       </section>
+      <ConfirmModal {...confirmDialog} />
     </main>
   );
 }

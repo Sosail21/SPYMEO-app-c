@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, notFound } from "next/navigation";
+import ConfirmModal, { useConfirm } from "@/components/common/ConfirmModal";
 import type {
   OrderDetail,
   OrderStatus,
@@ -11,6 +12,7 @@ import type {
 
 export default function OrderDetailPage() {
   const { id } = useParams() as { id: string };
+  const confirmDialog = useConfirm();
 
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,17 +64,17 @@ export default function OrderDetailPage() {
           {order && (
             <div className="mt-4 flex gap-2">
               {order.status === "PENDING" && (
-                <button className="btn" onClick={() => alert("Marquer comme payée (à implémenter)")}>
+                <button className="btn" onClick={() => confirmDialog.warning("Marquer comme payée (à implémenter)")}>
                   Marquer comme payée
                 </button>
               )}
               {order.status === "PAID" && (
-                <button className="btn" onClick={() => alert("Expédier la commande (à implémenter)")}>
+                <button className="btn" onClick={() => confirmDialog.warning("Expédier la commande (à implémenter)")}>
                   Expédier
                 </button>
               )}
               {order.status !== "CANCELLED" && (
-                <button className="pill pill-muted" onClick={() => alert("Annuler la commande (à implémenter)")}>
+                <button className="pill pill-muted" onClick={() => confirmDialog.warning("Annuler la commande (à implémenter)")}>
                   Annuler
                 </button>
               )}
@@ -120,6 +122,7 @@ export default function OrderDetailPage() {
           </div>
         </section>
       )}
+      <ConfirmModal {...confirmDialog} />
     </main>
   );
 }

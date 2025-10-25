@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import ConfirmModal, { useConfirm } from "@/components/common/ConfirmModal";
 
 type Post = {
   id: string;
@@ -24,6 +25,7 @@ type Post = {
 
 export default function BlogPost({ params }: { params: { slug: string } }) {
   const router = useRouter();
+  const confirmDialog = useConfirm();
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -63,7 +65,7 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
       if (json.success) {
         setPost({ ...post, isLiked: json.isLiked, likesCount: json.likesCount });
       } else if (res.status === 401) {
-        alert('Vous devez être connecté pour aimer un article');
+        await confirmDialog.warning('Vous devez être connecté pour aimer un article');
       }
     } catch (error) {
       console.error('Error liking post:', error);
@@ -84,9 +86,9 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
 
       if (json.success) {
         setPost({ ...post, isFavorite: json.isFavorite });
-        alert(json.message);
+        await confirmDialog.success(json.message);
       } else if (res.status === 401) {
-        alert('Vous devez être connecté pour ajouter aux favoris');
+        await confirmDialog.warning('Vous devez être connecté pour ajouter aux favoris');
       }
     } catch (error) {
       console.error('Error favoriting post:', error);
@@ -113,7 +115,7 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
         break;
       case 'copy':
         navigator.clipboard.writeText(url);
-        alert('Lien copié dans le presse-papier !');
+        confirmDialog.success('Lien copié dans le presse-papier !');
         break;
     }
   }
@@ -272,6 +274,7 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
           </div>
         </div>
       </section>
+      <ConfirmModal {...confirmDialog} />
     </main>
   );
 }

@@ -4,11 +4,13 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import ConfirmModal, { useConfirm } from "@/components/common/ConfirmModal";
 
 type ArticleStatus = "DRAFT" | "PUBLISHED";
 
 export default function AdminBlogNewPage() {
   const router = useRouter();
+  const confirmDialog = useConfirm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -30,12 +32,12 @@ export default function AdminBlogNewPage() {
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      alert("Le fichier est trop volumineux (max 10MB)");
+      await confirmDialog.error("Le fichier est trop volumineux (max 10MB)");
       return;
     }
 
     if (!file.type.startsWith('image/')) {
-      alert("Le fichier doit être une image");
+      await confirmDialog.error("Le fichier doit être une image");
       return;
     }
 
@@ -56,11 +58,11 @@ export default function AdminBlogNewPage() {
       if (json.success && json.url) {
         setCoverImage(json.url);
       } else {
-        alert(json.error || "Erreur lors de l'upload");
+        await confirmDialog.error(json.error || "Erreur lors de l'upload");
       }
     } catch (err) {
       console.error('Upload error:', err);
-      alert("Erreur lors de l'upload de l'image");
+      await confirmDialog.error("Erreur lors de l'upload de l'image");
     } finally {
       setUploadingImage(false);
     }
@@ -81,9 +83,18 @@ export default function AdminBlogNewPage() {
 
   async function onSubmit(e: React.FormEvent, publishNow = false) {
     e.preventDefault();
-    if (!title.trim()) return alert("Le titre est requis.");
-    if (!slug.trim()) return alert("Le slug est requis.");
-    if (!content.trim()) return alert("Le contenu est requis.");
+    if (!title.trim()) {
+      await confirmDialog.error("Le titre est requis.");
+      return;
+    }
+    if (!slug.trim()) {
+      await confirmDialog.error("Le slug est requis.");
+      return;
+    }
+    if (!content.trim()) {
+      await confirmDialog.error("Le contenu est requis.");
+      return;
+    }
 
     setError("");
     setLoading(true);
@@ -110,7 +121,7 @@ export default function AdminBlogNewPage() {
       const json = await res.json();
 
       if (json.success) {
-        alert(`Article ${publishNow ? 'publié' : 'créé'} avec succès !`);
+        await confirmDialog.success(`Article ${publishNow ? 'publié' : 'créé'} avec succès !`);
         router.push("/admin/blog");
       } else {
         setError(json.error || "Erreur lors de la création");
@@ -303,6 +314,7 @@ export default function AdminBlogNewPage() {
           </button>
         </div>
       </form>
+      <ConfirmModal {...confirmDialog} />
     </section>
   );
 }
