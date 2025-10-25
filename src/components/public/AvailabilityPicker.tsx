@@ -272,7 +272,7 @@ function BookingModal({
         message: data.message || "Vous recevrez un email de confirmation.",
         confirmText: "OK",
         cancelText: "",
-        variant: "success",
+        variant: "default",
       });
 
       onSuccess();
