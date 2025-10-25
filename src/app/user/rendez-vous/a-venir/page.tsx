@@ -11,21 +11,48 @@ export default function UpcomingAppointmentsPage() {
   const [q, setQ] = useState("");
 
   useEffect(() => {
-    let cancel = false;
-    (async () => {
-      try {
-        const r = await fetch("/api/user/appointments?scope=upcoming", { cache: "no-store" });
-        if (!r.ok) throw new Error("fallback");
-        const j = await r.json();
-        if (!cancel) setData(j?.appointments ?? []);
-      } catch {
-        if (!cancel) setData([]);
-      } finally {
-        if (!cancel) setLoading(false);
-      }
-    })();
-    return () => { cancel = true; };
+    fetchAppointments();
   }, []);
+
+  async function fetchAppointments() {
+    try {
+      const r = await fetch("/api/user/appointments?scope=upcoming", { cache: "no-store" });
+      if (!r.ok) throw new Error("fallback");
+      const j = await r.json();
+      setData(j?.appointments ?? []);
+    } catch {
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleCancelAppointment(appointmentId: string) {
+    if (!confirm("Êtes-vous sûr de vouloir annuler ce rendez-vous ?")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/user/appointments/${appointmentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "CANCELLED" }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Erreur lors de l'annulation du rendez-vous");
+        return;
+      }
+
+      // Refresh the list
+      fetchAppointments();
+      alert("Rendez-vous annulé avec succès");
+    } catch (error) {
+      console.error("Error cancelling appointment:", error);
+      alert("Erreur lors de l'annulation du rendez-vous");
+    }
+  }
 
   const list = useMemo(() => {
     const base = (data ?? []).filter(a => {
@@ -58,23 +85,51 @@ export default function UpcomingAppointmentsPage() {
 
       <section className="section">
         {loading ? <SkeletonList/> : list.length === 0 ? <Empty/> : (
-          <ul className="list">
+          <ul className="grid gap-3">
             {list.map(a => (
-              <li key={a.id} className="list-row">
-                <div className="list-media" />
-                <div className="list-body">
-                  <div className="list-head">
-                    <strong>{a.title}</strong>
-                    <span className="affinity">{a.place}</span>
+              <li key={a.id} className="soft-card p-4 flex items-center gap-4">
+                {/* Photo du praticien */}
+                <div className="flex-shrink-0">
+                  {a.practitionerPhoto ? (
+                    <img
+                      src={a.practitionerPhoto}
+                      alt={a.practitionerName}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center">
+                      <span className="text-2xl text-accent">
+                        {a.practitionerName?.charAt(0) || "P"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Informations du RDV */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <strong className="text-lg">{a.title}</strong>
+                    <span className="pill pill-muted flex-shrink-0">{a.place}</span>
                   </div>
                   <div className="text-sm text-muted">
-                    Avec <Link className="link-muted" href={`/praticien/${a.practitionerSlug}`}>{a.practitionerName}</Link>
-                    {" • "}{fmtDateTime(a.date)}
-                    {" • "}<span className="text-emerald-700">Rappel 24h activé</span>
+                    Avec <Link className="link-muted font-medium" href={`/praticien/${a.practitionerSlug}`}>{a.practitionerName}</Link>
                   </div>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <Link href={`/user/rendez-vous/${a.id}`} className="pill pill-ghost">Détails</Link>
-                    <button className="pill pill-muted" onClick={()=>alert("Annuler (à implémenter)")}>Annuler</button>
+                  <div className="text-sm text-muted mt-1">
+                    📅 {fmtDateTime(a.date)}
+                    {" • "}<span className="text-emerald-700">✓ Rappel 24h activé</span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link href={`/user/rendez-vous/${a.id}`} className="pill pill-ghost">📋 Détails</Link>
+                    {a.canCancel ? (
+                      <button
+                        className="pill pill-muted"
+                        onClick={() => handleCancelAppointment(a.id)}
+                      >
+                        ✕ Annuler
+                      </button>
+                    ) : (
+                      <span className="text-xs text-muted italic">Annulation possible jusqu'à 24h avant</span>
+                    )}
                   </div>
                 </div>
               </li>

@@ -7,23 +7,21 @@ import type { UserFavorite } from "@/types/user-favorites";
 import type { UserPractitioner } from "@/types/user-practitioners";
 
 type Plan = "free" | "pass";
-type Rdv = { id: string; with: string; title: string; date: string; place: "Cabinet"|"Visio"|"Domicile"; status: "À venir"|"Passé" };
 type Message = { id: string; from: string; preview: string; at: string; unread?: boolean };
 
+import type { Appointment } from "@/types/appointments";
+
 export default function UserDashboard({ plan = "free", userName = "Vous" }: { plan?: Plan; userName?: string }) {
-  // (tes mocks RDV / messages comme avant)
-  const rdvs: Rdv[] = [
-    { id: "r1", with: "Aline Dupont", title: "Naturopathie — suivi", date: "2025-09-30 10:00", place: "Cabinet", status: "À venir" },
-    { id: "r0", with: "Nicolas Perrin", title: "Sophrologie — 1ère séance", date: "2025-08-28 14:00", place: "Visio", status: "Passé" },
-  ];
   const messages: Message[] = [
     { id: "m1", from: "A. Dupont (Pro)", preview: "Bonjour, je vous envoie…", at: "Il y a 2 h", unread: true },
     { id: "m2", from: "Système", preview: "Votre RDV de mardi a été confirmé ✅", at: "Hier" },
   ];
 
-  const nextRdvs = useMemo(() => rdvs.filter(r => r.status === "À venir"), [rdvs]);
   const hasPass = plan === "pass";
   const [rdvTab, setRdvTab] = useState<"upcoming"|"past">("upcoming");
+  const [upcomingRdvs, setUpcomingRdvs] = useState<Appointment[]>([]);
+  const [pastRdvs, setPastRdvs] = useState<Appointment[]>([]);
+  const [rdvsLoading, setRdvsLoading] = useState(true);
 
   // Teasers favoris / praticiens
   const [fav, setFav] = useState<UserFavorite[]>([]);
@@ -45,6 +43,22 @@ export default function UserDashboard({ plan = "free", userName = "Vous" }: { pl
         const j = await r.json();
         if (!cancel) setPract(j?.practitioners ?? []);
       } catch { if (!cancel) setPract([]); }
+
+      try {
+        const r = await fetch("/api/user/appointments?scope=upcoming", { cache: "no-store" });
+        if (!r.ok) throw new Error("fallback");
+        const j = await r.json();
+        if (!cancel) setUpcomingRdvs(j?.appointments ?? []);
+      } catch { if (!cancel) setUpcomingRdvs([]); }
+
+      try {
+        const r = await fetch("/api/user/appointments?scope=past", { cache: "no-store" });
+        if (!r.ok) throw new Error("fallback");
+        const j = await r.json();
+        if (!cancel) setPastRdvs(j?.appointments ?? []);
+      } catch { if (!cancel) setPastRdvs([]); }
+
+      setRdvsLoading(false);
     })();
     return () => { cancel = true; };
   }, []);
@@ -80,30 +94,77 @@ export default function UserDashboard({ plan = "free", userName = "Vous" }: { pl
               <button className={rdvTab === "past" ? "is-active" : ""} onClick={() => setRdvTab("past")}>Passés</button>
             </div>
           </div>
-          {rdvTab === "upcoming" ? (
-            nextRdvs.length ? (
-              <ul className="list mt-3">
-                {nextRdvs.map((r) => (
-                  <li key={r.id} className="list-row">
-                    <div className="list-media" />
-                    <div className="list-body">
-                      <div className="list-head">
-                        <strong>{r.title}</strong>
-                        <span className="affinity">{r.place}</span>
+          {rdvsLoading ? (
+            <p className="text-muted mt-3">Chargement...</p>
+          ) : rdvTab === "upcoming" ? (
+            upcomingRdvs.length ? (
+              <ul className="grid gap-3 mt-3">
+                {upcomingRdvs.slice(0, 3).map((r) => (
+                  <li key={r.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50">
+                    {/* Photo du praticien */}
+                    {r.practitionerPhoto ? (
+                      <img
+                        src={r.practitionerPhoto}
+                        alt={r.practitionerName}
+                        className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+                        <span className="text-lg text-accent">
+                          {r.practitionerName?.charAt(0) || "P"}
+                        </span>
                       </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium">{r.title}</div>
                       <div className="text-sm text-muted">
-                        Avec {r.with} • {r.date} • <span className="text-emerald-700">Rappel 24h activé</span>
-                      </div>
-                      <div className="mt-2 flex gap-2">
-                        <Link href={`/user/rendez-vous/a-venir`} className="pill pill-ghost">Voir tous</Link>
-                        <button className="pill pill-muted" onClick={()=>alert("Annuler (à implémenter)")}>Annuler</button>
+                        {r.practitionerName} • {new Date(r.date).toLocaleDateString("fr-FR")} à {r.time}
                       </div>
                     </div>
+                    <Link href={`/user/rendez-vous/${r.id}`} className="pill pill-ghost flex-shrink-0">Détails</Link>
                   </li>
                 ))}
               </ul>
             ) : <p className="text-muted mt-3">Aucun rendez-vous à venir.</p>
-          ) : <p className="text-muted mt-3">Historique à afficher…</p>}
+          ) : (
+            pastRdvs.length ? (
+              <ul className="grid gap-3 mt-3">
+                {pastRdvs.slice(0, 3).map((r) => (
+                  <li key={r.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50">
+                    {/* Photo du praticien */}
+                    {r.practitionerPhoto ? (
+                      <img
+                        src={r.practitionerPhoto}
+                        alt={r.practitionerName}
+                        className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+                        <span className="text-lg text-accent">
+                          {r.practitionerName?.charAt(0) || "P"}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium">{r.title}</div>
+                      <div className="text-sm text-muted">
+                        {r.practitionerName} • {new Date(r.date).toLocaleDateString("fr-FR")} à {r.time}
+                      </div>
+                    </div>
+                    <Link href={`/user/rendez-vous/${r.id}`} className="pill pill-ghost flex-shrink-0">Détails</Link>
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="text-muted mt-3">Aucun rendez-vous passé.</p>
+          )}
+          <div className="mt-3">
+            <Link
+              href={rdvTab === "upcoming" ? "/user/rendez-vous/a-venir" : "/user/rendez-vous/passes"}
+              className="pill pill-ghost w-full text-center"
+            >
+              Voir tous les rendez-vous {rdvTab === "upcoming" ? "à venir" : "passés"} →
+            </Link>
+          </div>
         </section>
 
         {/* Teaser Favoris */}

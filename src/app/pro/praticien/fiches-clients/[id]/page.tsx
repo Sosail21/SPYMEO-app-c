@@ -212,6 +212,12 @@ export default function ClientDetailsPage() {
         <div className="flex gap-2">
           {!editing ? (
             <>
+              <button
+                onClick={() => router.push(`/pro/praticien/agenda?clientId=${client.id}&clientName=${client.firstName}%20${client.lastName}`)}
+                className="btn bg-accent text-white hover:bg-accent/90"
+              >
+                📅 Créer un RDV
+              </button>
               <button onClick={() => setEditing(true)} className="btn btn-outline">
                 Modifier
               </button>

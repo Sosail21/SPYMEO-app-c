@@ -84,12 +84,18 @@ export async function GET(req: NextRequest) {
         description: true,
         user: {
           select: {
+            id: true,
             firstName: true,
             lastName: true,
             practitionerProfile: {
               select: {
                 publicName: true,
                 slug: true,
+              },
+            },
+            profile: {
+              select: {
+                avatar: true,
               },
             },
           },
@@ -105,17 +111,33 @@ export async function GET(req: NextRequest) {
         "Praticien";
 
       const practitionerSlug = apt.user.practitionerProfile?.slug || "";
+      const practitionerPhoto = apt.user.profile?.avatar || undefined;
+
+      // Calculate if can cancel (more than 24h before appointment)
+      const timeUntilAppointment = apt.startAt.getTime() - now.getTime();
+      const hoursUntilAppointment = timeUntilAppointment / (1000 * 60 * 60);
+      const canCancel = hoursUntilAppointment > 24 && ["SCHEDULED", "CONFIRMED"].includes(apt.status);
+
+      // Extract visio link if present in description
+      const visioLinkMatch = apt.description?.match(/https?:\/\/[^\s]+/);
+      const visioLink = visioLinkMatch ? visioLinkMatch[0] : undefined;
 
       return {
         id: apt.id,
         title: apt.title,
         date: apt.startAt.toISOString(),
         endDate: apt.endAt?.toISOString(),
+        time: apt.startAt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+        practitionerId: apt.user.id,
         practitionerName,
         practitionerSlug,
+        practitionerPhoto,
         place: apt.location || "Non spécifié",
         status: apt.status,
         description: apt.description,
+        canCancel,
+        canCancelUntil: apt.startAt.toISOString(),
+        visioLink,
       };
     });
 
