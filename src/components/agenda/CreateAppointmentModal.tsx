@@ -3,6 +3,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
+import ConfirmModal from "@/components/common/ConfirmModal";
+import { useConfirm } from "@/hooks/useConfirm";
 
 type Client = {
   id: string;
@@ -37,6 +39,7 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json());
 export default function CreateAppointmentModal({ open, onClose, onSubmit, initialData }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const { data } = useSWR(open ? "/api/pro/clients" : null, fetcher);
+  const confirmDialog = useConfirm();
 
   const clients: Client[] = data?.success && Array.isArray(data.clients) ? data.clients : [];
 
@@ -142,7 +145,13 @@ export default function CreateAppointmentModal({ open, onClose, onSubmit, initia
     e.preventDefault();
 
     if (!title.trim() || !startDate || !startTime) {
-      alert("Veuillez remplir au moins le titre et la date/heure de début");
+      await confirmDialog.confirm({
+        title: "Attention",
+        message: "Veuillez remplir au moins le titre et la date/heure de début",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "warning"
+      });
       return;
     }
 
@@ -170,7 +179,13 @@ export default function CreateAppointmentModal({ open, onClose, onSubmit, initia
       onClose();
     } catch (error) {
       console.error("Error creating appointment:", error);
-      alert("Erreur lors de la création du rendez-vous");
+      await confirmDialog.confirm({
+        title: "Erreur",
+        message: "Erreur lors de la création du rendez-vous",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "danger"
+      });
     } finally {
       setSubmitting(false);
     }
@@ -343,6 +358,17 @@ export default function CreateAppointmentModal({ open, onClose, onSubmit, initia
           </div>
         </form>
       </div>
+
+      <ConfirmModal
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.handleClose}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
+      />
     </div>
   );
 }

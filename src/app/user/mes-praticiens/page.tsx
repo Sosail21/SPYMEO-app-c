@@ -5,11 +5,14 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { UserPractitioner } from "@/types/user-practitioners";
+import ConfirmModal from "@/components/common/ConfirmModal";
+import { useConfirm } from "@/hooks/useConfirm";
 
 export default function MyPractitionersPage() {
   const [data, setData] = useState<UserPractitioner[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
+  const confirmDialog = useConfirm();
 
   useEffect(() => {
     let cancel = false;
@@ -99,7 +102,12 @@ export default function MyPractitionersPage() {
                     <Link href={`/praticien/${p.slug}`} className="pill pill-ghost">Voir la fiche</Link>
                     {/* Chemin de prise de RDV – à adapter au flow réel */}
                     <Link href={`/prendre-rdv?praticien=${p.slug}`} className="pill pill-muted">Reprendre RDV</Link>
-                    <button className="pill pill-muted" onClick={()=>alert("Contacter (à implémenter)")}>Contacter</button>
+                    <button className="pill pill-muted" onClick={async ()=> await confirmDialog.confirm({
+                      title: "Information",
+                      message: "Contacter (à implémenter)",
+                      confirmText: "OK",
+                      cancelText: ""
+                    })}>Contacter</button>
                   </div>
                 </div>
               </li>
@@ -107,6 +115,17 @@ export default function MyPractitionersPage() {
           </ul>
         )}
       </section>
+
+      <ConfirmModal
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.handleClose}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
+      />
     </main>
   );
 }

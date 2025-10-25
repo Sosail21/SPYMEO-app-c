@@ -4,6 +4,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import ConfirmModal from "@/components/common/ConfirmModal";
+import { useConfirm } from "@/hooks/useConfirm";
 
 type Role = "FREE_USER" | "PASS_USER" | "PRACTITIONER" | "COMMERCANT" | "ARTISAN" | "CENTER" | "ADMIN";
 type UserStatus = "ACTIVE" | "PENDING_VALIDATION" | "PENDING_PAYMENT" | "REJECTED" | "SUSPENDED";
@@ -23,6 +25,7 @@ export default function AdminUsersPage() {
   const [q, setQ] = useState("");
   const [role, setRole] = useState<Role | "ALL">("ALL");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const confirmDialog = useConfirm();
 
   const filtered = useMemo(() => {
     const hay = (q || "").toLowerCase();
@@ -37,7 +40,12 @@ export default function AdminUsersPage() {
     const currentIndex = roles.indexOf(currentRole);
     const newRole = roles[(currentIndex + 1) % roles.length];
 
-    const confirmed = confirm(`Changer le rôle vers "${labelRole(newRole)}" ?`);
+    const confirmed = await confirmDialog.confirm({
+      title: "Changer le rôle",
+      message: `Changer le rôle vers "${labelRole(newRole)}" ?`,
+      confirmText: "Confirmer",
+      cancelText: "Annuler"
+    });
     if (!confirmed) return;
 
     setActionLoading(userId);
@@ -50,13 +58,30 @@ export default function AdminUsersPage() {
 
       const data = await res.json();
       if (data.success) {
-        alert('Rôle modifié avec succès !');
+        await confirmDialog.confirm({
+          title: "Succès",
+          message: "Rôle modifié avec succès !",
+          confirmText: "OK",
+          cancelText: ""
+        });
         refetch();
       } else {
-        alert(`Erreur: ${data.error}`);
+        await confirmDialog.confirm({
+          title: "Erreur",
+          message: `Erreur: ${data.error}`,
+          confirmText: "OK",
+          cancelText: "",
+          variant: "danger"
+        });
       }
     } catch (error) {
-      alert('Erreur réseau');
+      await confirmDialog.confirm({
+        title: "Erreur",
+        message: "Erreur réseau",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "danger"
+      });
     } finally {
       setActionLoading(null);
     }
@@ -64,9 +89,13 @@ export default function AdminUsersPage() {
 
   const handleToggleStatus = async (userId: string, userName: string, currentStatus: UserStatus) => {
     const newStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
-    const confirmed = confirm(
-      `${newStatus === 'SUSPENDED' ? 'Suspendre' : 'Activer'} le compte de "${userName}" ?`
-    );
+    const confirmed = await confirmDialog.confirm({
+      title: newStatus === 'SUSPENDED' ? 'Suspendre le compte' : 'Activer le compte',
+      message: `${newStatus === 'SUSPENDED' ? 'Suspendre' : 'Activer'} le compte de "${userName}" ?`,
+      confirmText: "Confirmer",
+      cancelText: "Annuler",
+      variant: newStatus === 'SUSPENDED' ? 'danger' : 'default'
+    });
     if (!confirmed) return;
 
     setActionLoading(userId);
@@ -79,22 +108,43 @@ export default function AdminUsersPage() {
 
       const data = await res.json();
       if (data.success) {
-        alert('Statut modifié avec succès !');
+        await confirmDialog.confirm({
+          title: "Succès",
+          message: "Statut modifié avec succès !",
+          confirmText: "OK",
+          cancelText: ""
+        });
         refetch();
       } else {
-        alert(`Erreur: ${data.error}`);
+        await confirmDialog.confirm({
+          title: "Erreur",
+          message: `Erreur: ${data.error}`,
+          confirmText: "OK",
+          cancelText: "",
+          variant: "danger"
+        });
       }
     } catch (error) {
-      alert('Erreur réseau');
+      await confirmDialog.confirm({
+        title: "Erreur",
+        message: "Erreur réseau",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "danger"
+      });
     } finally {
       setActionLoading(null);
     }
   };
 
   const handleDeleteUser = async (userId: string, userName: string) => {
-    const confirmed = confirm(
-      `⚠️ ATTENTION: Supprimer définitivement l'utilisateur "${userName}" ?\n\nCette action est irréversible !`
-    );
+    const confirmed = await confirmDialog.confirm({
+      title: "Supprimer l'utilisateur",
+      message: `⚠️ ATTENTION: Supprimer définitivement l'utilisateur "${userName}" ?\n\nCette action est irréversible !`,
+      confirmText: "Confirmer",
+      cancelText: "Annuler",
+      variant: "danger"
+    });
     if (!confirmed) return;
 
     setActionLoading(userId);
@@ -105,13 +155,30 @@ export default function AdminUsersPage() {
 
       const data = await res.json();
       if (data.success) {
-        alert('Utilisateur supprimé avec succès !');
+        await confirmDialog.confirm({
+          title: "Succès",
+          message: "Utilisateur supprimé avec succès !",
+          confirmText: "OK",
+          cancelText: ""
+        });
         refetch();
       } else {
-        alert(`Erreur: ${data.error}`);
+        await confirmDialog.confirm({
+          title: "Erreur",
+          message: `Erreur: ${data.error}`,
+          confirmText: "OK",
+          cancelText: "",
+          variant: "danger"
+        });
       }
     } catch (error) {
-      alert('Erreur réseau');
+      await confirmDialog.confirm({
+        title: "Erreur",
+        message: "Erreur réseau",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "danger"
+      });
     } finally {
       setActionLoading(null);
     }
@@ -206,6 +273,17 @@ export default function AdminUsersPage() {
           </ul>
         )}
       </div>
+
+      <ConfirmModal
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.handleClose}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
+      />
     </section>
   );
 }

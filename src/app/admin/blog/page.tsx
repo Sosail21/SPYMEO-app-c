@@ -3,6 +3,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import ConfirmModal from "@/components/common/ConfirmModal";
+import { useConfirm } from "@/hooks/useConfirm";
 
 type ArticleStatus = "SUBMITTED" | "NEEDS_CHANGES" | "REJECTED" | "DRAFT" | "PUBLISHED";
 type Source = "ADMIN" | "PRACTITIONER";
@@ -38,6 +40,7 @@ export default function AdminBlogListPage() {
   const [q, setQ] = useState("");
   const [tab, setTab] = useState<"ALL" | ArticleStatus>("ALL");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const confirmDialog = useConfirm();
 
   useEffect(() => {
     fetchArticles();
@@ -82,18 +85,37 @@ export default function AdminBlogListPage() {
       if (res.ok) {
         await fetchArticles();
       } else {
-        alert('Erreur lors de la mise à jour');
+        await confirmDialog.confirm({
+          title: "Erreur",
+          message: "Erreur lors de la mise à jour",
+          confirmText: "OK",
+          cancelText: "",
+          variant: "danger"
+        });
       }
     } catch (error) {
       console.error('Error updating status:', error);
-      alert('Erreur réseau');
+      await confirmDialog.confirm({
+        title: "Erreur",
+        message: "Erreur réseau",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "danger"
+      });
     } finally {
       setActionLoading(null);
     }
   }
 
   async function deleteArticle(id: string, title: string) {
-    if (!confirm(`Supprimer définitivement "${title}" ?`)) return;
+    const confirmed = await confirmDialog.confirm({
+      title: "Supprimer l'article",
+      message: `Supprimer définitivement "${title}" ?`,
+      confirmText: "Confirmer",
+      cancelText: "Annuler",
+      variant: "danger"
+    });
+    if (!confirmed) return;
     if (actionLoading) return;
     setActionLoading(id);
 
@@ -104,13 +126,30 @@ export default function AdminBlogListPage() {
 
       if (res.ok) {
         await fetchArticles();
-        alert('Article supprimé');
+        await confirmDialog.confirm({
+          title: "Succès",
+          message: "Article supprimé",
+          confirmText: "OK",
+          cancelText: ""
+        });
       } else {
-        alert('Erreur lors de la suppression');
+        await confirmDialog.confirm({
+          title: "Erreur",
+          message: "Erreur lors de la suppression",
+          confirmText: "OK",
+          cancelText: "",
+          variant: "danger"
+        });
       }
     } catch (error) {
       console.error('Error deleting article:', error);
-      alert('Erreur réseau');
+      await confirmDialog.confirm({
+        title: "Erreur",
+        message: "Erreur réseau",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "danger"
+      });
     } finally {
       setActionLoading(null);
     }
@@ -239,6 +278,17 @@ export default function AdminBlogListPage() {
           </ul>
         )}
       </div>
+
+      <ConfirmModal
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.handleClose}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
+      />
     </section>
   );
 }

@@ -3,6 +3,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import ConfirmModal from "@/components/common/ConfirmModal";
+import { useConfirm } from "@/hooks/useConfirm";
 
 type Appointment = {
   id: string;
@@ -54,6 +56,7 @@ export default function AppointmentModal({ open, onClose, appointment, onUpdate,
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const [updating, setUpdating] = useState(false);
+  const confirmDialog = useConfirm();
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -78,7 +81,13 @@ export default function AppointmentModal({ open, onClose, appointment, onUpdate,
       onClose();
     } catch (error) {
       console.error("Error updating status:", error);
-      alert("Erreur lors de la mise à jour du statut");
+      await confirmDialog.confirm({
+        title: "Erreur",
+        message: "Erreur lors de la mise à jour du statut",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "danger"
+      });
     } finally {
       setUpdating(false);
     }
@@ -86,15 +95,27 @@ export default function AppointmentModal({ open, onClose, appointment, onUpdate,
 
   async function handleDelete() {
     if (!onDelete) return;
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer ce rendez-vous ?`)) {
-      return;
-    }
+    const confirmed = await confirmDialog.confirm({
+      title: "Confirmer la suppression",
+      message: "Êtes-vous sûr de vouloir supprimer ce rendez-vous ?",
+      confirmText: "Confirmer",
+      cancelText: "Annuler",
+      variant: "danger"
+    });
+    if (!confirmed) return;
+
     try {
       await onDelete(appointment.id);
       onClose();
     } catch (error) {
       console.error("Error deleting appointment:", error);
-      alert("Erreur lors de la suppression");
+      await confirmDialog.confirm({
+        title: "Erreur",
+        message: "Erreur lors de la suppression",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "danger"
+      });
     }
   }
 
@@ -226,6 +247,17 @@ export default function AppointmentModal({ open, onClose, appointment, onUpdate,
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.handleClose}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
+      />
     </div>
   );
 }

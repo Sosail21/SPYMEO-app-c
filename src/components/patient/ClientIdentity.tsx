@@ -3,12 +3,15 @@
 
 import { useState } from "react";
 import { Client } from "./types";
+import ConfirmModal from "@/components/common/ConfirmModal";
+import { useConfirm } from "@/hooks/useConfirm";
 
 export default function ClientIdentity({ initialClient }: { initialClient: Client }) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [client, setClient] = useState<Client>(initialClient);
   const [form, setForm] = useState<Client>(initialClient);
+  const confirmDialog = useConfirm();
 
   const onChange = (k: keyof Client, v: string) => {
     setForm((f) => ({ ...f, [k]: v }));
@@ -28,7 +31,13 @@ export default function ClientIdentity({ initialClient }: { initialClient: Clien
       setForm(updated);
       setEditing(false);
     } catch (e) {
-      alert("Erreur de sauvegarde.");
+      await confirmDialog.confirm({
+        title: "Erreur",
+        message: "Erreur de sauvegarde.",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "danger"
+      });
     } finally {
       setSaving(false);
     }
@@ -140,6 +149,17 @@ export default function ClientIdentity({ initialClient }: { initialClient: Clien
           </Labeled>
         </div>
       </div>
+
+      <ConfirmModal
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.handleClose}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
+      />
     </div>
   );
 }

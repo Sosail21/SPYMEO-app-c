@@ -4,6 +4,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import ConfirmModal from "@/components/common/ConfirmModal";
+import { useConfirm } from "@/hooks/useConfirm";
 
 type ArticleStatus = "DRAFT" | "SUBMITTED" | "NEEDS_CHANGES" | "REJECTED" | "PUBLISHED";
 
@@ -34,6 +36,7 @@ export default function AdminBlogEditPage({ params }: { params: { id: string } }
   const [saveLoading, setSaveLoading] = useState(false);
   const [error, setError] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
+  const confirmDialog = useConfirm();
 
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
@@ -54,12 +57,24 @@ export default function AdminBlogEditPage({ params }: { params: { id: string } }
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      alert("Le fichier est trop volumineux (max 10MB)");
+      await confirmDialog.confirm({
+        title: "Attention",
+        message: "Le fichier est trop volumineux (max 10MB)",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "warning"
+      });
       return;
     }
 
     if (!file.type.startsWith('image/')) {
-      alert("Le fichier doit être une image");
+      await confirmDialog.confirm({
+        title: "Attention",
+        message: "Le fichier doit être une image",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "warning"
+      });
       return;
     }
 
@@ -80,11 +95,23 @@ export default function AdminBlogEditPage({ params }: { params: { id: string } }
       if (json.success && json.url) {
         setCoverImage(json.url);
       } else {
-        alert(json.error || "Erreur lors de l'upload");
+        await confirmDialog.confirm({
+          title: "Erreur",
+          message: json.error || "Erreur lors de l'upload",
+          confirmText: "OK",
+          cancelText: "",
+          variant: "danger"
+        });
       }
     } catch (err) {
       console.error('Upload error:', err);
-      alert("Erreur lors de l'upload de l'image");
+      await confirmDialog.confirm({
+        title: "Erreur",
+        message: "Erreur lors de l'upload de l'image",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "danger"
+      });
     } finally {
       setUploadingImage(false);
     }
@@ -108,12 +135,24 @@ export default function AdminBlogEditPage({ params }: { params: { id: string } }
         setContent(art.content || "");
         setReadingMinutes(art.readingMinutes);
       } else {
-        alert("Article introuvable");
+        await confirmDialog.confirm({
+          title: "Erreur",
+          message: "Article introuvable",
+          confirmText: "OK",
+          cancelText: "",
+          variant: "danger"
+        });
         router.push("/admin/blog");
       }
     } catch (error) {
       console.error("Error fetching article:", error);
-      alert("Erreur de chargement");
+      await confirmDialog.confirm({
+        title: "Erreur",
+        message: "Erreur de chargement",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "danger"
+      });
       router.push("/admin/blog");
     } finally {
       setLoading(false);
@@ -134,9 +173,36 @@ export default function AdminBlogEditPage({ params }: { params: { id: string } }
 
   async function handleSave(e: React.FormEvent, publishNow = false) {
     e.preventDefault();
-    if (!title.trim()) return alert("Le titre est requis.");
-    if (!slug.trim()) return alert("Le slug est requis.");
-    if (!content.trim()) return alert("Le contenu est requis.");
+    if (!title.trim()) {
+      await confirmDialog.confirm({
+        title: "Attention",
+        message: "Le titre est requis.",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "warning"
+      });
+      return;
+    }
+    if (!slug.trim()) {
+      await confirmDialog.confirm({
+        title: "Attention",
+        message: "Le slug est requis.",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "warning"
+      });
+      return;
+    }
+    if (!content.trim()) {
+      await confirmDialog.confirm({
+        title: "Attention",
+        message: "Le contenu est requis.",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "warning"
+      });
+      return;
+    }
 
     setError("");
     setSaveLoading(true);
@@ -163,7 +229,12 @@ export default function AdminBlogEditPage({ params }: { params: { id: string } }
       const json = await res.json();
 
       if (json.success) {
-        alert("Article mis à jour avec succès !");
+        await confirmDialog.confirm({
+          title: "Succès",
+          message: "Article mis à jour avec succès !",
+          confirmText: "OK",
+          cancelText: ""
+        });
         router.push("/admin/blog");
       } else {
         setError(json.error || "Erreur lors de la mise à jour");
@@ -176,7 +247,14 @@ export default function AdminBlogEditPage({ params }: { params: { id: string } }
   }
 
   async function handleDelete() {
-    if (!confirm(`Supprimer définitivement "${article?.title}" ?`)) return;
+    const confirmed = await confirmDialog.confirm({
+      title: "Supprimer l'article",
+      message: `Supprimer définitivement "${article?.title}" ?`,
+      confirmText: "Confirmer",
+      cancelText: "Annuler",
+      variant: "danger"
+    });
+    if (!confirmed) return;
 
     try {
       const res = await fetch(`/api/admin/blog/${params.id}`, {
@@ -184,14 +262,31 @@ export default function AdminBlogEditPage({ params }: { params: { id: string } }
       });
 
       if (res.ok) {
-        alert("Article supprimé");
+        await confirmDialog.confirm({
+          title: "Succès",
+          message: "Article supprimé",
+          confirmText: "OK",
+          cancelText: ""
+        });
         router.push("/admin/blog");
       } else {
-        alert("Erreur lors de la suppression");
+        await confirmDialog.confirm({
+          title: "Erreur",
+          message: "Erreur lors de la suppression",
+          confirmText: "OK",
+          cancelText: "",
+          variant: "danger"
+        });
       }
     } catch (error) {
       console.error("Error deleting article:", error);
-      alert("Erreur réseau");
+      await confirmDialog.confirm({
+        title: "Erreur",
+        message: "Erreur réseau",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "danger"
+      });
     }
   }
 
@@ -443,6 +538,17 @@ export default function AdminBlogEditPage({ params }: { params: { id: string } }
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.handleClose}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
+      />
     </section>
   );
 }

@@ -7,6 +7,8 @@ import type { Profile } from "@/lib/db/profiles";
 import type { BillingState, Invoice } from "@/lib/db/billing";
 import { z } from "zod";
 import { profileSchema } from "@/lib/validation/profile";
+import ConfirmModal from "@/components/common/ConfirmModal";
+import { useConfirm } from "@/hooks/useConfirm";
 
 type Props = {
   me: Session;
@@ -20,6 +22,7 @@ export default function AccountSettings({ me, initialProfile, initialBilling }: 
 
   const [profile, setProfile] = React.useState<Profile>(initialProfile);
   const [billing, setBilling] = React.useState<BillingState>(initialBilling);
+  const confirmDialog = useConfirm();
 
   // Helpers
   const updateProfile = <K extends keyof Profile>(k: K, v: Profile[K]) =>
@@ -70,9 +73,24 @@ export default function AccountSettings({ me, initialProfile, initialBilling }: 
   }
 
   async function pausePlan() {
-    if (billing.pause?.used) { setToast("Vous avez déjà utilisé la pause."); return; }
-    const ok = confirm("Mettre en pause votre forfait ? (Vous ne pouvez le faire qu’une seule fois)");
-    if (!ok) return;
+    if (billing.pause?.used) {
+      await confirmDialog.confirm({
+        title: "Attention",
+        message: "Vous avez déjà utilisé la pause.",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "warning"
+      });
+      return;
+    }
+    const confirmed = await confirmDialog.confirm({
+      title: "Mettre en pause",
+      message: "Mettre en pause votre forfait ? (Vous ne pouvez le faire qu'une seule fois)",
+      confirmText: "Confirmer",
+      cancelText: "Annuler",
+      variant: "warning"
+    });
+    if (!confirmed) return;
     const res = await fetch("/api/account/plan/pause", { method: "POST" });
     if (res.ok) {
       const next = await res.json();
@@ -82,8 +100,14 @@ export default function AccountSettings({ me, initialProfile, initialBilling }: 
   }
 
   async function cancelPlan() {
-    const ok = confirm("Résilier votre forfait à la fin de la période en cours ?");
-    if (!ok) return;
+    const confirmed = await confirmDialog.confirm({
+      title: "Résilier le forfait",
+      message: "Résilier votre forfait à la fin de la période en cours ?",
+      confirmText: "Confirmer",
+      cancelText: "Annuler",
+      variant: "danger"
+    });
+    if (!confirmed) return;
     const res = await fetch("/api/account/plan", { method: "DELETE" });
     if (res.ok) {
       const next = await res.json();
@@ -95,8 +119,14 @@ export default function AccountSettings({ me, initialProfile, initialBilling }: 
   async function deleteAccount() {
     const step1 = prompt('Pour confirmer, tapez "SUPPRIMER". Action irréversible.');
     if (step1 !== "SUPPRIMER") return;
-    const ok = confirm("Dernière confirmation : suppression TOTALE du compte et des données. Continuer ?");
-    if (!ok) return;
+    const confirmed = await confirmDialog.confirm({
+      title: "Supprimer le compte",
+      message: "Dernière confirmation : suppression TOTALE du compte et des données. Continuer ?",
+      confirmText: "Confirmer",
+      cancelText: "Annuler",
+      variant: "danger"
+    });
+    if (!confirmed) return;
     const res = await fetch("/api/account/delete", { method: "DELETE" });
     if (res.ok) {
       window.location.href = "/"; // back to home
@@ -236,6 +266,17 @@ export default function AccountSettings({ me, initialProfile, initialBilling }: 
           </button>
         </div>
       </section>
+
+      <ConfirmModal
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.handleClose}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
+      />
     </div>
   );
 }

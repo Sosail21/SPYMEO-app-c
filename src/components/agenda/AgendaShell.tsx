@@ -10,6 +10,8 @@ import type { EventDropArg, DateSelectArg, EventClickArg } from "@fullcalendar/c
 import frLocale from "@fullcalendar/core/locales/fr";
 import AppointmentModal from "./AppointmentModal";
 import CreateAppointmentModal, { type AppointmentData } from "./CreateAppointmentModal";
+import ConfirmModal from "@/components/common/ConfirmModal";
+import { useConfirm } from "@/hooks/useConfirm";
 
 type Event = {
   id: string;
@@ -34,6 +36,7 @@ export default function AgendaShell() {
     initialData?: { start: string; end?: string };
   }>({ open: false });
   const [activeTab, setActiveTab] = useState<"calendar" | "history">("calendar");
+  const confirmDialog = useConfirm();
 
   // Charger les événements depuis l'API
   useEffect(() => {
@@ -115,12 +118,24 @@ export default function AgendaShell() {
       } else {
         // Revert if failed
         dropInfo.revert();
-        alert("Erreur lors de la modification du rendez-vous");
+        await confirmDialog.confirm({
+          title: "Erreur",
+          message: "Erreur lors de la modification du rendez-vous",
+          confirmText: "OK",
+          cancelText: "",
+          variant: "danger"
+        });
       }
     } catch (error) {
       console.error("Error updating event:", error);
       dropInfo.revert();
-      alert("Erreur lors de la modification du rendez-vous");
+      await confirmDialog.confirm({
+        title: "Erreur",
+        message: "Erreur lors de la modification du rendez-vous",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "danger"
+      });
     }
   };
 
@@ -372,6 +387,17 @@ export default function AgendaShell() {
         onClose={() => setCreateModal({ open: false })}
         onSubmit={handleCreateAppointment}
         initialData={createModal.initialData}
+      />
+
+      <ConfirmModal
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.handleClose}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
       />
     </>
   );

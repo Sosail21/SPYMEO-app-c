@@ -3,6 +3,8 @@
 import useSWR from "swr";
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import ConfirmModal from "@/components/common/ConfirmModal";
+import { useConfirm } from "@/hooks/useConfirm";
 
 type Client = {
   id: string;
@@ -22,6 +24,7 @@ export default function ClientList() {
   const { data, error, isLoading, mutate } = useSWR("/api/pro/clients", fetcher);
   const [search, setSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const confirmDialog = useConfirm();
 
   // Extract clients from response
   const clients: Client[] = data?.success && Array.isArray(data.clients) ? data.clients : [];
@@ -51,7 +54,13 @@ export default function ClientList() {
       const result = await res.json();
 
       if (!result.success) {
-        alert(result.error || "Erreur lors de la création du client");
+        await confirmDialog.confirm({
+          title: "Erreur",
+          message: result.error || "Erreur lors de la création du client",
+          confirmText: "OK",
+          cancelText: "",
+          variant: "danger"
+        });
         return;
       }
 
@@ -60,7 +69,13 @@ export default function ClientList() {
       setShowAddModal(false);
     } catch (error) {
       console.error("Error creating client:", error);
-      alert("Erreur lors de la création du client");
+      await confirmDialog.confirm({
+        title: "Erreur",
+        message: "Erreur lors de la création du client",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "danger"
+      });
     }
   }
 
@@ -132,6 +147,17 @@ export default function ClientList() {
           onSubmit={addClient}
         />
       )}
+
+      <ConfirmModal
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.handleClose}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
+      />
     </div>
   );
 }
@@ -148,12 +174,19 @@ function AddClientModal({
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const confirmDialog = useConfirm();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!firstName.trim() || !lastName.trim()) {
-      alert("Prénom et nom sont requis");
+      await confirmDialog.confirm({
+        title: "Attention",
+        message: "Prénom et nom sont requis",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "warning"
+      });
       return;
     }
 
@@ -232,6 +265,17 @@ function AddClientModal({
           </div>
         </form>
       </div>
+
+      <ConfirmModal
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.handleClose}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
+      />
     </div>
   );
 }
