@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import ClientTabs from "@/components/patient/ClientTabs";
 
 type ApiClient = {
@@ -412,17 +413,28 @@ export default function ClientDetailsPage() {
             </div>
           </section>
 
-          {/* Dernières consultations */}
+          {/* Dernières consultations avec notes */}
           {client.consultations && client.consultations.length > 0 && (
             <section className="soft-card p-6">
               <h3 className="font-semibold mb-4">Dernières consultations</h3>
               <div className="grid gap-3">
-                {client.consultations.map((c) => (
+                {client.consultations.slice(0, 3).map((c) => (
                   <div key={c.id} className="text-sm border-l-2 border-accent pl-3">
                     <div className="font-medium">{c.motif}</div>
-                    <div className="text-xs text-muted">
+                    <div className="text-xs text-muted mb-1">
                       {new Date(c.date).toLocaleDateString("fr-FR")}
                     </div>
+                    {c.notes && (
+                      <div className="text-xs mt-1 p-2 bg-slate-50 rounded text-slate-700 line-clamp-3">
+                        {c.notes}
+                      </div>
+                    )}
+                    <Link
+                      href={`/pro/praticien/consultations/${c.id}`}
+                      className="text-xs text-accent hover:underline inline-block mt-1"
+                    >
+                      Voir détails →
+                    </Link>
                   </div>
                 ))}
               </div>
