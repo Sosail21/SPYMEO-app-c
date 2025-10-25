@@ -71,6 +71,14 @@ export async function POST(req: NextRequest, context: Ctx) {
     const startDate = new Date(start);
     const endDate = new Date(startDate.getTime() + (duration || 60) * 60000);
 
+    console.log('[BOOKING DEBUG] Received booking request:', {
+      receivedStart: start,
+      parsedStartDate: startDate.toISOString(),
+      parsedStartLocal: startDate.toString(),
+      duration,
+      consultationType,
+    });
+
     // Use transaction to prevent race condition (double booking)
     let appointment;
     let client;

@@ -186,17 +186,19 @@ export async function GET(req: NextRequest, context: Ctx) {
 
         // Trouver la durée minimale pour l'incrément des slots
         const minDuration = Math.min(...appointmentTypes.map(t => t.durationMin || 60));
+        const maxDuration = Math.max(...appointmentTypes.map(t => t.durationMin || 60));
         const slotIncrement = minDuration; // Incrément basé sur la consultation la plus courte
 
         // Générer les créneaux de base
         const [startHour, startMin] = startTime.split(":").map(Number);
         const [endHour, endMin] = endTime.split(":").map(Number);
 
+        // IMPORTANT: Utiliser UTC pour éviter les décalages de timezone
         let currentSlot = new Date(currentDate);
-        currentSlot.setHours(startHour, startMin, 0, 0);
+        currentSlot.setUTCHours(startHour, startMin, 0, 0);
 
         const dayEnd = new Date(currentDate);
-        dayEnd.setHours(endHour, endMin, 0, 0);
+        dayEnd.setUTCHours(endHour, endMin, 0, 0);
 
         // Générer tous les créneaux possibles avec incrément minimum
         while (currentSlot < dayEnd) {
@@ -236,26 +238,51 @@ export async function GET(req: NextRequest, context: Ctx) {
               );
             });
 
-            // Vérifier qu'il y a assez d'espace avant le prochain RDV
+            // Vérifier qu'il y a assez d'espace avant/après les RDV existants
             const hasEnoughSpace = !appointments.some((appt) => {
               const apptStart = new Date(appt.startAt);
-              const timeUntilNext = apptStart.getTime() - currentSlot.getTime();
-              const requiredTime = (duration + bufferMin) * 60000;
+              const apptEnd = appt.endAt ? new Date(appt.endAt) : new Date(apptStart.getTime() + (appt.duration || 60) * 60000);
 
-              // Si un RDV commence dans moins de (duration + buffer), pas assez d'espace
-              return timeUntilNext > 0 && timeUntilNext < requiredTime;
+              // AVANT un RDV futur : vérifier qu'on peut insérer la consultation la plus longue + buffer
+              const timeUntilNext = apptStart.getTime() - currentSlot.getTime();
+              if (timeUntilNext > 0) {
+                // Utiliser maxDuration car on ne sait pas quel type sera réservé
+                const requiredTimeBeforeNext = (maxDuration + bufferMin) * 60000;
+                if (timeUntilNext < requiredTimeBeforeNext) {
+                  return true; // Pas assez d'espace avant ce RDV
+                }
+              }
+
+              // APRÈS un RDV passé : vérifier que le buffer du RDV est respecté
+              const timeSinceEnd = currentSlot.getTime() - apptEnd.getTime();
+              if (timeSinceEnd > 0 && timeSinceEnd < bufferMin * 60000) {
+                return true; // Dans la période de buffer après le RDV
+              }
+
+              return false;
             });
 
             const isPast = currentSlot <= now;
 
             if (!hasOverlap && !isBlocked && hasEnoughSpace && !isPast) {
-              slots.push({
+              const slotData = {
                 start: currentSlot.toISOString(),
                 end: slotEnd.toISOString(),
                 consultationType: type.label,
                 duration,
                 price: type.price,
-              });
+              };
+
+              // Debug: Log first few slots to verify timezone
+              if (slots.length < 3) {
+                console.log('[AVAILABILITY DEBUG] Generated slot:', {
+                  localTime: currentSlot.toString(),
+                  isoTime: currentSlot.toISOString(),
+                  type: type.label,
+                });
+              }
+
+              slots.push(slotData);
             } else {
               console.log('[AVAILABILITY DEBUG] Slot filtered:', {
                 time: currentSlot.toISOString(),

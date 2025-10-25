@@ -60,8 +60,9 @@ export default function AvailabilityPicker({
   }, []);
 
   // Calculer la plage de dates (2 semaines à partir d'aujourd'hui)
-  const startDate = new Date();
-  startDate.setHours(0, 0, 0, 0);
+  // IMPORTANT: Créer les dates en UTC pour éviter les décalages de timezone
+  const now = new Date();
+  const startDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0));
   const endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + 14);
 
