@@ -66,7 +66,21 @@ export default function MyPractitionersPage() {
           <ul className="grid gap-3">
             {list.map(p => (
               <li key={p.id} className="list-row">
-                <div className="list-media" />
+                <div className="list-media">
+                  {p.photo ? (
+                    <img
+                      src={p.photo}
+                      alt={p.name}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center">
+                      <span className="text-2xl text-accent">
+                        {p.name?.charAt(0) || "P"}
+                      </span>
+                    </div>
+                  )}
+                </div>
                 <div className="list-body">
                   <div className="list-head">
                     <div className="flex items-center gap-2">

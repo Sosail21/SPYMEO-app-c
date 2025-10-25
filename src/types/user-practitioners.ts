@@ -4,6 +4,7 @@ export interface UserPractitioner {
   specialty?: string;
   specialties?: string[];
   city?: string;
+  photo?: string;
   nextAppointment?: string;
   lastVisitAt?: string;
   nextAvailable?: string;

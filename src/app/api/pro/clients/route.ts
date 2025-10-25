@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
       ];
     }
 
-    // Récupérer les clients
+    // Récupérer les clients avec leurs consultations et appointments
     const clients = await prisma.client.findMany({
       where,
       orderBy: { [sortBy]: order },
@@ -80,16 +80,44 @@ export async function GET(req: NextRequest) {
         email: true,
         phone: true,
         birthDate: true,
-        totalVisits: true,
         lastVisitAt: true,
         createdAt: true,
+        consultations: {
+          select: { id: true },
+        },
+        appointments: {
+          select: {
+            id: true,
+            status: true,
+          },
+        },
       },
+    });
+
+    // Calculer totalVisits pour chaque client (consultations + appointments complétés)
+    const clientsWithStats = clients.map((client) => {
+      const completedAppointments = client.appointments.filter(
+        (apt) => apt.status === "COMPLETED"
+      );
+      const totalVisits = client.consultations.length + completedAppointments.length;
+
+      return {
+        id: client.id,
+        firstName: client.firstName,
+        lastName: client.lastName,
+        email: client.email,
+        phone: client.phone,
+        birthDate: client.birthDate,
+        totalVisits,
+        lastVisitAt: client.lastVisitAt,
+        createdAt: client.createdAt,
+      };
     });
 
     return NextResponse.json({
       success: true,
-      clients,
-      total: clients.length,
+      clients: clientsWithStats,
+      total: clientsWithStats.length,
     });
   } catch (error) {
     console.error("[GET /api/pro/clients] Error:", error);

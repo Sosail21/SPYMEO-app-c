@@ -68,6 +68,11 @@ export async function GET(req: NextRequest) {
                 city: true,
               },
             },
+            profile: {
+              select: {
+                avatar: true,
+              },
+            },
           },
         },
       },
@@ -80,6 +85,7 @@ export async function GET(req: NextRequest) {
       slug: string;
       specialties: string[];
       city?: string;
+      photo?: string;
       appointments: Array<{ startAt: Date; status: string }>;
     }>();
 
@@ -97,6 +103,7 @@ export async function GET(req: NextRequest) {
           slug: apt.user.practitionerProfile?.slug || "",
           specialties: apt.user.practitionerProfile?.specialties || [],
           city: apt.user.practitionerProfile?.city,
+          photo: apt.user.profile?.avatar,
           appointments: [],
         });
       }
@@ -132,6 +139,7 @@ export async function GET(req: NextRequest) {
         slug: p.slug,
         specialties: p.specialties,
         city: p.city,
+        photo: p.photo,
         lastVisitAt,
         nextAvailable,
       };

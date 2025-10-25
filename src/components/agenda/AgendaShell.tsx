@@ -33,6 +33,7 @@ export default function AgendaShell() {
     open: boolean;
     initialData?: { start: string; end?: string };
   }>({ open: false });
+  const [activeTab, setActiveTab] = useState<"calendar" | "history">("calendar");
 
   // Charger les événements depuis l'API
   useEffect(() => {
@@ -165,6 +166,15 @@ export default function AgendaShell() {
 
   const selectedEvent = modal.id ? events.find((e) => e.id === modal.id) : undefined;
 
+  const now = new Date();
+  const upcomingAppointments = events
+    .filter((e) => new Date(e.start) >= now)
+    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+  const pastAppointments = events
+    .filter((e) => new Date(e.start) < now)
+    .sort((a, b) => new Date(b.start).getTime() - new Date(a.start).getTime());
+
   if (loading) {
     return (
       <div className="soft-card p-8 text-center">
@@ -175,8 +185,28 @@ export default function AgendaShell() {
   }
 
   return (
-    <div className="soft-card p-3">
-      <FullCalendar
+    <>
+      {/* Tabs */}
+      <div className="soft-card p-2 mb-4">
+        <div className="segmented">
+          <button
+            className={activeTab === "calendar" ? "is-active" : ""}
+            onClick={() => setActiveTab("calendar")}
+          >
+            📅 Calendrier
+          </button>
+          <button
+            className={activeTab === "history" ? "is-active" : ""}
+            onClick={() => setActiveTab("history")}
+          >
+            📋 Historique
+          </button>
+        </div>
+      </div>
+
+      {activeTab === "calendar" ? (
+        <div className="soft-card p-3">
+          <FullCalendar
         height="auto"
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         locales={[frLocale]}
@@ -213,6 +243,121 @@ export default function AgendaShell() {
         eventDrop={handleEventDrop}
         eventTimeFormat={{ hour: "2-digit", minute: "2-digit", hour12: false }}
       />
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {/* Upcoming Appointments */}
+          <section className="soft-card p-6">
+            <h2 className="text-xl font-semibold mb-4">Rendez-vous à venir ({upcomingAppointments.length})</h2>
+            {upcomingAppointments.length === 0 ? (
+              <p className="text-muted">Aucun rendez-vous à venir</p>
+            ) : (
+              <div className="grid gap-3">
+                {upcomingAppointments.map((apt) => (
+                  <div
+                    key={apt.id}
+                    className="border border-border rounded-lg p-4 hover:bg-slate-50 cursor-pointer transition"
+                    onClick={() => setModal({ open: true, id: apt.id })}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="font-semibold text-lg">{apt.title}</div>
+                        <div className="text-sm text-muted mt-1">
+                          📅 {new Date(apt.start).toLocaleDateString("fr-FR", {
+                            weekday: "long",
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </div>
+                        <div className="text-sm text-muted">
+                          🕐 {new Date(apt.start).toLocaleTimeString("fr-FR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
+                        {apt.extendedProps?.clientName && (
+                          <div className="text-sm text-muted mt-1">
+                            👤 {apt.extendedProps.clientName}
+                          </div>
+                        )}
+                        {apt.extendedProps?.location && (
+                          <div className="text-sm text-muted">
+                            📍 {apt.extendedProps.location}
+                          </div>
+                        )}
+                      </div>
+                      <span className="pill pill-muted flex-shrink-0">
+                        {apt.extendedProps?.status || "SCHEDULED"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Past Appointments */}
+          <section className="soft-card p-6">
+            <h2 className="text-xl font-semibold mb-4">Rendez-vous passés ({pastAppointments.length})</h2>
+            {pastAppointments.length === 0 ? (
+              <p className="text-muted">Aucun rendez-vous passé</p>
+            ) : (
+              <div className="grid gap-3">
+                {pastAppointments.slice(0, 20).map((apt) => {
+                  const status = apt.extendedProps?.status || "COMPLETED";
+                  const isCompleted = status === "COMPLETED";
+                  const isCancelled = status === "CANCELLED";
+
+                  return (
+                    <div
+                      key={apt.id}
+                      className="border border-border rounded-lg p-4 hover:bg-slate-50 cursor-pointer transition"
+                      onClick={() => setModal({ open: true, id: apt.id })}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="font-semibold text-lg">{apt.title}</div>
+                          <div className="text-sm text-muted mt-1">
+                            📅 {new Date(apt.start).toLocaleDateString("fr-FR", {
+                              weekday: "long",
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })}
+                          </div>
+                          <div className="text-sm text-muted">
+                            🕐 {new Date(apt.start).toLocaleTimeString("fr-FR", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </div>
+                          {apt.extendedProps?.clientName && (
+                            <div className="text-sm text-muted mt-1">
+                              👤 {apt.extendedProps.clientName}
+                            </div>
+                          )}
+                        </div>
+                        <span
+                          className={`pill flex-shrink-0 ${
+                            isCompleted
+                              ? "pill-solid bg-green-100 text-green-700"
+                              : isCancelled
+                              ? "pill-solid bg-red-100 text-red-700"
+                              : "pill-muted"
+                          }`}
+                        >
+                          {isCompleted ? "✓ Honoré" : isCancelled ? "✕ Annulé" : status}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </div>
+      )}
 
       <AppointmentModal
         open={modal.open}
@@ -228,6 +373,6 @@ export default function AgendaShell() {
         onSubmit={handleCreateAppointment}
         initialData={createModal.initialData}
       />
-    </div>
+    </>
   );
 }

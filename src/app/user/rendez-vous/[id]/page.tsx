@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Appointment } from "@/types/appointments";
+import ConfirmModal from "@/components/common/ConfirmModal";
+import { useConfirm } from "@/hooks/useConfirm";
 
 export default function AppointmentDetailsPage() {
   const params = useParams();
@@ -13,6 +15,7 @@ export default function AppointmentDetailsPage() {
 
   const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(true);
+  const confirmDialog = useConfirm();
 
   useEffect(() => {
     fetchAppointment();
@@ -34,9 +37,15 @@ export default function AppointmentDetailsPage() {
   }
 
   async function handleCancel() {
-    if (!confirm("Êtes-vous sûr de vouloir annuler ce rendez-vous ?")) {
-      return;
-    }
+    const confirmed = await confirmDialog.confirm({
+      title: "Annuler le rendez-vous",
+      message: "Êtes-vous sûr de vouloir annuler ce rendez-vous ? Cette action est irréversible.",
+      confirmText: "Annuler le RDV",
+      cancelText: "Retour",
+      variant: "danger",
+    });
+
+    if (!confirmed) return;
 
     try {
       const res = await fetch(`/api/user/appointments/${appointmentId}`, {
@@ -47,15 +56,32 @@ export default function AppointmentDetailsPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || "Erreur lors de l'annulation");
+        await confirmDialog.confirm({
+          title: "Erreur",
+          message: data.error || "Erreur lors de l'annulation",
+          confirmText: "OK",
+          cancelText: "",
+          variant: "danger",
+        });
         return;
       }
 
-      alert("Rendez-vous annulé avec succès");
+      await confirmDialog.confirm({
+        title: "Succès",
+        message: "Rendez-vous annulé avec succès",
+        confirmText: "OK",
+        cancelText: "",
+      });
       router.push("/user/rendez-vous/a-venir");
     } catch (error) {
       console.error("Error cancelling appointment:", error);
-      alert("Erreur lors de l'annulation");
+      await confirmDialog.confirm({
+        title: "Erreur",
+        message: "Erreur lors de l'annulation",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "danger",
+      });
     }
   }
 
@@ -249,6 +275,17 @@ export default function AppointmentDetailsPage() {
           </section>
         </div>
       </div>
+
+      <ConfirmModal
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.handleClose}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
+      />
     </main>
   );
 }
