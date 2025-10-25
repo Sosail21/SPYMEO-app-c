@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { COOKIE_NAME } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
+import { notifyAppointmentConfirmed } from "@/lib/notifications";
 
 // GET - Liste tous les rendez-vous du praticien
 export async function GET(req: NextRequest) {
@@ -48,6 +49,11 @@ export async function GET(req: NextRequest) {
         practitionerId: apt.practitionerId,
         clientId: apt.clientId,
         clientName: apt.client ? `${apt.client.firstName} ${apt.client.lastName}` : undefined,
+        consultationType: apt.consultationType,
+        duration: apt.duration,
+        price: apt.price,
+        cancelledBy: apt.cancelledBy,
+        cancellationReason: apt.cancellationReason,
       },
     }));
 
@@ -78,7 +84,7 @@ export async function POST(req: NextRequest) {
     const userId = session.id;
 
     const body = await req.json();
-    const { title, description, start, end, location, status, clientId } = body;
+    const { title, description, start, end, location, status, clientId, consultationType, duration, price } = body;
 
     if (!title || !start) {
       return NextResponse.json(
@@ -98,6 +104,9 @@ export async function POST(req: NextRequest) {
         location: location || null,
         status: status || "SCHEDULED",
         clientId: clientId || null,
+        consultationType: consultationType || null,
+        duration: duration || null,
+        price: price || null,
       },
       include: {
         client: {
@@ -109,6 +118,14 @@ export async function POST(req: NextRequest) {
         },
       },
     });
+
+    // Créer une notification de confirmation
+    await notifyAppointmentConfirmed(
+      userId,
+      appointment.id,
+      appointment.title,
+      appointment.startAt
+    );
 
     return NextResponse.json({
       success: true,
@@ -123,6 +140,9 @@ export async function POST(req: NextRequest) {
           status: appointment.status,
           clientId: appointment.clientId,
           clientName: appointment.client ? `${appointment.client.firstName} ${appointment.client.lastName}` : undefined,
+          consultationType: appointment.consultationType,
+          duration: appointment.duration,
+          price: appointment.price,
         },
       },
     });

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { COOKIE_NAME } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
+import { notifyAppointmentCancelled, notifyAppointmentRescheduled } from "@/lib/notifications";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -24,10 +25,15 @@ export async function PATCH(req: NextRequest, context: Ctx) {
     const session = JSON.parse(sessionCookie.value);
     const userId = session.id;
 
-    // Vérifier que l'appointment appartient à l'utilisateur
+    // Vérifier que l'appointment appartient à l'utilisateur et récupérer les données actuelles
     const existing = await prisma.appointment.findUnique({
       where: { id },
-      select: { userId: true },
+      select: {
+        userId: true,
+        title: true,
+        startAt: true,
+        status: true,
+      },
     });
 
     if (!existing) {
@@ -45,7 +51,7 @@ export async function PATCH(req: NextRequest, context: Ctx) {
     }
 
     const body = await req.json();
-    const { title, description, start, end, location, status, clientId } = body;
+    const { title, description, start, end, location, status, clientId, consultationType, duration, price, cancelledBy, cancellationReason } = body;
 
     // Construire les données de mise à jour
     const updateData: any = {};
@@ -56,6 +62,15 @@ export async function PATCH(req: NextRequest, context: Ctx) {
     if (location !== undefined) updateData.location = location;
     if (status !== undefined) updateData.status = status;
     if (clientId !== undefined) updateData.clientId = clientId || null;
+    if (consultationType !== undefined) updateData.consultationType = consultationType || null;
+    if (duration !== undefined) updateData.duration = duration || null;
+    if (price !== undefined) updateData.price = price || null;
+    if (cancelledBy !== undefined) updateData.cancelledBy = cancelledBy || null;
+    if (cancellationReason !== undefined) updateData.cancellationReason = cancellationReason || null;
+
+    // Détecter les changements pour les notifications
+    const wasRescheduled = start && new Date(start).getTime() !== existing.startAt.getTime();
+    const wasCancelled = status === "CANCELLED" && existing.status !== "CANCELLED";
 
     // Mettre à jour l'appointment
     const appointment = await prisma.appointment.update({
@@ -72,6 +87,23 @@ export async function PATCH(req: NextRequest, context: Ctx) {
       },
     });
 
+    // Créer les notifications appropriées
+    if (wasCancelled) {
+      await notifyAppointmentCancelled(
+        userId,
+        appointment.id,
+        appointment.title,
+        (cancelledBy as "client" | "practitioner") || "practitioner"
+      );
+    } else if (wasRescheduled) {
+      await notifyAppointmentRescheduled(
+        userId,
+        appointment.id,
+        appointment.title,
+        appointment.startAt
+      );
+    }
+
     return NextResponse.json({
       success: true,
       event: {
@@ -85,6 +117,11 @@ export async function PATCH(req: NextRequest, context: Ctx) {
           status: appointment.status,
           clientId: appointment.clientId,
           clientName: appointment.client ? `${appointment.client.firstName} ${appointment.client.lastName}` : undefined,
+          consultationType: appointment.consultationType,
+          duration: appointment.duration,
+          price: appointment.price,
+          cancelledBy: appointment.cancelledBy,
+          cancellationReason: appointment.cancellationReason,
         },
       },
     });

@@ -95,6 +95,7 @@ model User {
   documents       Document[]       @relation("UserDocuments")
   notes           Note[]
   favorites       Favorite[]
+  notifications   Notification[]   @relation("UserNotifications")
 
   blogPosts BlogPost[] @relation("BlogPostAuthor")
   blogLikes BlogLike[]
@@ -591,10 +592,21 @@ model Appointment {
   endAt       DateTime?
   location    String?
 
+  // Consultation type details
+  consultationType String?  // Label of the consultation type
+  duration         Int?     // Duration in minutes
+  price            Float?   // Price in euros
+
   status String @default("SCHEDULED") // SCHEDULED, CONFIRMED, CANCELLED, COMPLETED, NO_SHOW
+
+  // Cancellation tracking
+  cancelledBy     String?   // 'client' or 'practitioner'
+  cancellationReason String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  notifications Notification[]
 
   @@index([userId])
   @@index([clientId])
@@ -620,6 +632,38 @@ model AgendaSettings {
 
   @@index([userId])
   @@map("agenda_settings")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════════
+
+model Notification {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  type    String  // 'appointment_cancelled', 'appointment_rescheduled', 'appointment_confirmed', 'appointment_reminder'
+  title   String
+  message String
+
+  read Boolean @default(false)
+
+  // Email tracking
+  emailSent Boolean @default(false)
+  emailSentAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([appointmentId])
+  @@index([read])
+  @@index([createdAt])
+  @@map("notifications")
 }
 
 // ═══════════════════════════════════════════════════════════════

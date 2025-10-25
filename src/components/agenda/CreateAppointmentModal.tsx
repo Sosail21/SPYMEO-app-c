@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import { useConfirm } from "@/hooks/useConfirm";
+import type { AppointmentType } from "@/types/agenda";
 
 type Client = {
   id: string;
@@ -32,6 +33,9 @@ export type AppointmentData = {
   location?: string;
   clientId?: string;
   status?: string;
+  consultationType?: string;
+  duration?: number;
+  price?: number;
 };
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
@@ -39,9 +43,11 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json());
 export default function CreateAppointmentModal({ open, onClose, onSubmit, initialData }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const { data } = useSWR(open ? "/api/pro/clients" : null, fetcher);
+  const { data: settingsData } = useSWR(open ? "/api/agenda/settings" : null, fetcher);
   const confirmDialog = useConfirm();
 
   const clients: Client[] = data?.success && Array.isArray(data.clients) ? data.clients : [];
+  const appointmentTypes: AppointmentType[] = settingsData?.appointmentTypes || [];
 
   // Form state
   const [title, setTitle] = useState("");
@@ -55,6 +61,10 @@ export default function CreateAppointmentModal({ open, onClose, onSubmit, initia
   const [clientSearch, setClientSearch] = useState("");
   const [showClientDropdown, setShowClientDropdown] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedTypeId, setSelectedTypeId] = useState<string>("");
+  const [consultationType, setConsultationType] = useState<string>("");
+  const [duration, setDuration] = useState<number | undefined>(undefined);
+  const [price, setPrice] = useState<number | undefined>(undefined);
 
   // Initialize dates from initialData
   useEffect(() => {
@@ -100,8 +110,44 @@ export default function CreateAppointmentModal({ open, onClose, onSubmit, initia
       setClientId("");
       setClientSearch("");
       setShowClientDropdown(false);
+      setSelectedTypeId("");
+      setConsultationType("");
+      setDuration(undefined);
+      setPrice(undefined);
     }
   }, [open]);
+
+  // Handle consultation type selection
+  function handleTypeSelect(typeId: string) {
+    setSelectedTypeId(typeId);
+
+    if (!typeId) {
+      setConsultationType("");
+      setDuration(undefined);
+      setPrice(undefined);
+      return;
+    }
+
+    const type = appointmentTypes.find(t => t.id === typeId);
+    if (type) {
+      setConsultationType(type.label);
+      setDuration(type.durationMin);
+      setPrice(type.price);
+
+      // Auto-fill location if available
+      if (type.location && !location) {
+        setLocation(type.location);
+      }
+
+      // Calculate end time based on duration and start time
+      if (startDate && startTime && type.durationMin) {
+        const start = new Date(`${startDate}T${startTime}`);
+        const end = new Date(start.getTime() + type.durationMin * 60000);
+        setEndDate(end.toISOString().split("T")[0]);
+        setEndTime(end.toTimeString().slice(0, 5));
+      }
+    }
+  }
 
   // Filter clients by search
   const filteredClients = clients.filter((c) => {
@@ -175,6 +221,9 @@ export default function CreateAppointmentModal({ open, onClose, onSubmit, initia
         location: location.trim() || undefined,
         clientId: clientId || undefined,
         status: "SCHEDULED",
+        consultationType: consultationType || undefined,
+        duration: duration,
+        price: price,
       });
       onClose();
     } catch (error) {
@@ -242,6 +291,27 @@ export default function CreateAppointmentModal({ open, onClose, onSubmit, initia
             )}
           </div>
 
+          {/* Consultation Type Selection */}
+          {appointmentTypes.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Type de consultation <span className="text-muted text-xs">(optionnel)</span>
+              </label>
+              <select
+                value={selectedTypeId}
+                onChange={(e) => handleTypeSelect(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-lg"
+              >
+                <option value="">-- Sélectionner un type --</option>
+                {appointmentTypes.map((type) => (
+                  <option key={type.id} value={type.id}>
+                    {type.label} {type.durationMin && `(${type.durationMin}min)`} {type.price && `- ${type.price}€`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Title */}
           <div>
             <label className="block text-sm font-medium mb-1">
@@ -305,6 +375,38 @@ export default function CreateAppointmentModal({ open, onClose, onSubmit, initia
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-lg"
+              />
+            </div>
+          </div>
+
+          {/* Duration and Price */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Durée (minutes)
+              </label>
+              <input
+                type="number"
+                value={duration || ""}
+                onChange={(e) => setDuration(e.target.value ? Number(e.target.value) : undefined)}
+                placeholder="60"
+                min="5"
+                step="5"
+                className="w-full px-3 py-2 border border-border rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Prix (€)
+              </label>
+              <input
+                type="number"
+                value={price || ""}
+                onChange={(e) => setPrice(e.target.value ? Number(e.target.value) : undefined)}
+                placeholder="50"
+                min="0"
+                step="0.01"
                 className="w-full px-3 py-2 border border-border rounded-lg"
               />
             </div>

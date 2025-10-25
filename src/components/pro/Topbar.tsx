@@ -1,6 +1,7 @@
 // Cdw-Spm
 import Link from "next/link";
 import UserAvatarMenu from "@/components/header/UserAvatarMenu";
+import NotificationBell from "@/components/common/NotificationBell";
 
 export default function Topbar({ name }: { name?: string }) {
   return (
@@ -9,7 +10,10 @@ export default function Topbar({ name }: { name?: string }) {
         <div className="flex items-center gap-3">
           <Link href="/" className="text-sm link-muted hover:underline">← Retour au site</Link>
         </div>
-        <UserAvatarMenu name={name} />
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <UserAvatarMenu name={name} />
+        </div>
       </div>
     </div>
   );
