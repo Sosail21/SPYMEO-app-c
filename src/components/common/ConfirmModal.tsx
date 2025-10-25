@@ -8,7 +8,7 @@ export interface ConfirmModalProps {
   onClose: () => void;
   onConfirm: () => void;
   title: string;
-  message: string;
+  message: string | React.ReactNode;
   confirmText?: string;
   cancelText?: string;
   variant?: "default" | "danger" | "warning" | "success" | "error";
@@ -110,7 +110,7 @@ export default function ConfirmModal({
         <h3 className="text-xl font-semibold text-center mb-2">{title}</h3>
 
         {/* Message */}
-        <p className="text-muted text-center mb-6">{message}</p>
+        <div className="text-muted text-center mb-6">{message}</div>
 
         {/* Actions */}
         <div className="flex gap-3">

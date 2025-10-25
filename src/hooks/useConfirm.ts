@@ -5,7 +5,7 @@ import { useState, useCallback } from "react";
 
 export interface ConfirmOptions {
   title: string;
-  message: string;
+  message: string | React.ReactNode;
   confirmText?: string;
   cancelText?: string;
   variant?: "default" | "danger" | "warning";
