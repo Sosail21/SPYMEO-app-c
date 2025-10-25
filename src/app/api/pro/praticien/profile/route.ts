@@ -198,6 +198,8 @@ export async function PATCH(req: NextRequest) {
         data: {
           ...practitionerUpdateData,
           userId: userId,
+          verified: true, // Auto-verify new profiles
+          featured: false,
         },
       });
     }

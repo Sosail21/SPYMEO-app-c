@@ -475,11 +475,11 @@ export default function PractitionerProfilePage() {
         <div className="card mt-6 bg-[#f7fbfd]">
           <p className="text-sm text-muted mb-2">Votre fiche publique :</p>
           <a
-            href={`/praticiens/${data.practitionerProfile.slug}`}
+            href={`/praticien/${data.practitionerProfile.slug}`}
             target="_blank"
             className="text-accent hover:underline font-medium"
           >
-            https://spymeo.fr/praticiens/{data.practitionerProfile.slug}
+            https://spymeo.fr/praticien/{data.practitionerProfile.slug}
           </a>
         </div>
       )}
