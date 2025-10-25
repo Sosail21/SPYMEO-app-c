@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import ClientTabs from "@/components/patient/ClientTabs";
+import ConfirmModal from "@/components/common/ConfirmModal";
+import { useConfirm } from "@/hooks/useConfirm";
 
 type ApiClient = {
   id: string;
@@ -58,6 +60,7 @@ export default function ClientDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const confirmDialog = useConfirm();
 
   // Form state
   const [firstName, setFirstName] = useState("");
@@ -122,22 +125,45 @@ export default function ClientDetailsPage() {
       if (data.success) {
         setClient(data.client);
         setEditing(false);
-        alert("Client mis à jour avec succès");
+        await confirmDialog.confirm({
+          title: "Succès",
+          message: "Client mis à jour avec succès",
+          confirmText: "OK",
+          cancelText: "",
+        });
       } else {
-        alert(data.error || "Erreur lors de la mise à jour");
+        await confirmDialog.confirm({
+          title: "Erreur",
+          message: data.error || "Erreur lors de la mise à jour",
+          confirmText: "OK",
+          cancelText: "",
+          variant: "danger",
+        });
       }
     } catch (error) {
       console.error("Error updating client:", error);
-      alert("Erreur lors de la mise à jour");
+      await confirmDialog.confirm({
+        title: "Erreur",
+        message: "Erreur lors de la mise à jour",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "danger",
+      });
     } finally {
       setSaving(false);
     }
   }
 
   async function handleDelete() {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${client?.firstName} ${client?.lastName} ?`)) {
-      return;
-    }
+    const confirmed = await confirmDialog.confirm({
+      title: "Supprimer le client",
+      message: `Êtes-vous sûr de vouloir supprimer ${client?.firstName} ${client?.lastName} ? Cette action est irréversible.`,
+      confirmText: "Supprimer",
+      cancelText: "Annuler",
+      variant: "danger",
+    });
+
+    if (!confirmed) return;
 
     try {
       const res = await fetch(`/api/pro/clients/${clientId}`, {
@@ -147,21 +173,45 @@ export default function ClientDetailsPage() {
       const data = await res.json();
 
       if (data.success) {
+        await confirmDialog.confirm({
+          title: "Succès",
+          message: "Client supprimé avec succès",
+          confirmText: "OK",
+          cancelText: "",
+        });
         router.push("/pro/praticien/fiches-clients");
       } else {
-        alert(data.error || "Erreur lors de la suppression");
+        await confirmDialog.confirm({
+          title: "Erreur",
+          message: data.error || "Erreur lors de la suppression",
+          confirmText: "OK",
+          cancelText: "",
+          variant: "danger",
+        });
       }
     } catch (error) {
       console.error("Error deleting client:", error);
-      alert("Erreur lors de la suppression");
+      await confirmDialog.confirm({
+        title: "Erreur",
+        message: "Erreur lors de la suppression",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "danger",
+      });
     }
   }
 
-  function addAntecedent() {
+  async function addAntecedent() {
     const trimmed = newAntecedent.trim();
     if (!trimmed) return;
     if (antecedents.includes(trimmed)) {
-      alert("Cet antécédent existe déjà");
+      await confirmDialog.confirm({
+        title: "Information",
+        message: "Cet antécédent existe déjà",
+        confirmText: "OK",
+        cancelText: "",
+        variant: "warning",
+      });
       return;
     }
     setAntecedents([...antecedents, trimmed]);
@@ -495,6 +545,17 @@ export default function ClientDetailsPage() {
           },
         }} />
       </div>
+
+      <ConfirmModal
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.handleClose}
+        onConfirm={confirmDialog.handleConfirm}
+        title={confirmDialog.options.title}
+        message={confirmDialog.options.message}
+        confirmText={confirmDialog.options.confirmText}
+        cancelText={confirmDialog.options.cancelText}
+        variant={confirmDialog.options.variant}
+      />
     </div>
   );
 }
