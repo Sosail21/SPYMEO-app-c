@@ -91,7 +91,7 @@ export default function AvailabilityPicker({
   // Récupérer les types de consultation uniques
   const consultationTypes = Array.from(
     new Set(availabilities.map((slot: Slot) => slot.consultationType))
-  ).map((type) => {
+  ).map((type: string) => {
     const slot = availabilities.find((s: Slot) => s.consultationType === type);
     return {
       label: type,
