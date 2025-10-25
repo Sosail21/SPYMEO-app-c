@@ -2,6 +2,7 @@
 'use client';
 
 import React, {useState} from "react";
+import Link from "next/link";
 import type { Client } from "@/types/clients";
 
 type Props = { client: Client };
@@ -53,8 +54,9 @@ export default function ClientTabs({ client }: Props) {
                     {c.notes && <div className="text-sm mt-1">{c.notes}</div>}
                   </div>
                   <div className="flex gap-2">
-                    <button className="pill pill-ghost">Voir</button>
-                    <button className="pill pill-muted">Notes</button>
+                    <Link href={`/pro/praticien/consultations/${c.id}`} className="pill pill-ghost">
+                      Voir
+                    </Link>
                   </div>
                 </li>
               ))}
