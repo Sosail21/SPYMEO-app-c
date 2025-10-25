@@ -56,12 +56,46 @@ export async function GET(req: NextRequest, context: Ctx) {
       );
     }
 
-    const agendaSettings = practitioner.user.agendaSettings;
+    // Auto-create AgendaSettings if not exist (with default values)
+    let agendaSettings = practitioner.user.agendaSettings;
     if (!agendaSettings) {
-      return NextResponse.json({
-        success: true,
-        availabilities: [],
-        message: "Agenda non configuré",
+      agendaSettings = await prisma.agendaSettings.create({
+        data: {
+          userId: practitioner.userId,
+          bufferMin: 0,
+          defaultView: "timeGridWeek",
+          allowedLocations: ["cabinet", "visio"],
+          acceptNewClients: true,
+          availabilities: {
+            monday: { enabled: true, start: "09:00", end: "18:00" },
+            tuesday: { enabled: true, start: "09:00", end: "18:00" },
+            wednesday: { enabled: true, start: "09:00", end: "18:00" },
+            thursday: { enabled: true, start: "09:00", end: "18:00" },
+            friday: { enabled: true, start: "09:00", end: "18:00" },
+            saturday: { enabled: false, start: "09:00", end: "12:00" },
+            sunday: { enabled: false, start: "09:00", end: "12:00" },
+          },
+          appointmentTypes: [
+            {
+              id: "consult-1",
+              group: "Consultations individuelles",
+              label: "Consultation initiale",
+              durationMin: 60,
+              price: 60,
+              mode: "individuel",
+              location: "cabinet",
+            },
+            {
+              id: "consult-2",
+              group: "Consultations individuelles",
+              label: "Consultation de suivi",
+              durationMin: 45,
+              price: 50,
+              mode: "individuel",
+              location: "cabinet",
+            },
+          ],
+        },
       });
     }
 
@@ -83,14 +117,31 @@ export async function GET(req: NextRequest, context: Ctx) {
       },
     });
 
-    // Parser les disponibilités
+    // Parser et valider les disponibilités
     const availabilities = agendaSettings.availabilities as any;
+    if (!availabilities || typeof availabilities !== 'object') {
+      return NextResponse.json({
+        success: true,
+        availabilities: [],
+        message: "Configuration agenda invalide - availabilities manquantes",
+      });
+    }
+
     const appointmentTypes = (agendaSettings.appointmentTypes || []) as any[];
+    if (!Array.isArray(appointmentTypes) || appointmentTypes.length === 0) {
+      return NextResponse.json({
+        success: true,
+        availabilities: [],
+        message: "Aucun type de consultation configuré",
+      });
+    }
+
     const bufferMin = (agendaSettings.bufferMin || 0) as number;
 
     // Générer les créneaux disponibles
     const slots: any[] = [];
     const currentDate = new Date(startDate);
+    const now = new Date(); // Calculate current time once, outside loops
 
     while (currentDate <= endDate) {
       const dayOfWeek = currentDate.getDay();
@@ -132,7 +183,7 @@ export async function GET(req: NextRequest, context: Ctx) {
                 );
               });
 
-              if (!isBooked && currentSlot > new Date()) {
+              if (!isBooked && currentSlot > now) {
                 // Ne pas afficher les créneaux passés
                 slots.push({
                   start: currentSlot.toISOString(),
