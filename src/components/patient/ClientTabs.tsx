@@ -68,8 +68,65 @@ export default function ClientTabs({ client }: Props) {
       )}
 
       {tab === "agenda" && (
-        <Section title="Agenda">
-          <div className="text-muted">Intégration calendrier à venir.</div>
+        <Section title="Rendez-vous">
+          {client.appointments && client.appointments.length > 0 ? (
+            <ul className="divide-y">
+              {client.appointments
+                .sort((a, b) => new Date(b.startAt).getTime() - new Date(a.startAt).getTime())
+                .map((appt) => {
+                  const isPast = new Date(appt.startAt) < new Date();
+                  const status = appt.status;
+                  const isCompleted = status === "COMPLETED";
+                  const isCancelled = status === "CANCELLED" || status === "NO_SHOW";
+                  const isUpcoming = (status === "SCHEDULED" || status === "CONFIRMED") && !isPast;
+
+                  // Code couleur selon le statut
+                  let statusBadge = "pill pill-muted";
+                  let statusText = status;
+                  if (isCompleted) {
+                    statusBadge = "pill pill-solid bg-green-100 text-green-700";
+                    statusText = "✓ Honoré";
+                  } else if (isCancelled) {
+                    statusBadge = "pill pill-solid bg-red-100 text-red-700";
+                    statusText = status === "NO_SHOW" ? "✕ Absent" : "✕ Annulé";
+                  } else if (isUpcoming) {
+                    statusBadge = "pill pill-solid bg-blue-100 text-blue-700";
+                    statusText = "→ À venir";
+                  }
+
+                  return (
+                    <li key={appt.id} className="py-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="font-medium">{appt.title}</div>
+                          <div className="text-muted text-sm">
+                            📅 {new Date(appt.startAt).toLocaleString("fr-FR", {
+                              weekday: "long",
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </div>
+                          {appt.location && (
+                            <div className="text-muted text-sm">
+                              📍 {appt.location}
+                            </div>
+                          )}
+                          {appt.description && (
+                            <div className="text-sm mt-1">{appt.description}</div>
+                          )}
+                        </div>
+                        <span className={statusBadge}>{statusText}</span>
+                      </div>
+                    </li>
+                  );
+                })}
+            </ul>
+          ) : (
+            <div className="text-muted">Aucun rendez-vous.</div>
+          )}
         </Section>
       )}
 

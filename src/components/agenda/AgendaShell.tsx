@@ -18,6 +18,8 @@ type Event = {
   title: string;
   start: string;
   end?: string;
+  backgroundColor?: string;
+  borderColor?: string;
   extendedProps?: {
     description?: string;
     location?: string;
@@ -26,6 +28,22 @@ type Event = {
     clientName?: string;
   };
 };
+
+// Fonction pour définir la couleur d'un événement selon son statut
+function getEventColor(status?: string) {
+  switch (status) {
+    case "CANCELLED":
+    case "NO_SHOW":
+      return { backgroundColor: "#ef4444", borderColor: "#dc2626" }; // Rouge
+    case "COMPLETED":
+      return { backgroundColor: "#22c55e", borderColor: "#16a34a" }; // Vert
+    case "SCHEDULED":
+    case "CONFIRMED":
+      return { backgroundColor: "#3b82f6", borderColor: "#2563eb" }; // Bleu
+    default:
+      return { backgroundColor: "#3b82f6", borderColor: "#2563eb" }; // Bleu par défaut
+  }
+}
 
 export default function AgendaShell() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -49,7 +67,15 @@ export default function AgendaShell() {
       const data = await res.json();
 
       if (data.success && data.events) {
-        setEvents(data.events);
+        // Appliquer les couleurs selon le statut
+        const eventsWithColors = data.events.map((event: Event) => {
+          const colors = getEventColor(event.extendedProps?.status);
+          return {
+            ...event,
+            ...colors,
+          };
+        });
+        setEvents(eventsWithColors);
       }
     } catch (error) {
       console.error("Error fetching events:", error);
@@ -82,7 +108,10 @@ export default function AgendaShell() {
       const result = await res.json();
 
       if (result.success && result.event) {
-        setEvents((prev) => [...prev, result.event]);
+        // Appliquer les couleurs au nouvel événement
+        const colors = getEventColor(result.event.extendedProps?.status);
+        const eventWithColors = { ...result.event, ...colors };
+        setEvents((prev) => [...prev, eventWithColors]);
       } else {
         throw new Error(result.error || "Erreur lors de la création");
       }
@@ -112,8 +141,11 @@ export default function AgendaShell() {
       const data = await res.json();
 
       if (data.success && data.event) {
+        // Appliquer les couleurs à l'événement déplacé
+        const colors = getEventColor(data.event.extendedProps?.status);
+        const eventWithColors = { ...data.event, ...colors };
         setEvents((prev) =>
-          prev.map((e) => (e.id === eventId ? data.event : e))
+          prev.map((e) => (e.id === eventId ? eventWithColors : e))
         );
       } else {
         // Revert if failed
@@ -150,7 +182,10 @@ export default function AgendaShell() {
       const data = await res.json();
 
       if (data.success && data.event) {
-        setEvents((prev) => prev.map((e) => (e.id === id ? data.event : e)));
+        // Appliquer les couleurs à l'événement mis à jour
+        const colors = getEventColor(data.event.extendedProps?.status);
+        const eventWithColors = { ...data.event, ...colors };
+        setEvents((prev) => prev.map((e) => (e.id === id ? eventWithColors : e)));
       } else {
         throw new Error(data.error || "Erreur lors de la mise à jour");
       }

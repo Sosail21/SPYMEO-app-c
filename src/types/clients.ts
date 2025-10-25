@@ -8,6 +8,7 @@ export interface Client {
   birthDate?: string;
   createdAt: string;
   consultations?: Consultation[];
+  appointments?: Appointment[];
   antecedents?: string[];
   invoices?: Invoice[];
   docs?: Doc[];
@@ -26,6 +27,16 @@ export interface Consultation {
   notes?: string;
   diagnosis?: string;
   motif?: string;
+}
+
+export interface Appointment {
+  id: string;
+  title: string;
+  startAt: string;
+  endAt?: string | null;
+  status: string;
+  description?: string | null;
+  location?: string | null;
 }
 
 export interface Invoice {
