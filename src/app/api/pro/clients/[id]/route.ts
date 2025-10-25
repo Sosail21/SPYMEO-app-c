@@ -121,15 +121,15 @@ export async function GET(req: NextRequest, context: Context) {
     const lastConsultation = client.consultations[0];
     const lastCompletedAppointment = completedAppointments[0];
 
-    let lastVisitAt = client.lastVisitAt;
+    let lastVisitAtString: string | null = client.lastVisitAt?.toISOString() || null;
     if (lastConsultation && lastCompletedAppointment) {
-      lastVisitAt = new Date(lastConsultation.date) > new Date(lastCompletedAppointment.startAt)
+      lastVisitAtString = new Date(lastConsultation.date) > new Date(lastCompletedAppointment.startAt)
         ? lastConsultation.date.toISOString()
         : lastCompletedAppointment.startAt.toISOString();
     } else if (lastConsultation) {
-      lastVisitAt = lastConsultation.date.toISOString();
+      lastVisitAtString = lastConsultation.date.toISOString();
     } else if (lastCompletedAppointment) {
-      lastVisitAt = lastCompletedAppointment.startAt.toISOString();
+      lastVisitAtString = lastCompletedAppointment.startAt.toISOString();
     }
 
     return NextResponse.json({
@@ -137,7 +137,7 @@ export async function GET(req: NextRequest, context: Context) {
       client: {
         ...client,
         totalVisits,
-        lastVisitAt,
+        lastVisitAt: lastVisitAtString,
       },
     });
   } catch (error) {
