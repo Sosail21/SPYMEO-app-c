@@ -18,6 +18,7 @@ export async function GET(req: NextRequest, context: Ctx) {
             id: true,
             phone: true,
             email: true,
+            status: true,
             agendaSettings: true,
           },
         },
